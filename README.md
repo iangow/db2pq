@@ -1,4 +1,4 @@
-# Library to convert WRDS SAS data
+# Library to convert PostgreSQL data to parquet files
 
 This package was created to convert PostgreSQL data to parquet format.
 This package has three major functions, one for each of three popular data formats.
