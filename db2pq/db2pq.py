@@ -97,9 +97,8 @@ def db_to_pq(table_name, schema,
         alt_table_name = table_name
     
     con = ibis.duckdb.connect()
-    uri = "postgresql://%s@%s:%s/%s" % (user, host, port, database)
+    uri = f"postgres://{user}@{host}:{port}/{database}"
     df = con.read_postgres(uri = uri, table_name=table_name, schema=schema)
-    
     data_dir = os.path.expanduser(data_dir)
     pq_dir = os.path.join(data_dir, schema)
     if not os.path.exists(pq_dir):
@@ -160,7 +159,7 @@ def wrds_pg_to_pq(table_name,
         Only a subset of columns needs to be supplied.
         Supplied types should be compatible with data emitted by PostgreSQL 
         (i.e., one can't "fix" arbitrary type issues using this argument).
-        For example, `col_types = {'permno':'integer', 'permco':'integer'}`.
+        For example, `col_types = {'permno': 'int32', 'permco': 'int32'}`.
     
     row_group_size: int [Optional]
         Maximum number of rows in each written row group. 
@@ -200,8 +199,7 @@ def wrds_pg_to_pq(table_name,
              row_group_size=row_group_size,
              obs=obs,
              alt_table_name=alt_table_name,
-             batched=batched,
-             use_duckdb=use_duckdb)
+             batched=batched)
 
 def db_schema_tables(schema, 
                      user=os.getenv("PGUSER", default=os.getlogin()), 
