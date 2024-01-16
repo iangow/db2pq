@@ -6,3 +6,4 @@
 db2pq.egg-info
 db2pq/__pycache__
 dist
+build
