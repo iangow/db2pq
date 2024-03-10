@@ -3,7 +3,16 @@ import os
 import ibis.selectors as s
 from ibis import _
 from tempfile import TemporaryFile, NamedTemporaryFile
-import pyarrow.parquet as pq 
+import pyarrow.parquet as pq
+import re
+import warnings
+import paramiko
+from pathlib import Path
+from time import gmtime, strftime
+
+client = paramiko.SSHClient()
+wrds_id = os.getenv("WRDS_ID")
+warnings.filterwarnings(action='ignore', module='.*paramiko.*')
 
 def df_to_arrow(df, col_types=None, obs=None, batches=False):
     
@@ -30,6 +39,7 @@ def db_to_pq(table_name, schema,
              col_types=None,
              row_group_size=1048576,
              obs=None,
+             modified=None,
              alt_table_name=None,
              batched=True):
     """Export a PostgreSQL table to a parquet file.
@@ -73,7 +83,10 @@ def db_to_pq(table_name, schema,
         Implemented using SQL `LIMIT`.
         Setting this to modest value (e.g., `obs=1000`) can be useful for testing
         `db_to_pq()` with large tables.
-    
+
+    modified: string [Optional]
+        Last modified string.
+        
     alt_table_name: string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
 
@@ -112,6 +125,8 @@ def db_to_pq(table_name, schema,
         df_arrow = df_to_arrow(df, col_types=col_types, obs=10)
         pq.write_table(df_arrow, tmpfile)
         schema = pq.read_schema(tmpfile)
+        if modified:
+            schema = schema.with_metadata({b'last_modified': modified.encode()})
         
         # Process data in batches
         with pq.ParquetWriter(tmp_pq_file, schema) as writer:
@@ -132,6 +147,7 @@ def wrds_pg_to_pq(table_name,
                   col_types=None,
                   row_group_size=1048576,
                   obs=None,
+                  modified=None,
                   alt_table_name=None,
                   batched=True):
     """Export a table from the WRDS PostgreSQL database to a parquet file.
@@ -198,6 +214,7 @@ def wrds_pg_to_pq(table_name,
              col_types=col_types,
              row_group_size=row_group_size,
              obs=obs,
+             modified=modified,
              alt_table_name=alt_table_name,
              batched=batched)
 
@@ -328,3 +345,161 @@ def db_schema_to_pq(schema,
                     row_group_size=row_group_size,
                     batched=batched) for table_name in tables]
     return res
+
+def get_process(sas_code, wrds_id=wrds_id, fpath=None):
+    """Update a local CSV version of a WRDS table.
+
+    Parameters
+    ----------
+    sas_code: 
+        SAS code to be run to yield output. 
+                      
+    wrds_id: string
+        Optional WRDS ID to be use to access WRDS SAS. 
+        Default is to use the environment value `WRDS_ID`
+    
+    fpath: 
+        Optional path to a local SAS file.
+    
+    Returns
+    -------
+    The STDOUT component of the process as a stream.
+    """
+    if client:
+        client.close()
+
+    if wrds_id:
+        """Function runs SAS code on WRDS server and
+        returns result as pipe on stdout."""
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.WarningPolicy())
+        client.connect('wrds-cloud-sshkey.wharton.upenn.edu',
+                       username=wrds_id, compress=False)
+        command = "qsas -stdio -noterminal"
+        stdin, stdout, stderr = client.exec_command(command)
+        stdin.write(sas_code)
+        stdin.close()
+
+        channel = stdout.channel
+        # indicate that we're not going to write to that channel anymore
+        channel.shutdown_write()
+        return stdout
+
+def proc_contents(table_name, sas_schema=None, wrds_id=os.getenv("WRDS_ID"), 
+                   encoding=None):
+    if not encoding:
+        encoding = "utf-8"
+    
+    sas_code = f"PROC CONTENTS data={sas_schema}.{table_name}(encoding='{encoding}');"
+
+    p = get_process(sas_code, wrds_id)
+
+    return p.readlines()
+
+def get_modified_str(table_name, sas_schema, wrds_id=wrds_id,
+                     encoding=None):
+    
+    contents = proc_contents(table_name=table_name, sas_schema=sas_schema, 
+                             wrds_id=wrds_id, encoding=encoding)
+    
+    if len(contents) == 0:
+        print(f"Table {sas_schema}.{table_name} not found.")
+        return None
+
+    modified = ""
+    next_row = False
+    for line in contents:
+        if next_row:
+            line = re.sub(r"^\s+(.*)\s+$", r"\1", line)
+            line = re.sub(r"\s+$", "", line)
+            if not re.findall(r"Protection", line):
+                modified += " " + line.rstrip()
+            next_row = False
+
+        if re.match(r"Last Modified", line):
+            modified = re.sub(r"^Last Modified\s+(.*?)\s{2,}.*$",
+                              r"Last modified: \1", line)
+            modified = modified.rstrip()
+            next_row = True
+
+    return modified
+
+def get_modified_pq(file_name):
+    
+    if os.path.exists(file_name):
+        md = pq.read_schema(file_name)
+        schema_md = md.metadata
+        if not schema_md:
+            return ''
+        if b'last_modified' in schema_md.keys():
+            last_modified = schema_md[b'last_modified'].decode('utf-8')
+        else:
+            last_modified = ''
+    else:
+        last_modified = ''
+    return last_modified
+
+def wrds_update_pq(table_name, schema, 
+                   wrds_id=os.getenv("WRDS_ID", default=""),
+                   data_dir=os.getenv("DATA_DIR", default=""),
+                   force=False,
+                   col_types=None,
+                   encoding="utf-8", 
+                   sas_schema=None,
+                   row_group_size=1048576,
+                   obs=None,
+                   alt_table_name=None,
+                   batched=True):
+    if not sas_schema:
+        sas_schema = schema
+
+    if not alt_table_name:
+        alt_table_name = table_name
+    
+    pq_file = get_pq_file(table_name=table_name, schema=schema, 
+                          data_dir=data_dir)
+                
+    modified = get_modified_str(table_name=table_name, 
+                                sas_schema=sas_schema, wrds_id=wrds_id, 
+                                encoding=encoding)
+    if not modified:
+        return False
+    
+    pq_modified = get_modified_pq(pq_file)
+    if modified == pq_modified and not force:
+        print(schema + "." + alt_table_name + " already up to date.")
+        return False
+    if force:
+        print("Forcing update based on user request.")
+    else:
+        print("Updated %s.%s is available." % (schema, alt_table_name))
+        print("Getting from WRDS.")
+    
+    print(f"Beginning file download at {get_now()} UTC.")
+    wrds_pg_to_pq(table_name=table_name,
+                  schema=schema,
+                  data_dir=data_dir,
+                  wrds_id=wrds_id,
+                  col_types=col_types,
+                  row_group_size=row_group_size,
+                  obs=obs,
+                  modified=modified,
+                  alt_table_name=alt_table_name,
+                  batched=batched)
+    print(f"Completed file download at {get_now()} UTC.\n")
+
+def get_pq_file(table_name, schema, data_dir=os.getenv("DATA_DIR")):
+    
+    data_dir = os.path.expanduser(data_dir)
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    schema_dir = Path(data_dir, schema)
+    if not os.path.exists(schema_dir):
+        os.makedirs(schema_dir)
+        
+    pq_file = Path(data_dir, schema, table_name).with_suffix('.parquet')
+    return pq_file
+
+def get_now():
+    return strftime("%Y-%m-%d %H:%M:%S", gmtime())
