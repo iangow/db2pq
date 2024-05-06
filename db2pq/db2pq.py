@@ -111,7 +111,7 @@ def db_to_pq(table_name, schema,
     
     con = ibis.duckdb.connect()
     uri = f"postgres://{user}@{host}:{port}/{database}"
-    df = con.read_postgres(uri = uri, table_name=table_name, schema=schema)
+    df = con.read_postgres(uri = uri, table_name=table_name, database=schema)
     data_dir = os.path.expanduser(data_dir)
     pq_dir = os.path.join(data_dir, schema)
     if not os.path.exists(pq_dir):
