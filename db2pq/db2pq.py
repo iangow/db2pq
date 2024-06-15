@@ -503,3 +503,50 @@ def get_pq_file(table_name, schema, data_dir=os.getenv("DATA_DIR")):
 
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
+
+def get_pq_files(schema, data_dir=os.getenv("DATA_DIR", default="")):
+    """Get a list of parquet files in a schema.
+
+    Parameters
+    ----------
+    schema: 
+        Name of database schema.
+            
+    data_dir: string [Optional]
+        Root directory of parquet data repository. 
+        The default is to use the environment value `DATA_DIR` 
+        or (if not set) the current directory.
+    
+    Returns
+    -------
+    pq_files: [string]
+        Names of parquet files found.
+    """
+    data_dir = os.path.expanduser(data_dir)
+    pq_dir = os.path.join(data_dir, schema)
+    files = os.listdir(pq_dir)
+    return [re.sub(r"\.parquet$", "", pq_file) 
+            for pq_file in files
+            if re.search(r"\.parquet$", pq_file)]
+            
+def update_schema(schema, data_dir=os.getenv("DATA_DIR", default="")):
+    """Update existing parquet files in a schema.
+
+    Parameters
+    ----------
+    schema: 
+        Name of database schema.
+            
+    data_dir: string [Optional]
+        Root directory of parquet data repository. 
+        The default is to use the environment value `DATA_DIR` 
+        or (if not set) the current directory.
+    
+    Returns
+    -------
+    pq_files: [string]
+        Names of parquet files found.
+    """
+    pq_files = get_pq_files(schema = schema, data_dir = data_dir)
+    for pq_file in pq_files:
+        wrds_update_pq(table_name = pq_file, schema = schema, data_dir = data_dir)
