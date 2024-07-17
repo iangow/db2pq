@@ -263,7 +263,7 @@ def db_schema_tables(schema,
                                 host=host,
                                 port=port,
                                 database=database)
-    tables = con.list_tables(schema=schema)
+    tables = con.list_tables(database=schema)
     return tables
 
 def db_schema_to_pq(schema, 
