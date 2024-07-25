@@ -41,6 +41,8 @@ def db_to_pq(table_name, schema,
              obs=None,
              modified=None,
              alt_table_name=None,
+             keep=None,
+             drop=None,
              batched=True):
     """Export a PostgreSQL table to a parquet file.
 
@@ -90,6 +92,12 @@ def db_to_pq(table_name, schema,
     alt_table_name: string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
 
+    keep: string [Optional]
+        Regular expression indicating columns to keep.
+        
+    drop: string [Optional]
+        Regular expression indicating columns to drop.
+    
     batched: bool [Optional]
         Indicates whether data will be extracting in batches using
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
@@ -118,6 +126,12 @@ def db_to_pq(table_name, schema,
         os.makedirs(pq_dir)
     pq_file = os.path.join(data_dir, schema, alt_table_name + '.parquet')
     tmp_pq_file = os.path.join(data_dir, schema, '.temp_' + alt_table_name + '.parquet')
+    
+    if drop:
+        df = df.drop(s.matches(drop))
+        
+    if keep:
+        df = df.select(s.matches(keep))
     
     if batched:
         # Get a few rows to infer schema for batched write
@@ -149,6 +163,8 @@ def wrds_pg_to_pq(table_name,
                   obs=None,
                   modified=None,
                   alt_table_name=None,
+                  keep=None,
+                  drop=None,
                   batched=True):
     """Export a table from the WRDS PostgreSQL database to a parquet file.
 
@@ -190,6 +206,12 @@ def wrds_pg_to_pq(table_name,
     alt_table_name: string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
 
+    keep: string [Optional]
+        Regular expression indicating columns to keep.
+        
+    drop: string [Optional]
+        Regular expression indicating columns to drop.
+
     batched: bool [Optional]
         Indicates whether data will be extracting in batches using
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
@@ -216,6 +238,8 @@ def wrds_pg_to_pq(table_name,
              obs=obs,
              modified=modified,
              alt_table_name=alt_table_name,
+             keep=keep,
+             drop=drop,
              batched=batched)
 
 def db_schema_tables(schema, 
@@ -449,7 +473,76 @@ def wrds_update_pq(table_name, schema,
                    row_group_size=1048576,
                    obs=None,
                    alt_table_name=None,
+                   keep=None,
+                   drop=None,
                    batched=True):
+    """Export a table from the WRDS PostgreSQL database to a parquet file.
+
+    Parameters
+    ----------
+    table_name: 
+        Name of table in database.
+    
+    schema: 
+        Name of database schema.
+
+    wrds_id: string
+        WRDS ID to be used to access WRDS SAS. 
+        Default is to use the environment value `WRDS_ID`.
+
+    data_dir: string [Optional]
+        Root directory of parquet data repository. 
+        The default is to use the environment value `DATA_DIR` 
+        or (if not set) the current directory.
+        
+    force: Boolean
+        Whether update should proceed regardless of date comparison results.
+    
+    col_types: Dict [Optional]
+        Dictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files.
+        For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB.
+        Only a subset of columns needs to be supplied.
+        Supplied types should be compatible with data emitted by PostgreSQL 
+        (i.e., one can't "fix" arbitrary type issues using this argument).
+        For example, `col_types = {'permno': 'int32', 'permco': 'int32'}`.
+    
+    row_group_size: int [Optional]
+        Maximum number of rows in each written row group. 
+        Default is `1024 * 1024`.    
+    
+    obs: Integer [Optional]
+        Number of observations to import from database table.
+        Implemented using SQL `LIMIT`.
+        Setting this to modest value (e.g., `obs=1000`) can be useful for testing
+        `db_to_pq()` with large tables.
+    
+    alt_table_name: string [Optional]
+        Basename of parquet file. Used when file should have different name from `table_name`.
+
+    keep: string [Optional]
+        Regular expression indicating columns to keep.
+        
+    drop: string [Optional]
+        Regular expression indicating columns to drop.
+
+    batched: bool [Optional]
+        Indicates whether data will be extracting in batches using
+        `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
+        Using batches degrades performance slightly, but dramatically 
+        reduces memory requirements for large tables.
+    
+    Returns
+    -------
+    pq_file: string
+        Name of parquet file created.
+    
+    Examples
+    ----------
+    >>> db_to_pq("dsi", "crsp")
+    >>> db_to_pq("feed21_bankruptcy_notification", "audit")
+    """                       
+                       
+                       
     if not sas_schema:
         sas_schema = schema
 
@@ -485,6 +578,8 @@ def wrds_update_pq(table_name, schema,
                   obs=obs,
                   modified=modified,
                   alt_table_name=alt_table_name,
+                  keep=keep,
+                  drop=drop,
                   batched=batched)
     print(f"Completed file download at {get_now()} UTC.\n")
 
