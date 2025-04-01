@@ -43,7 +43,8 @@ def db_to_pq(table_name, schema,
              alt_table_name=None,
              keep=None,
              drop=None,
-             batched=True):
+             batched=True,
+             threads=None):
     """Export a PostgreSQL table to a parquet file.
 
     Parameters
@@ -103,6 +104,11 @@ def db_to_pq(table_name, schema,
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
         Using batches degrades performance slightly, but dramatically 
         reduces memory requirements for large tables.
+        
+    threads: int [Optional]
+        The number of threads DuckDB is allowed to use.
+        Setting this may be necessary due to limits imposed on the user
+        by the PostgreSQL database server.
     
     Returns
     -------
@@ -118,6 +124,9 @@ def db_to_pq(table_name, schema,
         alt_table_name = table_name
     
     con = ibis.duckdb.connect()
+    if threads:
+        con.raw_sql(f"SET threads TO {threads};")
+        
     uri = f"postgres://{user}@{host}:{port}/{database}"
     df = con.read_postgres(uri, table_name=table_name, database=schema)
     data_dir = os.path.expanduser(data_dir)
@@ -165,7 +174,8 @@ def wrds_pg_to_pq(table_name,
                   alt_table_name=None,
                   keep=None,
                   drop=None,
-                  batched=True):
+                  batched=True,
+                  threads=3):
     """Export a table from the WRDS PostgreSQL database to a parquet file.
 
     Parameters
@@ -218,6 +228,11 @@ def wrds_pg_to_pq(table_name,
         Using batches degrades performance slightly, but dramatically 
         reduces memory requirements for large tables.
     
+    threads: int [Optional]
+        The number of threads DuckDB is allowed to use.
+        Setting this may be necessary due to limits imposed on the user
+        by the PostgreSQL database server.
+    
     Returns
     -------
     pq_file: string
@@ -240,7 +255,8 @@ def wrds_pg_to_pq(table_name,
              alt_table_name=alt_table_name,
              keep=keep,
              drop=drop,
-             batched=batched)
+             batched=batched,
+             threads=threads)
 
 def db_schema_tables(schema, 
                      user=os.getenv("PGUSER", default=os.getlogin()), 
@@ -297,7 +313,8 @@ def db_schema_to_pq(schema,
                     port=os.getenv("PGPORT", default=5432),
                     data_dir=os.getenv("DATA_DIR", default=""),
                     row_group_size=1048576,
-                    batched=True):
+                    batched=True,
+                    threads=None):
     """Export all tables in a PostgreSQL table to parquet files.
 
     Parameters
@@ -347,6 +364,11 @@ def db_schema_to_pq(schema,
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
         Using batches degrades performance slightly, but dramatically 
         reduces memory requirements for large tables.
+            
+    threads: int [Optional]
+        The number of threads DuckDB is allowed to use.
+        Setting this may be necessary due to limits imposed on the user
+        by the PostgreSQL database server.
     
     Returns
     -------
@@ -367,6 +389,7 @@ def db_schema_to_pq(schema,
                     port=port,
                     data_dir=data_dir,
                     row_group_size=row_group_size,
+                    threads=threads,
                     batched=batched) for table_name in tables]
     return res
 
@@ -475,7 +498,8 @@ def wrds_update_pq(table_name, schema,
                    alt_table_name=None,
                    keep=None,
                    drop=None,
-                   batched=True):
+                   batched=True,
+                   threads=3):
     """Export a table from the WRDS PostgreSQL database to a parquet file.
 
     Parameters
@@ -530,6 +554,11 @@ def wrds_update_pq(table_name, schema,
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
         Using batches degrades performance slightly, but dramatically 
         reduces memory requirements for large tables.
+                
+    threads: int [Optional]
+        The number of threads DuckDB is allowed to use.
+        Setting this may be necessary due to limits imposed on the user
+        by the PostgreSQL database server.
     
     Returns
     -------
@@ -580,7 +609,8 @@ def wrds_update_pq(table_name, schema,
                   alt_table_name=alt_table_name,
                   keep=keep,
                   drop=drop,
-                  batched=batched)
+                  batched=batched,
+                  threads=threads)
     print(f"Completed file download at {get_now()} UTC.\n")
 
 def get_pq_file(table_name, schema, data_dir=os.getenv("DATA_DIR")):
@@ -636,12 +666,19 @@ def update_schema(schema, data_dir=os.getenv("DATA_DIR", default="")):
         Root directory of parquet data repository. 
         The default is to use the environment value `DATA_DIR` 
         or (if not set) the current directory.
+        
+    threads: int [Optional]
+        The number of threads DuckDB is allowed to use.
+        Setting this may be necessary due to limits imposed on the user
+        by the PostgreSQL database server.
+    
     
     Returns
     -------
     pq_files: [string]
         Names of parquet files found.
     """
-    pq_files = get_pq_files(schema = schema, data_dir = data_dir)
+    pq_files = get_pq_files(schema=schema, data_dir=data_dir)
     for pq_file in pq_files:
-        wrds_update_pq(table_name = pq_file, schema = schema, data_dir = data_dir)
+        wrds_update_pq(table_name=pq_file, schema=schema, 
+                       data_dir=data_dir, threads=3)
