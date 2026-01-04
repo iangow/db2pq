@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="db2pq",
-    version="0.1.2",
+    version="0.1.3",
     author="Ian Gow",
     author_email="iandgow@gmail.com",
     description="Convert database tables to parquet tables.",
@@ -14,7 +14,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/iangow/db2pq/",
     packages=setuptools.find_packages(),
-    install_requires=['ibis-framework[duckdb, postgres]', 'pyarrow', 'paramiko'],
+    install_requires=['ibis-framework[duckdb, postgres]', 'pyarrow', 'pandas', 'paramiko'],
     python_requires=">=3",
     classifiers=[
         "Programming Language :: Python :: 3",

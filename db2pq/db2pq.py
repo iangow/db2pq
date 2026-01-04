@@ -9,6 +9,7 @@ import warnings
 import paramiko
 from pathlib import Path
 from time import gmtime, strftime
+import pandas as pd
 
 client = paramiko.SSHClient()
 wrds_id = os.getenv("WRDS_ID")
@@ -671,6 +672,7 @@ def update_schema(schema, data_dir=os.getenv("DATA_DIR", default="")):
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
+    
     
     Returns
     -------
