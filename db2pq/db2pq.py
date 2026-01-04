@@ -672,7 +672,6 @@ def update_schema(schema, data_dir=os.getenv("DATA_DIR", default="")):
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
     
-    
     Returns
     -------
     pq_files: [string]
@@ -682,3 +681,44 @@ def update_schema(schema, data_dir=os.getenv("DATA_DIR", default="")):
     for pq_file in pq_files:
         wrds_update_pq(table_name=pq_file, schema=schema, 
                        data_dir=data_dir, threads=3)
+                       
+def pq_last_updated(data_dir=None):
+    """
+    Get `last_updated` metadata for data files in a parquet data repository
+    set up along the lines described at 
+    https://iangow.github.io/far_book/parquet-wrds.html.
+
+    Parameters
+    ----------
+    data_dir: string [Optional]
+        Root directory of parquet data repository. 
+        The default is to use the environment value `DATA_DIR` 
+        or (if not set) the current directory.
+
+    Returns
+    -------
+    df: [pd.DataFrame]
+        Data frame with four columns: table, schema, last_mod_str, last_mod
+    """
+    
+    if not data_dir:
+        data_dir = os.path.expanduser(os.environ["DATA_DIR"])
+    data_dir = Path(data_dir)
+    
+    df = pd.DataFrame([
+        {"table": p.stem, 
+         "schema": subdir.name, 
+         "last_mod_str": get_modified_pq(p)}
+        for subdir in data_dir.iterdir()
+        if subdir.is_dir()
+        for p in subdir.glob("*.parquet")
+    ])
+
+    df["last_mod"] = (
+        df["last_mod_str"]
+            .str.replace("Last modified: ", "", regex=False)
+            .pipe(pd.to_datetime)
+            .dt.tz_localize("US/Eastern")
+    )
+    
+    return df.sort_values("schema").reset_index(drop=True)                       
