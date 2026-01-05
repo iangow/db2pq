@@ -300,7 +300,7 @@ def db_schema_tables(schema,
     >>> db_schema_tables("crsp")
     >>> db_schema_tables("audit")
     """
-    con = ibis.postgres.connect(user=user,    
+    con = ibis.tabl(user=user,    
                                 host=host,
                                 port=port,
                                 database=database)
@@ -500,7 +500,8 @@ def wrds_update_pq(table_name, schema,
                    keep=None,
                    drop=None,
                    batched=True,
-                   threads=3):
+                   threads=3,
+                   use_sas=False):
     """Export a table from the WRDS PostgreSQL database to a parquet file.
 
     Parameters
@@ -561,6 +562,10 @@ def wrds_update_pq(table_name, schema,
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
     
+    use_sas: bool [Optional]
+        Should update get table comments from SAS data file.
+        If False, then updated string comes from WRDS PostgreSQL table comment.
+    
     Returns
     -------
     pq_file: string
@@ -571,8 +576,7 @@ def wrds_update_pq(table_name, schema,
     >>> db_to_pq("dsi", "crsp")
     >>> db_to_pq("feed21_bankruptcy_notification", "audit")
     """                       
-                       
-                       
+             
     if not sas_schema:
         sas_schema = schema
 
@@ -582,9 +586,14 @@ def wrds_update_pq(table_name, schema,
     pq_file = get_pq_file(table_name=table_name, schema=schema, 
                           data_dir=data_dir)
                 
-    modified = get_modified_str(table_name=table_name, 
-                                sas_schema=sas_schema, wrds_id=wrds_id, 
-                                encoding=encoding)
+    if use_sas:
+        modified = get_modified_str(table_name=table_name, 
+                                    sas_schema=sas_schema, wrds_id=wrds_id, 
+                                    encoding=encoding)
+    else:
+        modified = get_wrds_comment(table_name=table_name, 
+                                    schema=schema, wrds_id=wrds_id)
+
     if not modified:
         return False
     
@@ -673,7 +682,6 @@ def update_schema(schema, data_dir=os.getenv("DATA_DIR", default="")):
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
     
-    
     Returns
     -------
     pq_files: [string]
@@ -724,3 +732,72 @@ def pq_last_updated(data_dir=None):
     )
     
     return df.sort_values("schema").reset_index(drop=True)                       
+
+def get_pg_comment(table_name: str, schema: str,
+                   user=os.getenv("PGUSER", default=os.getlogin()), 
+                   host=os.getenv("PGHOST", default="localhost"),
+                   database=os.getenv("PGDATABASE", default=os.getlogin()), 
+                   port=os.getenv("PGPORT", default=5432)) -> str | None:
+    """Get comment from a PostgreSQL object (table, view, etc.).
+
+    Parameters
+    ----------
+    table_name:
+        Name of database object.
+    
+    schema: 
+        Name of database schema.
+
+    user: string [Optional]
+        User role for the PostgreSQL database.
+        The default is to use the environment value `PGHOST`
+        or (if not set) user ID.
+
+    host: string [Optional]
+        Host name for the PostgreSQL server.
+        The default is to use the environment value `PGHOST`.
+
+    database: string [Optional]
+        Name for the PostgreSQL database.
+        The default is to use the environment value `PGDATABASE`
+        or (if not set) user ID.
+
+    port: int [Optional]
+        Port for the PostgreSQL server.
+        The default is to use the environment value `PGPORT`
+        or (if not set) 5432.
+    
+    Returns
+    -------
+    comment: string
+        Comment for PostgreSQL object.
+    
+    Examples
+    ----------
+    >>> db_schema_tables("dsf", "crsp")
+    """
+    con = ibis.postgres.connect(user=user,    
+                                host=host,
+                                port=port,
+                                database=database)
+    
+    sql = """
+    SELECT obj_description(
+             to_regclass(%(fqname)s),
+             'pg_class'
+           ) AS comment
+    """
+    fqname = f"{schema}.{table_name}"
+    cur = con.raw_sql(sql, params={"fqname": fqname})
+    try:
+        row = cur.fetchone()
+    finally:
+        cur.close()
+    return row[0] if row else None
+
+def get_wrds_comment(table_name, schema, 
+                     wrds_id=os.getenv("WRDS_ID", default="")):
+    return get_pg_comment(table_name, schema, user=wrds_id, 
+                          host="wrds-pgdata.wharton.upenn.edu",
+                          database="wrds",
+                          port=9737)
