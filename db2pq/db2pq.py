@@ -726,10 +726,9 @@ def pq_last_updated(data_dir=None):
 
     df["last_mod"] = (
         df["last_mod_str"]
-            .str.replace("Last modified: ", "", regex=False)
-            .pipe(pd.to_datetime)
-            .dt.tz_localize("US/Eastern")
-    )
+            .str.extract(r"^Last modified:\s*(.*)$", expand=False)
+            .pipe(pd.to_datetime, errors="coerce")
+            .dt.tz_localize("US/Eastern"))
     
     return df.sort_values("schema").reset_index(drop=True)                       
 
