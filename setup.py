@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="db2pq",
-    version="0.1.4",
+    version="0.1.5",
     author="Ian Gow",
     author_email="iandgow@gmail.com",
     description="Convert database tables to parquet tables.",
