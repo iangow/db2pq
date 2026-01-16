@@ -14,7 +14,6 @@ from zoneinfo import ZoneInfo
 import getpass
 
 client = paramiko.SSHClient()
-wrds_id = os.getenv("WRDS_ID")
 warnings.filterwarnings(action='ignore', module='.*paramiko.*')
 
 def df_to_arrow(df, col_types=None, obs=None, batches=False):
@@ -25,7 +24,7 @@ def df_to_arrow(df, col_types=None, obs=None, batches=False):
             to_convert = [key for (key, value) in col_types.items() if value == type]
             df = df.mutate(s.across(to_convert, _.cast(type)))
 
-    if obs:
+    if obs is not None:
         df = df.limit(obs)
 
     if batches:
@@ -143,23 +142,24 @@ def db_to_pq(
         port = int(os.getenv("PGPORT") or 5432)
 
     if data_dir is None:
-        data_dir = os.getenv("DATA_DIR", "")
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = Path(os.path.expanduser(data_dir))
     
     if not alt_table_name:
         alt_table_name = table_name
     
+    pq_dir = data_dir / schema
+    pq_dir.mkdir(parents=True, exist_ok=True)
+    
+    pq_file = pq_dir / f"{alt_table_name}.parquet"
+    tmp_pq_file = pq_dir / f".temp_{alt_table_name}.parquet"
+    
     con = ibis.duckdb.connect()
     if threads:
         con.raw_sql(f"SET threads TO {threads};")
-        
+    
     uri = f"postgres://{user}@{host}:{port}/{database}"
     df = con.read_postgres(uri, table_name=table_name, database=schema)
-    data_dir = os.path.expanduser(data_dir)
-    pq_dir = os.path.join(data_dir, schema)
-    if not os.path.exists(pq_dir):
-        os.makedirs(pq_dir)
-    pq_file = os.path.join(data_dir, schema, alt_table_name + '.parquet')
-    tmp_pq_file = os.path.join(data_dir, schema, '.temp_' + alt_table_name + '.parquet')
     
     if drop:
         df = df.drop(s.matches(drop))
@@ -183,20 +183,22 @@ def db_to_pq(
         df_arrow = df_to_arrow(df, col_types=col_types, obs=obs)
         pq.write_table(df_arrow, tmp_pq_file, row_group_size=row_group_size)
     
-    if archive and os.path.exists(pq_file):
-        if not archive_dir:
-            archive_dir = "archive"
+    if archive and pq_file.exists():
+        archive_dir = archive_dir or "archive"
         print(f"archive_dir: {archive_dir}")
-        archive_path = os.path.join(data_dir, schema, archive_dir)
-        if not os.path.exists(archive_path):
-            os.makedirs(archive_path)
-        modified_str =  parse_last_modified(get_modified_pq(pq_file))
-        
-        pq_file_archive =  os.path.join(data_dir, schema, archive_dir,
-                                        alt_table_name + '_' +
-                                        modified_str + '.parquet') 
-        os.rename(pq_file, pq_file_archive)
-    os.rename(tmp_pq_file, pq_file)
+    
+        archive_path = pq_file.parent / archive_dir
+        archive_path.mkdir(parents=True, exist_ok=True)
+    
+        modified_str = parse_last_modified(get_modified_pq(pq_file))
+    
+        pq_file_archive = (
+            archive_path / f"{alt_table_name}_{modified_str}.parquet"
+        )
+    
+        pq_file.rename(pq_file_archive)
+    
+    tmp_pq_file.rename(pq_file)
     return pq_file
 
 def wrds_pg_to_pq(
@@ -294,7 +296,8 @@ def wrds_pg_to_pq(
             )
 
     if data_dir is None:
-        data_dir = os.getenv("DATA_DIR", "")
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = Path(os.path.expanduser(data_dir))
     
     return db_to_pq(
         table_name,
@@ -379,37 +382,37 @@ def db_schema_tables(
     return tables
     
 def db_schema_to_pq(
-    schema,
+    schema: str,
     *,
-    user=None,
-    host=None,
-    database=None,
-    port=None,
-    data_dir=None,
-    row_group_size=1048576,
-    batched=True,
-    threads=None,
-    archive=False,
-    archive_dir=None,
-):
+    user: str | None = None,
+    host: str | None = None,
+    database: str | None = None,
+    port: int | None = None,
+    data_dir: str | None = None,
+    row_group_size: int = 1024 * 1024,
+    batched: bool = True,
+    threads: int | None = None,
+    archive: bool = False,
+    archive_dir: str | None = None,
+) -> list[str]:
     """Export all tables in a PostgreSQL schema to Parquet files.
 
     Parameters
     ----------
-    schema :
+    schema : str
         Name of the PostgreSQL database schema.
 
-    user : string, optional
-        User role for the PostgreSQL database.
+    user : str, optional
+        PostgreSQL user role.
         If not provided, defaults to the value of the `PGUSER`
         environment variable, or (if unset) the current system user.
 
-    host : string, optional
+    host : str, optional
         Host name for the PostgreSQL server.
         If not provided, defaults to the value of the `PGHOST`
         environment variable, or `"localhost"` if unset.
 
-    database : string, optional
+    database : str, optional
         Name of the PostgreSQL database.
         If not provided, defaults to the value of the `PGDATABASE`
         environment variable, or (if unset) the resolved `user`.
@@ -419,35 +422,43 @@ def db_schema_to_pq(
         If not provided, defaults to the value of the `PGPORT`
         environment variable, or `5432` if unset.
 
-    data_dir : string, optional
+    data_dir : str, optional
         Root directory of the Parquet data repository.
         If not provided, defaults to the value of the `DATA_DIR`
         environment variable, or the current working directory.
-    
-    row_group_size: int [Optional]
-        Maximum number of rows in each written row group. 
-        Default is `1024 * 1024`.    
-    
-    batched: bool [Optional]
-        Indicates whether data will be extracting in batches using
-        `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
-        Using batches degrades performance slightly, but dramatically 
-        reduces memory requirements for large tables.
-            
-    threads: int [Optional]
-        The number of threads DuckDB is allowed to use.
-        Setting this may be necessary due to limits imposed on the user
-        by the PostgreSQL database server.
-    
+
+    row_group_size : int, optional
+        Maximum number of rows in each written Parquet row group.
+        Must be positive. Default is ``1024 * 1024``.
+
+    batched : bool, optional
+        Whether data are extracted in batches using
+        ``to_pyarrow_batches()`` instead of a single call to
+        ``to_pyarrow()``. Using batches reduces memory usage for
+        large tables at the cost of slightly lower performance.
+
+    threads : int, optional
+        Number of threads DuckDB is allowed to use.
+        If provided, must be positive.
+
+    archive : bool, optional
+        Whether an existing Parquet file should be archived before
+        being replaced.
+
+    archive_dir : str, optional
+        Name of the directory (relative to ``data_dir/schema``)
+        where archived Parquet files will be stored.
+
     Returns
     -------
-    pq_files: list of strings
-        Names of parquet files created.
-    
+    results : list[str]
+        List of Parquet file paths returned by ``db_to_pq()``,
+        one for each table in the schema.
+
     Examples
     ----------
     >>> db_schema_to_pq("crsp")
-    >>> db_schema_to_pq("audit")
+    >>> db_schema_to_pq("audit", archive=True)
     """
     if user is None:
         user = os.getenv("PGUSER") or getpass.getuser()
@@ -462,43 +473,73 @@ def db_schema_to_pq(
         port = int(os.getenv("PGPORT") or 5432)
 
     if data_dir is None:
-        data_dir = os.getenv("DATA_DIR", "")
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = Path(os.path.expanduser(data_dir))
 
-    tables = db_schema_tables(schema, user, host, database, port)
-    res = [db_to_pq(table_name=table_name, 
-                    schema=schema, 
-                    user=user, 
-                    host=host,
-                    database=database,
-                    port=port,
-                    data_dir=data_dir,
-                    row_group_size=row_group_size,
-                    threads=threads,
-                    batched=batched,
-                    archive=archive,
-                    archive_dir=archive_dir) for table_name in tables]
-    return res
+    if row_group_size <= 0:
+        raise ValueError("row_group_size must be positive")
 
-def get_process(sas_code, wrds_id=wrds_id, fpath=None):
-    """Update a local CSV version of a WRDS table.
+    if threads is not None and threads <= 0:
+        raise ValueError("threads must be positive or None")
+
+    tables = db_schema_tables(
+        schema,
+        user=user,
+        host=host,
+        database=database,
+        port=port,
+    )
+
+    results: list[str] = []
+    for table_name in tables:
+        results.append(
+            db_to_pq(
+                table_name=table_name,
+                schema=schema,
+                user=user,
+                host=host,
+                database=database,
+                port=port,
+                data_dir=data_dir,
+                row_group_size=row_group_size,
+                threads=threads,
+                batched=batched,
+                archive=archive,
+                archive_dir=archive_dir,
+            )
+        )
+
+    return results
+
+def get_process(sas_code, *, wrds_id=None, fpath=None):
+    """Execute SAS code on the WRDS server and return STDOUT as a stream.
 
     Parameters
     ----------
-    sas_code : 
-        SAS code to be run to yield output. 
-                      
-    wrds_id : string
+    sas_code : str
+        SAS code to be executed on the WRDS server.
+
+    wrds_id : str, optional
         WRDS user ID used to access WRDS services.
-        This parameter is required and must be provided either explicitly
-        or via the `WRDS_ID` environment variable.
-    
-    fpath: 
-        Optional path to a local SAS file.
-    
+        This parameter must be provided either explicitly or via the
+        `WRDS_ID` environment variable.
+
+    fpath : str, optional
+        Optional path to a local SAS file (currently unused).
+
     Returns
     -------
-    The STDOUT component of the process as a stream.
+    stdout : file-like object
+        STDOUT stream produced by the SAS process.
     """
+    if wrds_id is None:
+        wrds_id = os.getenv("WRDS_ID")
+        if not wrds_id:
+            raise ValueError(
+                "wrds_id must be provided either as an argument or "
+                "via the WRDS_ID environment variable"
+            )
+
     if client:
         client.close()
 
@@ -519,22 +560,45 @@ def get_process(sas_code, wrds_id=wrds_id, fpath=None):
         channel.shutdown_write()
         return stdout
 
-def proc_contents(table_name, sas_schema=None, wrds_id=os.getenv("WRDS_ID"), 
-                   encoding=None):
-    if not encoding:
-        encoding = "utf-8"
-    
-    sas_code = f"PROC CONTENTS data={sas_schema}.{table_name}(encoding='{encoding}');"
+def proc_contents(table_name, sas_schema=None, *, wrds_id=None, encoding=None):
+    """Run PROC CONTENTS on a WRDS SAS dataset.
 
-    p = get_process(sas_code, wrds_id)
+    Parameters
+    ----------
+    table_name : str
+        Name of the SAS table.
 
+    sas_schema : str
+        SAS library name.
+
+    wrds_id : str, optional
+        WRDS user ID used to access WRDS services.
+        Must be provided either explicitly or via the
+        `WRDS_ID` environment variable.
+
+    encoding : str, optional
+        Encoding to use when reading the SAS dataset.
+        Defaults to ``"utf-8"``.
+
+    Returns
+    -------
+    lines : list[str]
+        Lines of text output produced by PROC CONTENTS.
+    """
+    encoding = encoding or "utf-8"
+
+    sas_code = (f"PROC CONTENTS data={sas_schema}."
+                f"{table_name}(encoding='{encoding}');")
+    p = get_process(sas_code, wrds_id=wrds_id)
     return p.readlines()
 
-def get_modified_str(table_name, sas_schema, wrds_id=wrds_id,
-                     encoding=None):
-    
-    contents = proc_contents(table_name=table_name, sas_schema=sas_schema, 
-                             wrds_id=wrds_id, encoding=encoding)
+def get_modified_str(table_name, sas_schema, *, wrds_id=None, encoding=None):
+    contents = proc_contents(
+        table_name=table_name,
+        sas_schema=sas_schema,
+        wrds_id=wrds_id,
+        encoding=encoding,
+    )
     
     if len(contents) == 0:
         print(f"Table {sas_schema}.{table_name} not found.")
@@ -559,19 +623,16 @@ def get_modified_str(table_name, sas_schema, wrds_id=wrds_id,
     return modified
 
 def get_modified_pq(file_name):
-    
-    if os.path.exists(file_name):
-        md = pq.read_schema(file_name)
+    file_path = Path(file_name)
+
+    if file_path.exists():
+        md = pq.read_schema(file_path)
         schema_md = md.metadata
         if not schema_md:
-            return ''
-        if b'last_modified' in schema_md.keys():
-            last_modified = schema_md[b'last_modified'].decode('utf-8')
-        else:
-            last_modified = ''
-    else:
-        last_modified = ''
-    return last_modified
+            return ""
+        if b"last_modified" in schema_md:
+            return schema_md[b"last_modified"].decode("utf-8")
+    return ""
 
 def wrds_update_pq(
     table_name,
@@ -678,7 +739,8 @@ def wrds_update_pq(
             )
 
     if data_dir is None:
-        data_dir = os.getenv("DATA_DIR", "")
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = Path(os.path.expanduser(data_dir))
         
     if not sas_schema:
         sas_schema = schema
@@ -728,23 +790,20 @@ def wrds_update_pq(
                   archive_dir=archive_dir)
     print(f"Completed file download at {get_now()} UTC.\n")
 
-def get_pq_file(table_name, schema, data_dir=os.getenv("DATA_DIR")):
-    
-    data_dir = os.path.expanduser(data_dir)
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+def get_pq_file(table_name, schema, *, data_dir=None):
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
 
-    schema_dir = Path(data_dir, schema)
-    if not os.path.exists(schema_dir):
-        os.makedirs(schema_dir)
-        
-    pq_file = Path(data_dir, schema, table_name).with_suffix('.parquet')
-    return pq_file
+    data_dir = Path(data_dir).expanduser()
+    schema_dir = data_dir / schema
+    schema_dir.mkdir(parents=True, exist_ok=True)
+
+    return (schema_dir / table_name).with_suffix(".parquet")
 
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
-def get_pq_files(schema, data_dir=os.getenv("DATA_DIR", default="")):
+def get_pq_files(schema, *, data_dir=None):
     """Get a list of parquet files in a schema.
 
     Parameters
@@ -762,40 +821,52 @@ def get_pq_files(schema, data_dir=os.getenv("DATA_DIR", default="")):
     pq_files: [string]
         Names of parquet files found.
     """
-    data_dir = os.path.expanduser(data_dir)
-    pq_dir = os.path.join(data_dir, schema)
-    files = os.listdir(pq_dir)
-    return [re.sub(r"\.parquet$", "", pq_file) 
-            for pq_file in files
-            if re.search(r"\.parquet$", pq_file)]
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+
+    pq_dir = Path(data_dir).expanduser() / schema
+    return [p.stem for p in pq_dir.glob("*.parquet")]
             
-def update_schema(schema, data_dir=os.getenv("DATA_DIR", default="")):
+def update_schema(schema, *, data_dir=None, threads=3, archive=False):
     """Update existing parquet files in a schema.
 
     Parameters
     ----------
-    schema: 
+    schema : str
         Name of database schema.
-            
-    data_dir: string [Optional]
-        Root directory of parquet data repository. 
-        The default is to use the environment value `DATA_DIR` 
-        or (if not set) the current directory.
-        
-    threads: int [Optional]
+
+    data_dir : str, optional
+        Root directory of parquet data repository.
+        If not provided, defaults to the value of the `DATA_DIR`
+        environment variable, or the current directory.
+
+    threads : int, optional
         The number of threads DuckDB is allowed to use.
-        Setting this may be necessary due to limits imposed on the user
-        by the PostgreSQL database server.
-    
+
+    archive : bool, optional
+        Whether any existing parquet file will be archived.
+
     Returns
     -------
-    pq_files: [string]
-        Names of parquet files found.
+    pq_files : list[str]
+        Names of parquet files updated.
     """
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = Path(os.path.expanduser(data_dir))
+
     pq_files = get_pq_files(schema=schema, data_dir=data_dir)
+
     for pq_file in pq_files:
-        wrds_update_pq(table_name=pq_file, schema=schema, 
-                       data_dir=data_dir, threads=3)
+        wrds_update_pq(
+            table_name=pq_file,
+            schema=schema,
+            data_dir=data_dir,
+            threads=threads,
+            archive=archive,
+        )
+
+    return pq_files
                        
 def pq_last_updated(data_dir=None):
     """
@@ -815,10 +886,9 @@ def pq_last_updated(data_dir=None):
     df: [pd.DataFrame]
         Data frame with four columns: table, schema, last_mod_str, last_mod
     """
-    
-    if not data_dir:
-        data_dir = os.path.expanduser(os.environ["DATA_DIR"])
-    data_dir = Path(data_dir)
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = Path(os.path.expanduser(data_dir))
     
     df = pd.DataFrame([
         {"table": p.stem, 
@@ -916,12 +986,23 @@ def get_pg_comment(
         cur.close()
     return row[0] if row else None
 
-def get_wrds_comment(table_name, schema, 
-                     wrds_id=os.getenv("WRDS_ID", default="")):
-    return get_pg_comment(table_name, schema, user=wrds_id, 
-                          host="wrds-pgdata.wharton.upenn.edu",
-                          database="wrds",
-                          port=9737)
+def get_wrds_comment(table_name, schema, *, wrds_id=None):
+    if wrds_id is None:
+        wrds_id = os.getenv("WRDS_ID")
+        if not wrds_id:
+            raise ValueError(
+                "wrds_id must be provided either as an argument or "
+                "via the WRDS_ID environment variable"
+            )
+
+    return get_pg_comment(
+        table_name,
+        schema,
+        user=wrds_id,
+        host="wrds-pgdata.wharton.upenn.edu",
+        database="wrds",
+        port=9737,
+    )
 
 def parse_last_modified(s: str) -> str:
     """
