@@ -2,7 +2,6 @@ import ibis
 import os
 import ibis.selectors as s
 from ibis import _
-from tempfile import TemporaryFile, NamedTemporaryFile
 import pyarrow.parquet as pq
 import re
 import warnings
@@ -10,6 +9,9 @@ import paramiko
 from pathlib import Path
 from time import gmtime, strftime
 import pandas as pd
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
+import getpass
 
 client = paramiko.SSHClient()
 wrds_id = os.getenv("WRDS_ID")
@@ -31,21 +33,27 @@ def df_to_arrow(df, col_types=None, obs=None, batches=False):
     else:
         return df.to_pyarrow()
 
-def db_to_pq(table_name, schema, 
-             user=os.getenv("PGUSER", default=os.getlogin()), 
-             host=os.getenv("PGHOST", default="localhost"),
-             database=os.getenv("PGDATABASE", default=os.getlogin()), 
-             port=os.getenv("PGPORT", default=5432),
-             data_dir=os.getenv("DATA_DIR", default=""),
-             col_types=None,
-             row_group_size=1048576,
-             obs=None,
-             modified=None,
-             alt_table_name=None,
-             keep=None,
-             drop=None,
-             batched=True,
-             threads=None):
+def db_to_pq(
+    table_name,
+    schema,
+    *,
+    user=None,
+    host=None,
+    database=None,
+    port=None,
+    data_dir=None,
+    col_types=None,
+    row_group_size=1048576,
+    obs=None,
+    modified=None,
+    alt_table_name=None,
+    keep=None,
+    drop=None,
+    batched=True,
+    threads=None,
+    archive=False,
+    archive_dir=None,
+):
     """Export a PostgreSQL table to a parquet file.
 
     Parameters
@@ -63,7 +71,7 @@ def db_to_pq(table_name, schema,
     database: string [Optional]
         Name for the PostgreSQL database.
         The default is to use the environment value `PGDATABASE`
-        or (if not set) user ID.
+        or user.
             
     data_dir: string [Optional]
         Root directory of parquet data repository. 
@@ -121,6 +129,22 @@ def db_to_pq(table_name, schema,
     >>> db_to_pq("dsi", "crsp")
     >>> db_to_pq("feed21_bankruptcy_notification", "audit")
     """
+
+    if user is None:
+        user = os.getenv("PGUSER") or getpass.getuser()
+
+    if host is None:
+        host = os.getenv("PGHOST", "localhost")
+
+    if database is None:
+        database = os.getenv("PGDATABASE") or user
+
+    if port is None:
+        port = int(os.getenv("PGPORT") or 5432)
+
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR", "")
+    
     if not alt_table_name:
         alt_table_name = table_name
     
@@ -145,15 +169,13 @@ def db_to_pq(table_name, schema,
     
     if batched:
         # Get a few rows to infer schema for batched write
-        tmpfile = TemporaryFile()
-        df_arrow = df_to_arrow(df, col_types=col_types, obs=10)
-        pq.write_table(df_arrow, tmpfile)
-        schema = pq.read_schema(tmpfile)
+        pq_schema = _infer_parquet_schema(df, col_types=col_types)
         if modified:
-            schema = schema.with_metadata({b'last_modified': modified.encode()})
+            pq_schema = pq_schema.with_metadata(
+                {b'last_modified': modified.encode()})
         
         # Process data in batches
-        with pq.ParquetWriter(tmp_pq_file, schema) as writer:
+        with pq.ParquetWriter(tmp_pq_file, pq_schema) as writer:
             batches = df_to_arrow(df, col_types=col_types, obs=obs, batches=True)
             for batch in batches:
                 writer.write_batch(batch)
@@ -161,22 +183,40 @@ def db_to_pq(table_name, schema,
         df_arrow = df_to_arrow(df, col_types=col_types, obs=obs)
         pq.write_table(df_arrow, tmp_pq_file, row_group_size=row_group_size)
     
+    if archive and os.path.exists(pq_file):
+        if not archive_dir:
+            archive_dir = "archive"
+        print(f"archive_dir: {archive_dir}")
+        archive_path = os.path.join(data_dir, schema, archive_dir)
+        if not os.path.exists(archive_path):
+            os.makedirs(archive_path)
+        modified_str =  parse_last_modified(get_modified_pq(pq_file))
+        
+        pq_file_archive =  os.path.join(data_dir, schema, archive_dir,
+                                        alt_table_name + '_' +
+                                        modified_str + '.parquet') 
+        os.rename(pq_file, pq_file_archive)
     os.rename(tmp_pq_file, pq_file)
     return pq_file
 
-def wrds_pg_to_pq(table_name, 
-                  schema, 
-                  wrds_id=os.getenv("WRDS_ID", default=""),
-                  data_dir=os.getenv("DATA_DIR", default=""),
-                  col_types=None,
-                  row_group_size=1048576,
-                  obs=None,
-                  modified=None,
-                  alt_table_name=None,
-                  keep=None,
-                  drop=None,
-                  batched=True,
-                  threads=3):
+def wrds_pg_to_pq(
+    table_name,
+    schema,
+    *,
+    wrds_id=None,
+    data_dir=None,
+    col_types=None,
+    row_group_size=1048576,
+    obs=None,
+    modified=None,
+    alt_table_name=None,
+    keep=None,
+    drop=None,
+    batched=True,
+    threads=3,
+    archive=False,
+    archive_dir=None,
+):
     """Export a table from the WRDS PostgreSQL database to a parquet file.
 
     Parameters
@@ -187,16 +227,17 @@ def wrds_pg_to_pq(table_name,
     schema: 
         Name of database schema.
 
-    wrds_id: string
-        WRDS ID to be used to access WRDS SAS. 
-        Default is to use the environment value `WRDS_ID`.
+    wrds_id : string
+        WRDS user ID used to access WRDS services.
+        This parameter is required and must be provided either explicitly
+        or via the `WRDS_ID` environment variable.
 
-    data_dir: string [Optional]
+    data_dir : string [Optional]
         Root directory of parquet data repository. 
         The default is to use the environment value `DATA_DIR` 
         or (if not set) the current directory.
     
-    col_types: Dict [Optional]
+    col_types : Dict [Optional]
         Dictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files.
         For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB.
         Only a subset of columns needs to be supplied.
@@ -204,32 +245,32 @@ def wrds_pg_to_pq(table_name,
         (i.e., one can't "fix" arbitrary type issues using this argument).
         For example, `col_types = {'permno': 'int32', 'permco': 'int32'}`.
     
-    row_group_size: int [Optional]
+    row_group_size : int [Optional]
         Maximum number of rows in each written row group. 
         Default is `1024 * 1024`.    
     
-    obs: Integer [Optional]
+    obs : Integer [Optional]
         Number of observations to import from database table.
         Implemented using SQL `LIMIT`.
         Setting this to modest value (e.g., `obs=1000`) can be useful for testing
-        `db_to_pq()` with large tables.
+        `wrds_pg_to_pq()` with large tables.
     
-    alt_table_name: string [Optional]
+    alt_table_name : string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
 
-    keep: string [Optional]
+    keep : string [Optional]
         Regular expression indicating columns to keep.
         
-    drop: string [Optional]
+    drop : string [Optional]
         Regular expression indicating columns to drop.
 
-    batched: bool [Optional]
+    batched : bool [Optional]
         Indicates whether data will be extracting in batches using
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
         Using batches degrades performance slightly, but dramatically 
         reduces memory requirements for large tables.
     
-    threads: int [Optional]
+    threads : int [Optional]
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
@@ -241,58 +282,79 @@ def wrds_pg_to_pq(table_name,
     
     Examples
     ----------
-    >>> db_to_pq("dsi", "crsp")
-    >>> db_to_pq("feed21_bankruptcy_notification", "audit")
+    >>> wrds_pg_to_pq("dsi", "crsp")
+    >>> wrds_pg_to_pq("feed21_bankruptcy_notification", "audit")
     """
-    db_to_pq(table_name, schema, user=wrds_id, 
-             host="wrds-pgdata.wharton.upenn.edu",
-             database="wrds",
-             port=9737,
-             data_dir=data_dir, 
-             col_types=col_types,
-             row_group_size=row_group_size,
-             obs=obs,
-             modified=modified,
-             alt_table_name=alt_table_name,
-             keep=keep,
-             drop=drop,
-             batched=batched,
-             threads=threads)
+    if wrds_id is None:
+        wrds_id = os.getenv("WRDS_ID")
+        if not wrds_id:
+            raise ValueError(
+                "wrds_id must be provided either as an argument or "
+                "via the WRDS_ID environment variable"
+            )
 
-def db_schema_tables(schema, 
-                     user=os.getenv("PGUSER", default=os.getlogin()), 
-                     host=os.getenv("PGHOST", default="localhost"),
-                     database=os.getenv("PGDATABASE", default=os.getlogin()), 
-                     port=os.getenv("PGPORT", default=5432)):
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR", "")
+    
+    return db_to_pq(
+        table_name,
+        schema,
+        user=wrds_id,
+        host="wrds-pgdata.wharton.upenn.edu",
+        database="wrds",
+        port=9737,
+        data_dir=data_dir,
+        col_types=col_types,
+        row_group_size=row_group_size,
+        obs=obs,
+        modified=modified,
+        alt_table_name=alt_table_name,
+        keep=keep,
+        drop=drop,
+        batched=batched,
+        threads=threads,
+        archive=archive,
+        archive_dir=archive_dir,
+    )
+
+def db_schema_tables(
+    schema,
+    *,
+    user=None,
+    host=None,
+    database=None,
+    port=None,
+):
     """Get list of all tables in a PostgreSQL schema.
 
     Parameters
     ----------
-    schema: 
-        Name of database schema.
+    schema :
+        Name of the PostgreSQL database schema.
 
-    user: string [Optional]
-        User role for the PostgreSQL database.
-        The default is to use the environment value `PGHOST`
-        or (if not set) user ID.
+    user : string, optional
+        PostgreSQL user role.
+        If not provided, defaults to the value of the `PGUSER`
+        environment variable, or (if unset) the current system user.
 
-    host: string [Optional]
+    host : string, optional
         Host name for the PostgreSQL server.
-        The default is to use the environment value `PGHOST`.
+        If not provided, defaults to the value of the `PGHOST`
+        environment variable, or `"localhost"` if unset.
 
-    database: string [Optional]
-        Name for the PostgreSQL database.
-        The default is to use the environment value `PGDATABASE`
-        or (if not set) user ID.
+    database : string, optional
+        Name of the PostgreSQL database.
+        If not provided, defaults to the value of the `PGDATABASE`
+        environment variable, or (if unset) the resolved `user`.
 
-    port: int [Optional]
+    port : int, optional
         Port for the PostgreSQL server.
-        The default is to use the environment value `PGPORT`
-        or (if not set) 5432.
-    
+        If not provided, defaults to the value of the `PGPORT`
+        environment variable, or `5432` if unset.
+        
     Returns
     -------
-    tables: list of strings
+    tables : list of strings
         Names of tables in schema.
     
     Examples
@@ -300,66 +362,72 @@ def db_schema_tables(schema,
     >>> db_schema_tables("crsp")
     >>> db_schema_tables("audit")
     """
-    con = ibis.tabl(user=user,    
-                                host=host,
-                                port=port,
-                                database=database)
+    if user is None:
+        user = os.getenv("PGUSER") or getpass.getuser()
+
+    if host is None:
+        host = os.getenv("PGHOST", "localhost")
+
+    if database is None:
+        database = os.getenv("PGDATABASE") or user
+
+    if port is None:
+        port = int(os.getenv("PGPORT") or 5432)
+
+    con = ibis.postgres.connect(user=user, host=host, port=port, database=database)
     tables = con.list_tables(database=schema)
     return tables
-
-def db_schema_to_pq(schema, 
-                    user=os.getenv("PGUSER", default=os.getlogin()), 
-                    host=os.getenv("PGHOST", default="localhost"),
-                    database=os.getenv("PGDATABASE", default=os.getlogin()), 
-                    port=os.getenv("PGPORT", default=5432),
-                    data_dir=os.getenv("DATA_DIR", default=""),
-                    row_group_size=1048576,
-                    batched=True,
-                    threads=None):
-    """Export all tables in a PostgreSQL table to parquet files.
+    
+def db_schema_to_pq(
+    schema,
+    *,
+    user=None,
+    host=None,
+    database=None,
+    port=None,
+    data_dir=None,
+    row_group_size=1048576,
+    batched=True,
+    threads=None,
+    archive=False,
+    archive_dir=None,
+):
+    """Export all tables in a PostgreSQL schema to Parquet files.
 
     Parameters
     ----------
-    schema: 
-        Name of database schema.
+    schema :
+        Name of the PostgreSQL database schema.
 
-    user: string [Optional]
+    user : string, optional
         User role for the PostgreSQL database.
-        The default is to use the environment value `PGHOST`
-        or (if not set) user ID.
+        If not provided, defaults to the value of the `PGUSER`
+        environment variable, or (if unset) the current system user.
 
-    host: string [Optional]
+    host : string, optional
         Host name for the PostgreSQL server.
-        The default is to use the environment value `PGHOST`.
+        If not provided, defaults to the value of the `PGHOST`
+        environment variable, or `"localhost"` if unset.
 
-    database: string [Optional]
-        Name for the PostgreSQL database.
-        The default is to use the environment value `PGDATABASE`
-        or (if not set) user ID.
+    database : string, optional
+        Name of the PostgreSQL database.
+        If not provided, defaults to the value of the `PGDATABASE`
+        environment variable, or (if unset) the resolved `user`.
 
-    port: int [Optional]
+    port : int, optional
         Port for the PostgreSQL server.
-        The default is to use the environment value `PGPORT`
-        or (if not set) 5432.
-            
-    data_dir: string [Optional]
-        Root directory of parquet data repository. 
-        The default is to use the environment value `DATA_DIR` 
-        or (if not set) the current directory.
+        If not provided, defaults to the value of the `PGPORT`
+        environment variable, or `5432` if unset.
+
+    data_dir : string, optional
+        Root directory of the Parquet data repository.
+        If not provided, defaults to the value of the `DATA_DIR`
+        environment variable, or the current working directory.
     
     row_group_size: int [Optional]
         Maximum number of rows in each written row group. 
         Default is `1024 * 1024`.    
     
-    obs: Integer [Optional]
-        Number of observations to import from database table.
-        Implemented using SQL `LIMIT`.
-        Setting this to modest value (e.g., `obs=1000`) can be useful for testing
-        `db_to_pq()` with large tables.
-    
-    alt_table_name: string [Optional]
-        Basename of parquet file. Used when file should have different name from `table_name`.
-
     batched: bool [Optional]
         Indicates whether data will be extracting in batches using
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
@@ -381,6 +449,21 @@ def db_schema_to_pq(schema,
     >>> db_schema_to_pq("crsp")
     >>> db_schema_to_pq("audit")
     """
+    if user is None:
+        user = os.getenv("PGUSER") or getpass.getuser()
+
+    if host is None:
+        host = os.getenv("PGHOST", "localhost")
+
+    if database is None:
+        database = os.getenv("PGDATABASE") or user
+
+    if port is None:
+        port = int(os.getenv("PGPORT") or 5432)
+
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR", "")
+
     tables = db_schema_tables(schema, user, host, database, port)
     res = [db_to_pq(table_name=table_name, 
                     schema=schema, 
@@ -391,7 +474,9 @@ def db_schema_to_pq(schema,
                     data_dir=data_dir,
                     row_group_size=row_group_size,
                     threads=threads,
-                    batched=batched) for table_name in tables]
+                    batched=batched,
+                    archive=archive,
+                    archive_dir=archive_dir) for table_name in tables]
     return res
 
 def get_process(sas_code, wrds_id=wrds_id, fpath=None):
@@ -399,12 +484,13 @@ def get_process(sas_code, wrds_id=wrds_id, fpath=None):
 
     Parameters
     ----------
-    sas_code: 
+    sas_code : 
         SAS code to be run to yield output. 
                       
-    wrds_id: string
-        Optional WRDS ID to be use to access WRDS SAS. 
-        Default is to use the environment value `WRDS_ID`
+    wrds_id : string
+        WRDS user ID used to access WRDS services.
+        This parameter is required and must be provided either explicitly
+        or via the `WRDS_ID` environment variable.
     
     fpath: 
         Optional path to a local SAS file.
@@ -487,39 +573,46 @@ def get_modified_pq(file_name):
         last_modified = ''
     return last_modified
 
-def wrds_update_pq(table_name, schema, 
-                   wrds_id=os.getenv("WRDS_ID", default=""),
-                   data_dir=os.getenv("DATA_DIR", default=""),
-                   force=False,
-                   col_types=None,
-                   encoding="utf-8", 
-                   sas_schema=None,
-                   row_group_size=1048576,
-                   obs=None,
-                   alt_table_name=None,
-                   keep=None,
-                   drop=None,
-                   batched=True,
-                   threads=3,
-                   use_sas=False):
-    """Export a table from the WRDS PostgreSQL database to a parquet file.
+def wrds_update_pq(
+    table_name,
+    schema,
+    *,
+    wrds_id=None,
+    data_dir=None,
+    force=False,
+    col_types=None,
+    encoding="utf-8",
+    sas_schema=None,
+    row_group_size=1048576,
+    obs=None,
+    alt_table_name=None,
+    keep=None,
+    drop=None,
+    batched=True,
+    threads=3,
+    use_sas=False,
+    archive=False,
+    archive_dir=None,
+):
+    """Export a table from the WRDS PostgreSQL database to a Parquet file.
 
     Parameters
     ----------
-    table_name: 
-        Name of table in database.
-    
-    schema: 
-        Name of database schema.
+    table_name :
+        Name of the table in the WRDS PostgreSQL database.
 
-    wrds_id: string
-        WRDS ID to be used to access WRDS SAS. 
-        Default is to use the environment value `WRDS_ID`.
+    schema :
+        Name of the database schema.
 
-    data_dir: string [Optional]
-        Root directory of parquet data repository. 
-        The default is to use the environment value `DATA_DIR` 
-        or (if not set) the current directory.
+    wrds_id : string
+        WRDS user ID used to access WRDS services.
+        This parameter is required and must be provided either explicitly
+        or via the `WRDS_ID` environment variable.
+
+    data_dir : string, optional
+        Root directory of the Parquet data repository.
+        If not provided, defaults to the value of the `DATA_DIR`
+        environment variable, or the current working directory.
         
     force: Boolean
         Whether update should proceed regardless of date comparison results.
@@ -540,7 +633,7 @@ def wrds_update_pq(table_name, schema,
         Number of observations to import from database table.
         Implemented using SQL `LIMIT`.
         Setting this to modest value (e.g., `obs=1000`) can be useful for testing
-        `db_to_pq()` with large tables.
+        `wrds_update_pq()` with large tables.
     
     alt_table_name: string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
@@ -573,10 +666,20 @@ def wrds_update_pq(table_name, schema,
     
     Examples
     ----------
-    >>> db_to_pq("dsi", "crsp")
-    >>> db_to_pq("feed21_bankruptcy_notification", "audit")
+    >>> wrds_update_pq("dsi", "crsp")
+    >>> wrds_update_pq("feed21_bankruptcy_notification", "audit")
     """                       
-             
+    if wrds_id is None:
+        wrds_id = os.getenv("WRDS_ID")
+        if not wrds_id:
+            raise ValueError(
+                "wrds_id must be provided either as an argument or "
+                "via the WRDS_ID environment variable"
+            )
+
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR", "")
+        
     if not sas_schema:
         sas_schema = schema
 
@@ -620,7 +723,9 @@ def wrds_update_pq(table_name, schema,
                   keep=keep,
                   drop=drop,
                   batched=batched,
-                  threads=threads)
+                  threads=threads,
+                  archive=archive,
+                  archive_dir=archive_dir)
     print(f"Completed file download at {get_now()} UTC.\n")
 
 def get_pq_file(table_name, schema, data_dir=os.getenv("DATA_DIR")):
@@ -732,39 +837,44 @@ def pq_last_updated(data_dir=None):
     
     return df.sort_values("schema").reset_index(drop=True)                       
 
-def get_pg_comment(table_name: str, schema: str,
-                   user=os.getenv("PGUSER", default=os.getlogin()), 
-                   host=os.getenv("PGHOST", default="localhost"),
-                   database=os.getenv("PGDATABASE", default=os.getlogin()), 
-                   port=os.getenv("PGPORT", default=5432)) -> str | None:
-    """Get comment from a PostgreSQL object (table, view, etc.).
+def get_pg_comment(
+    table_name: str,
+    schema: str,
+    *,
+    user: str | None = None,
+    host: str | None = None,
+    database: str | None = None,
+    port: int | None = None,
+) -> str | None:
+    """Get the comment for a PostgreSQL object (table, view, etc.).
 
     Parameters
     ----------
-    table_name:
-        Name of database object.
-    
-    schema: 
-        Name of database schema.
+    table_name :
+        Name of the database object.
 
-    user: string [Optional]
-        User role for the PostgreSQL database.
-        The default is to use the environment value `PGHOST`
-        or (if not set) user ID.
+    schema :
+        Name of the database schema.
 
-    host: string [Optional]
+    user : string, optional
+        PostgreSQL user role.
+        If not provided, defaults to the value of the `PGUSER`
+        environment variable, or (if unset) the current system user.
+
+    host : string, optional
         Host name for the PostgreSQL server.
-        The default is to use the environment value `PGHOST`.
+        If not provided, defaults to the value of the `PGHOST`
+        environment variable, or `"localhost"` if unset.
 
-    database: string [Optional]
-        Name for the PostgreSQL database.
-        The default is to use the environment value `PGDATABASE`
-        or (if not set) user ID.
+    database : string, optional
+        Name of the PostgreSQL database.
+        If not provided, defaults to the value of the `PGDATABASE`
+        environment variable, or (if unset) the resolved `user`.
 
-    port: int [Optional]
+    port : int, optional
         Port for the PostgreSQL server.
-        The default is to use the environment value `PGPORT`
-        or (if not set) 5432.
+        If not provided, defaults to the value of the `PGPORT`
+        environment variable, or `5432` if unset.
     
     Returns
     -------
@@ -773,8 +883,20 @@ def get_pg_comment(table_name: str, schema: str,
     
     Examples
     ----------
-    >>> db_schema_tables("dsf", "crsp")
+    >>> get_pg_comment("dsf", "crsp")
     """
+    if user is None:
+        user = os.getenv("PGUSER") or getpass.getuser()
+
+    if host is None:
+        host = os.getenv("PGHOST", "localhost")
+
+    if database is None:
+        database = os.getenv("PGDATABASE") or user
+
+    if port is None:
+        port = int(os.getenv("PGPORT") or 5432)
+    
     con = ibis.postgres.connect(user=user,    
                                 host=host,
                                 port=port,
@@ -800,3 +922,43 @@ def get_wrds_comment(table_name, schema,
                           host="wrds-pgdata.wharton.upenn.edu",
                           database="wrds",
                           port=9737)
+
+def parse_last_modified(s: str) -> str:
+    """
+    Return a filename-safe UTC timestamp stamp (YYYYMMDDTHHMMSSZ) from either:
+      1) 'Last modified: 11/26/2025 01:40:41'  (America/New_York local time)
+      2) '... (Updated 2026-01-07)'            (assume 02:00 America/New_York)
+
+    Raises ValueError if no known pattern matches.
+    """
+    _NY = ZoneInfo("America/New_York")
+    _UTC = ZoneInfo("UTC")
+
+    _UPDATED_RE = re.compile(r"\(Updated\s+(\d{4}-\d{2}-\d{2})\)\s*$")
+    
+    s = s.strip()
+
+    # Case 1: "Last modified: ..."
+    if s.startswith("Last modified:"):
+        ts = s.removeprefix("Last modified:").strip()
+        dt_local = datetime.strptime(ts, "%m/%d/%Y %H:%M:%S").replace(tzinfo=_NY)
+
+    # Case 2: "... (Updated yyyy-mm-dd)"
+    else:
+        m = _UPDATED_RE.search(s)
+        if not m:
+            raise ValueError(f"Unrecognized timestamp format: {s!r}")
+
+        d = datetime.strptime(m.group(1), "%Y-%m-%d").date()
+        dt_local = datetime.combine(d, time(2, 0, 0), tzinfo=_NY)
+
+    dt_utc = dt_local.astimezone(_UTC)
+    return dt_utc.strftime("%Y%m%dT%H%M%SZ")
+
+def _infer_parquet_schema(df, *, col_types):
+    from tempfile import TemporaryFile
+    with TemporaryFile() as tmp:
+        arrow = df_to_arrow(df, col_types=col_types, obs=10)
+        pq.write_table(arrow, tmp)
+        tmp.seek(0)
+        return pq.read_schema(tmp)
