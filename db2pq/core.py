@@ -1,36 +1,15 @@
 import ibis
-import os
 import ibis.selectors as s
-from ibis import _
-import pyarrow.parquet as pq
-import re
-import warnings
-import paramiko
-from pathlib import Path
+import os
 from time import gmtime, strftime
-import pandas as pd
-from datetime import datetime, time
-from zoneinfo import ZoneInfo
 import getpass
+import pandas as pd
+from pathlib import Path
 
-client = paramiko.SSHClient()
-warnings.filterwarnings(action='ignore', module='.*paramiko.*')
-
-def df_to_arrow(df, col_types=None, obs=None, batches=False):
-    
-    if col_types:
-        types = set(col_types.values())
-        for type in types:
-            to_convert = [key for (key, value) in col_types.items() if value == type]
-            df = df.mutate(s.across(to_convert, _.cast(type)))
-
-    if obs is not None:
-        df = df.limit(obs)
-
-    if batches:
-        return df.to_pyarrow_batches()   
-    else:
-        return df.to_pyarrow()
+from .sas.stream import get_modified_str
+from .files.parquet import get_modified_pq
+from .files.paths import get_pq_file, get_pq_files
+from .files.parquet import write_parquet
 
 def db_to_pq(
     table_name,
@@ -148,12 +127,6 @@ def db_to_pq(
     if not alt_table_name:
         alt_table_name = table_name
     
-    pq_dir = data_dir / schema
-    pq_dir.mkdir(parents=True, exist_ok=True)
-    
-    pq_file = pq_dir / f"{alt_table_name}.parquet"
-    tmp_pq_file = pq_dir / f".temp_{alt_table_name}.parquet"
-    
     con = ibis.duckdb.connect()
     if threads:
         con.raw_sql(f"SET threads TO {threads};")
@@ -167,39 +140,21 @@ def db_to_pq(
     if keep:
         df = df.select(s.matches(keep))
     
-    if batched:
-        # Get a few rows to infer schema for batched write
-        pq_schema = _infer_parquet_schema(df, col_types=col_types)
-        if modified:
-            pq_schema = pq_schema.with_metadata(
-                {b'last_modified': modified.encode()})
-        
-        # Process data in batches
-        with pq.ParquetWriter(tmp_pq_file, pq_schema) as writer:
-            batches = df_to_arrow(df, col_types=col_types, obs=obs, batches=True)
-            for batch in batches:
-                writer.write_batch(batch)
-    else:
-        df_arrow = df_to_arrow(df, col_types=col_types, obs=obs)
-        pq.write_table(df_arrow, tmp_pq_file, row_group_size=row_group_size)
+    pq_file = write_parquet(
+        df,
+        data_dir=data_dir,
+        schema=schema,
+        table_name=alt_table_name,
+        col_types=col_types,
+        modified=modified,
+        obs=obs,
+        batched=batched,
+        row_group_size=row_group_size,
+        archive=archive,
+        archive_dir=archive_dir,
+    )
     
-    if archive and pq_file.exists():
-        archive_dir = archive_dir or "archive"
-        print(f"archive_dir: {archive_dir}")
-    
-        archive_path = pq_file.parent / archive_dir
-        archive_path.mkdir(parents=True, exist_ok=True)
-    
-        modified_str = parse_last_modified(get_modified_pq(pq_file))
-    
-        pq_file_archive = (
-            archive_path / f"{alt_table_name}_{modified_str}.parquet"
-        )
-    
-        pq_file.rename(pq_file_archive)
-    
-    tmp_pq_file.rename(pq_file)
-    return pq_file
+    return str(pq_file)
 
 def wrds_pg_to_pq(
     table_name,
@@ -511,129 +466,6 @@ def db_schema_to_pq(
 
     return results
 
-def get_process(sas_code, *, wrds_id=None, fpath=None):
-    """Execute SAS code on the WRDS server and return STDOUT as a stream.
-
-    Parameters
-    ----------
-    sas_code : str
-        SAS code to be executed on the WRDS server.
-
-    wrds_id : str, optional
-        WRDS user ID used to access WRDS services.
-        This parameter must be provided either explicitly or via the
-        `WRDS_ID` environment variable.
-
-    fpath : str, optional
-        Optional path to a local SAS file (currently unused).
-
-    Returns
-    -------
-    stdout : file-like object
-        STDOUT stream produced by the SAS process.
-    """
-    if wrds_id is None:
-        wrds_id = os.getenv("WRDS_ID")
-        if not wrds_id:
-            raise ValueError(
-                "wrds_id must be provided either as an argument or "
-                "via the WRDS_ID environment variable"
-            )
-
-    if client:
-        client.close()
-
-    if wrds_id:
-        """Function runs SAS code on WRDS server and
-        returns result as pipe on stdout."""
-        client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.WarningPolicy())
-        client.connect('wrds-cloud-sshkey.wharton.upenn.edu',
-                       username=wrds_id, compress=False)
-        command = "qsas -stdio -noterminal"
-        stdin, stdout, stderr = client.exec_command(command)
-        stdin.write(sas_code)
-        stdin.close()
-
-        channel = stdout.channel
-        # indicate that we're not going to write to that channel anymore
-        channel.shutdown_write()
-        return stdout
-
-def proc_contents(table_name, sas_schema=None, *, wrds_id=None, encoding=None):
-    """Run PROC CONTENTS on a WRDS SAS dataset.
-
-    Parameters
-    ----------
-    table_name : str
-        Name of the SAS table.
-
-    sas_schema : str
-        SAS library name.
-
-    wrds_id : str, optional
-        WRDS user ID used to access WRDS services.
-        Must be provided either explicitly or via the
-        `WRDS_ID` environment variable.
-
-    encoding : str, optional
-        Encoding to use when reading the SAS dataset.
-        Defaults to ``"utf-8"``.
-
-    Returns
-    -------
-    lines : list[str]
-        Lines of text output produced by PROC CONTENTS.
-    """
-    encoding = encoding or "utf-8"
-
-    sas_code = (f"PROC CONTENTS data={sas_schema}."
-                f"{table_name}(encoding='{encoding}');")
-    p = get_process(sas_code, wrds_id=wrds_id)
-    return p.readlines()
-
-def get_modified_str(table_name, sas_schema, *, wrds_id=None, encoding=None):
-    contents = proc_contents(
-        table_name=table_name,
-        sas_schema=sas_schema,
-        wrds_id=wrds_id,
-        encoding=encoding,
-    )
-    
-    if len(contents) == 0:
-        print(f"Table {sas_schema}.{table_name} not found.")
-        return None
-
-    modified = ""
-    next_row = False
-    for line in contents:
-        if next_row:
-            line = re.sub(r"^\s+(.*)\s+$", r"\1", line)
-            line = re.sub(r"\s+$", "", line)
-            if not re.findall(r"Protection", line):
-                modified += " " + line.rstrip()
-            next_row = False
-
-        if re.match(r"Last Modified", line):
-            modified = re.sub(r"^Last Modified\s+(.*?)\s{2,}.*$",
-                              r"Last modified: \1", line)
-            modified = modified.rstrip()
-            next_row = True
-
-    return modified
-
-def get_modified_pq(file_name):
-    file_path = Path(file_name)
-
-    if file_path.exists():
-        md = pq.read_schema(file_path)
-        schema_md = md.metadata
-        if not schema_md:
-            return ""
-        if b"last_modified" in schema_md:
-            return schema_md[b"last_modified"].decode("utf-8")
-    return ""
-
 def wrds_update_pq(
     table_name,
     schema,
@@ -789,43 +621,9 @@ def wrds_update_pq(
                   archive=archive,
                   archive_dir=archive_dir)
     print(f"Completed file download at {get_now()} UTC.\n")
-
-def get_pq_file(table_name, schema, *, data_dir=None):
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-
-    data_dir = Path(data_dir).expanduser()
-    schema_dir = data_dir / schema
-    schema_dir.mkdir(parents=True, exist_ok=True)
-
-    return (schema_dir / table_name).with_suffix(".parquet")
-
+    
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
-
-def get_pq_files(schema, *, data_dir=None):
-    """Get a list of parquet files in a schema.
-
-    Parameters
-    ----------
-    schema: 
-        Name of database schema.
-            
-    data_dir: string [Optional]
-        Root directory of parquet data repository. 
-        The default is to use the environment value `DATA_DIR` 
-        or (if not set) the current directory.
-    
-    Returns
-    -------
-    pq_files: [string]
-        Names of parquet files found.
-    """
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-
-    pq_dir = Path(data_dir).expanduser() / schema
-    return [p.stem for p in pq_dir.glob("*.parquet")]
             
 def update_schema(schema, *, data_dir=None, threads=3, archive=False):
     """Update existing parquet files in a schema.
@@ -1004,42 +802,5 @@ def get_wrds_comment(table_name, schema, *, wrds_id=None):
         port=9737,
     )
 
-def parse_last_modified(s: str) -> str:
-    """
-    Return a filename-safe UTC timestamp stamp (YYYYMMDDTHHMMSSZ) from either:
-      1) 'Last modified: 11/26/2025 01:40:41'  (America/New_York local time)
-      2) '... (Updated 2026-01-07)'            (assume 02:00 America/New_York)
 
-    Raises ValueError if no known pattern matches.
-    """
-    _NY = ZoneInfo("America/New_York")
-    _UTC = ZoneInfo("UTC")
 
-    _UPDATED_RE = re.compile(r"\(Updated\s+(\d{4}-\d{2}-\d{2})\)\s*$")
-    
-    s = s.strip()
-
-    # Case 1: "Last modified: ..."
-    if s.startswith("Last modified:"):
-        ts = s.removeprefix("Last modified:").strip()
-        dt_local = datetime.strptime(ts, "%m/%d/%Y %H:%M:%S").replace(tzinfo=_NY)
-
-    # Case 2: "... (Updated yyyy-mm-dd)"
-    else:
-        m = _UPDATED_RE.search(s)
-        if not m:
-            raise ValueError(f"Unrecognized timestamp format: {s!r}")
-
-        d = datetime.strptime(m.group(1), "%Y-%m-%d").date()
-        dt_local = datetime.combine(d, time(2, 0, 0), tzinfo=_NY)
-
-    dt_utc = dt_local.astimezone(_UTC)
-    return dt_utc.strftime("%Y%m%dT%H%M%SZ")
-
-def _infer_parquet_schema(df, *, col_types):
-    from tempfile import TemporaryFile
-    with TemporaryFile() as tmp:
-        arrow = df_to_arrow(df, col_types=col_types, obs=10)
-        pq.write_table(arrow, tmp)
-        tmp.seek(0)
-        return pq.read_schema(tmp)

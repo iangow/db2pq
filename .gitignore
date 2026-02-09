@@ -1,9 +1,17 @@
+# R / RStudio
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-.ipynb_checkpoints
-db2pq.egg-info
-db2pq/__pycache__
-dist
-build
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Build artifacts
+build/
+dist/
