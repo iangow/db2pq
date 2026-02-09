@@ -7,11 +7,13 @@ from pathlib import Path
 from .sas.stream import get_modified_str
 from .files.parquet import get_modified_pq
 from .files.paths import get_pq_file, get_pq_files
-from .files.parquet import write_parquet
+from .files.parquet import write_parquet, get_modified_pq
 from .postgres.duckdb_pg import read_postgres_table
 from .postgres.comments import get_wrds_comment
 from .postgres._defaults import resolve_pg_connection
 from .postgres.schema import db_schema_tables
+from .sync.modified import is_up_to_date, print_update_decision
+from .sas.stream import get_modified_str
 
 def db_to_pq(
     table_name,
@@ -483,32 +485,31 @@ def wrds_update_pq(
 
     if not alt_table_name:
         alt_table_name = table_name
-    
-    pq_file = get_pq_file(table_name=table_name, schema=schema, 
-                          data_dir=data_dir)
                 
     if use_sas:
-        modified = get_modified_str(table_name=table_name, 
-                                    sas_schema=sas_schema, wrds_id=wrds_id, 
-                                    encoding=encoding)
+        modified = get_modified_str(
+            table_name=table_name, sas_schema=sas_schema, wrds_id=wrds_id, encoding=encoding
+        )
     else:
-        modified = get_wrds_comment(table_name=table_name, 
-                                    schema=schema, wrds_id=wrds_id)
+        modified = get_wrds_comment(table_name=table_name, schema=schema, wrds_id=wrds_id)
 
     if not modified:
         return False
     
+    pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
     pq_modified = get_modified_pq(pq_file)
-    if modified == pq_modified and not force:
-        print(schema + "." + alt_table_name + " already up to date.")
-        return False
+    
+    up_to_date = is_up_to_date(src=modified, dst=pq_modified)
+
     if force:
         print("Forcing update based on user request.")
+    elif up_to_date:
+        print(f"{schema}.{alt_table_name} already up to date.")
+        return False
     else:
-        print("Updated %s.%s is available." % (schema, alt_table_name))
+        print(f"Updated {schema}.{alt_table_name} is available.")
         print("Getting from WRDS.")
-    
-    print(f"Beginning file download at {get_now()} UTC.")
+
     wrds_pg_to_pq(table_name=table_name,
                   schema=schema,
                   data_dir=data_dir,

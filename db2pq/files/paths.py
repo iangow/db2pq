@@ -42,6 +42,7 @@ def parquet_paths(data_dir: Path, schema: str, table_basename: str):
     """
     Return (pq_dir, pq_file, tmp_pq_file) and ensure pq_dir exists.
     """
+    data_dir = resolve_data_dir(data_dir)
     pq_dir = data_dir / schema
     pq_dir.mkdir(parents=True, exist_ok=True)
 
