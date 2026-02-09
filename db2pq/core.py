@@ -1,19 +1,13 @@
-import ibis
 import os
 from time import gmtime, strftime
-import getpass
-from pathlib import Path
 
 from .sas.stream import get_modified_str
-from .files.parquet import get_modified_pq
 from .files.paths import get_pq_file, get_pq_files
 from .files.parquet import write_parquet, get_modified_pq
 from .postgres.duckdb_pg import read_postgres_table
 from .postgres.comments import get_wrds_comment
-from .postgres._defaults import resolve_pg_connection
 from .postgres.schema import db_schema_tables
-from .sync.modified import is_up_to_date, print_update_decision
-from .sas.stream import get_modified_str
+from .sync.modified import is_up_to_date
 
 def db_to_pq(
     table_name,
