@@ -1,11 +1,10 @@
-# db2pq/postgres/comments.py
 from __future__ import annotations
 
 import os
-import getpass
 import ibis
 
 from ._defaults import resolve_pg_connection
+
 
 def get_pg_comment_con(con, *, schema: str, table_name: str) -> str | None:
     sql = """
@@ -22,6 +21,7 @@ def get_pg_comment_con(con, *, schema: str, table_name: str) -> str | None:
         cur.close()
     return row[0] if row else None
 
+
 def get_pg_comment(
     table_name: str,
     schema: str,
@@ -37,7 +37,8 @@ def get_pg_comment(
     con = ibis.postgres.connect(user=user, host=host, port=port, database=database)
     return get_pg_comment_con(con, schema=schema, table_name=table_name)
 
-def resolve_wrds_id(wrds_id: str | None = None):
+
+def resolve_wrds_id(wrds_id: str | None = None) -> str:
     wrds_id = wrds_id or os.getenv("WRDS_ID")
     if not wrds_id:
         raise ValueError(
@@ -46,17 +47,17 @@ def resolve_wrds_id(wrds_id: str | None = None):
         )
     return wrds_id
 
+
 def get_wrds_conn(wrds_id: str | None = None):
     wrds_id = resolve_wrds_id(wrds_id)
-    con = ibis.postgres.connect(
+    return ibis.postgres.connect(
         user=wrds_id,
         host="wrds-pgdata.wharton.upenn.edu",
         database="wrds",
         port=9737,
     )
-    return con
+
 
 def get_wrds_comment(table_name: str, schema: str, *, wrds_id: str | None = None) -> str | None:
-    
     con = get_wrds_conn(wrds_id)
     return get_pg_comment_con(con, schema=schema, table_name=table_name)
