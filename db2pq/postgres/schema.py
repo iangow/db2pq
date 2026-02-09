@@ -5,7 +5,6 @@ import ibis
 
 from ._defaults import resolve_pg_connection
 
-
 def db_schema_tables(
     schema: str,
     *,

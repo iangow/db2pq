@@ -10,6 +10,7 @@ from .core import (
 from .postgres.comments import (get_wrds_comment, get_pg_comment)
 from .files.parquet import pq_last_updated
 from .postgres.schema import db_schema_tables
+from .postgres.update import wrds_update_pg
 
 __all__ = [
     "db_to_pq", "wrds_pg_to_pq",
@@ -17,4 +18,5 @@ __all__ = [
     "wrds_update_pq", "get_pq_files", "update_schema",
     "get_modified_pq", "pq_last_updated",
     "get_wrds_comment", "get_pg_comment",
+    "wrds_update_pg"
 ]

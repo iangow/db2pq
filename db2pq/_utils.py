@@ -1,5 +1,6 @@
 # db2pq/_utils.py
-import os, getpass
+import os
+import getpass
 
 def pg_defaults(user=None, host=None, database=None, port=None):
     user = user or os.getenv("PGUSER") or getpass.getuser()

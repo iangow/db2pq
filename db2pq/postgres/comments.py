@@ -1,26 +1,24 @@
 from __future__ import annotations
 
-import os
-import ibis
+import psycopg
 
-from ._defaults import resolve_pg_connection
+from ._defaults import (resolve_pg_connection, resolve_wrds_id,
+                        get_wrds_url)
 
-
-def get_pg_comment_con(con, *, schema: str, table_name: str) -> str | None:
+def get_pg_comment_conn(conn, *, schema: str, table_name: str) -> str | None:
     sql = """
     SELECT obj_description(
-             to_regclass(%(fqname)s),
+             to_regclass(%s),
              'pg_class'
            ) AS comment
     """
     fqname = f"{schema}.{table_name}"
-    cur = con.raw_sql(sql, params={"fqname": fqname})
-    try:
-        row = cur.fetchone()
-    finally:
-        cur.close()
-    return row[0] if row else None
 
+    with conn.cursor() as cur:
+        cur.execute(sql, (fqname,))
+        row = cur.fetchone()
+
+    return row[0] if row else None
 
 def get_pg_comment(
     table_name: str,
@@ -28,36 +26,33 @@ def get_pg_comment(
     *,
     user: str | None = None,
     host: str | None = None,
-    database: str | None = None,
+    dbname: str | None = None,
     port: int | None = None,
 ) -> str | None:
-    user, host, database, port = resolve_pg_connection(
-        user=user, host=host, database=database, port=port
+    user, host, dbname, port = resolve_pg_connection(
+        user=user, host=host, dbname=dbname, port=port
     )
-    con = ibis.postgres.connect(user=user, host=host, port=port, database=database)
-    return get_pg_comment_con(con, schema=schema, table_name=table_name)
 
+    conninfo = f"postgresql://{user}@{host}:{port}/{dbname}"
+    with psycopg.connect(conninfo) as conn:
+        return get_pg_comment_conn(conn, schema=schema, table_name=table_name)
 
-def resolve_wrds_id(wrds_id: str | None = None) -> str:
-    wrds_id = wrds_id or os.getenv("WRDS_ID")
-    if not wrds_id:
-        raise ValueError(
-            "wrds_id must be provided either as an argument or "
-            "via the WRDS_ID environment variable"
-        )
-    return wrds_id
-
+def get_pg_conn(uri):
+    return psycopg.connect(uri)
 
 def get_wrds_conn(wrds_id: str | None = None):
     wrds_id = resolve_wrds_id(wrds_id)
-    return ibis.postgres.connect(
-        user=wrds_id,
-        host="wrds-pgdata.wharton.upenn.edu",
-        database="wrds",
-        port=9737,
-    )
+    return get_pg_conn(get_wrds_url(wrds_id))
 
-
-def get_wrds_comment(table_name: str, schema: str, *, wrds_id: str | None = None) -> str | None:
-    con = get_wrds_conn(wrds_id)
-    return get_pg_comment_con(con, schema=schema, table_name=table_name)
+def get_wrds_comment(
+    table_name: str,
+    schema: str,
+    *,
+    wrds_id: str | None = None,
+) -> str | None:
+    with get_wrds_conn(wrds_id) as conn:
+        return get_pg_comment_conn(
+            conn,
+            schema=schema,
+            table_name=table_name,
+        )

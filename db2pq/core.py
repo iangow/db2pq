@@ -261,7 +261,7 @@ def db_schema_to_pq(
     *,
     user: str | None = None,
     host: str | None = None,
-    database: str | None = None,
+    dbname: str | None = None,
     port: int | None = None,
     data_dir: str | None = None,
     row_group_size: int = 1024 * 1024,
@@ -287,7 +287,7 @@ def db_schema_to_pq(
         If not provided, defaults to the value of the `PGHOST`
         environment variable, or `"localhost"` if unset.
 
-    database : str, optional
+    dbname : str, optional
         Name of the PostgreSQL database.
         If not provided, defaults to the value of the `PGDATABASE`
         environment variable, or (if unset) the resolved `user`.
@@ -345,7 +345,7 @@ def db_schema_to_pq(
         schema,
         user=user,
         host=host,
-        database=database,
+        dbname=dbname,
         port=port,
     )
 
