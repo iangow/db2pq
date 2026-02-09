@@ -5,6 +5,9 @@ import os
 import getpass
 import ibis
 
+from ._defaults import resolve_pg_connection
+
+
 
 def get_pg_comment(
     table_name: str,
@@ -16,14 +19,9 @@ def get_pg_comment(
     port: int | None = None,
 ) -> str | None:
     """Get the comment for a PostgreSQL object (table, view, etc.)."""
-    if user is None:
-        user = os.getenv("PGUSER") or getpass.getuser()
-    if host is None:
-        host = os.getenv("PGHOST", "localhost")
-    if database is None:
-        database = os.getenv("PGDATABASE") or user
-    if port is None:
-        port = int(os.getenv("PGPORT") or 5432)
+    user, host, database, port = resolve_pg_connection(
+        user=user, host=host, database=database, port=port
+    )
 
     con = ibis.postgres.connect(user=user, host=host, port=port, database=database)
 
