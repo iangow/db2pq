@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import ibis.selectors as s
 from ibis import _
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+import pandas as pd
 
 from .paths import parquet_paths, archive_existing_parquet, promote_temp_parquet
 from .timestamps import parse_last_modified  
@@ -117,3 +120,31 @@ def write_parquet(
 
     promote_temp_parquet(tmp_pq_file, pq_file)
     return pq_file
+    
+def pq_last_updated(data_dir=None):
+    """
+    Get `last_updated` metadata for data files in a parquet data repository
+    set up along the lines described at 
+    https://iangow.github.io/far_book/parquet-wrds.html.
+    """
+    if data_dir is None:
+        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = Path(os.path.expanduser(data_dir))
+
+    df = pd.DataFrame([
+        {"table": p.stem,
+         "schema": subdir.name,
+         "last_mod_str": get_modified_pq(p)}
+        for subdir in data_dir.iterdir()
+        if subdir.is_dir()
+        for p in subdir.glob("*.parquet")
+    ])
+
+    df["last_mod"] = (
+        df["last_mod_str"]
+          .str.extract(r"^Last modified:\s*(.*)$", expand=False)
+          .pipe(pd.to_datetime, errors="coerce")
+          .dt.tz_localize("US/Eastern")
+    )
+
+    return df.sort_values("schema").reset_index(drop=True)

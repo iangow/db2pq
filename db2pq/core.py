@@ -1,15 +1,15 @@
 import ibis
-import ibis.selectors as s
 import os
 from time import gmtime, strftime
 import getpass
-import pandas as pd
 from pathlib import Path
 
 from .sas.stream import get_modified_str
 from .files.parquet import get_modified_pq
 from .files.paths import get_pq_file, get_pq_files
 from .files.parquet import write_parquet
+from .postgres.duckdb_pg import read_postgres_table
+from .postgres.comments import get_wrds_comment
 
 def db_to_pq(
     table_name,
@@ -126,20 +126,19 @@ def db_to_pq(
     
     if not alt_table_name:
         alt_table_name = table_name
-    
-    con = ibis.duckdb.connect()
-    if threads:
-        con.raw_sql(f"SET threads TO {threads};")
-    
-    uri = f"postgres://{user}@{host}:{port}/{database}"
-    df = con.read_postgres(uri, table_name=table_name, database=schema)
-    
-    if drop:
-        df = df.drop(s.matches(drop))
+
+    df = read_postgres_table(
+        user=user,
+        host=host,
+        port=port,
+        database=database,
+        schema=schema,
+        table_name=table_name,
+        threads=threads,
+        keep=keep,
+        drop=drop,
+    )
         
-    if keep:
-        df = df.select(s.matches(keep))
-    
     pq_file = write_parquet(
         df,
         data_dir=data_dir,
@@ -664,143 +663,7 @@ def update_schema(schema, *, data_dir=None, threads=3, archive=False):
             archive=archive,
         )
 
-    return pq_files
-                       
-def pq_last_updated(data_dir=None):
-    """
-    Get `last_updated` metadata for data files in a parquet data repository
-    set up along the lines described at 
-    https://iangow.github.io/far_book/parquet-wrds.html.
-
-    Parameters
-    ----------
-    data_dir: string [Optional]
-        Root directory of parquet data repository. 
-        The default is to use the environment value `DATA_DIR` 
-        or (if not set) the current directory.
-
-    Returns
-    -------
-    df: [pd.DataFrame]
-        Data frame with four columns: table, schema, last_mod_str, last_mod
-    """
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-    data_dir = Path(os.path.expanduser(data_dir))
-    
-    df = pd.DataFrame([
-        {"table": p.stem, 
-         "schema": subdir.name, 
-         "last_mod_str": get_modified_pq(p)}
-        for subdir in data_dir.iterdir()
-        if subdir.is_dir()
-        for p in subdir.glob("*.parquet")
-    ])
-
-    df["last_mod"] = (
-        df["last_mod_str"]
-            .str.extract(r"^Last modified:\s*(.*)$", expand=False)
-            .pipe(pd.to_datetime, errors="coerce")
-            .dt.tz_localize("US/Eastern"))
-    
-    return df.sort_values("schema").reset_index(drop=True)                       
-
-def get_pg_comment(
-    table_name: str,
-    schema: str,
-    *,
-    user: str | None = None,
-    host: str | None = None,
-    database: str | None = None,
-    port: int | None = None,
-) -> str | None:
-    """Get the comment for a PostgreSQL object (table, view, etc.).
-
-    Parameters
-    ----------
-    table_name :
-        Name of the database object.
-
-    schema :
-        Name of the database schema.
-
-    user : string, optional
-        PostgreSQL user role.
-        If not provided, defaults to the value of the `PGUSER`
-        environment variable, or (if unset) the current system user.
-
-    host : string, optional
-        Host name for the PostgreSQL server.
-        If not provided, defaults to the value of the `PGHOST`
-        environment variable, or `"localhost"` if unset.
-
-    database : string, optional
-        Name of the PostgreSQL database.
-        If not provided, defaults to the value of the `PGDATABASE`
-        environment variable, or (if unset) the resolved `user`.
-
-    port : int, optional
-        Port for the PostgreSQL server.
-        If not provided, defaults to the value of the `PGPORT`
-        environment variable, or `5432` if unset.
-    
-    Returns
-    -------
-    comment: string
-        Comment for PostgreSQL object.
-    
-    Examples
-    ----------
-    >>> get_pg_comment("dsf", "crsp")
-    """
-    if user is None:
-        user = os.getenv("PGUSER") or getpass.getuser()
-
-    if host is None:
-        host = os.getenv("PGHOST", "localhost")
-
-    if database is None:
-        database = os.getenv("PGDATABASE") or user
-
-    if port is None:
-        port = int(os.getenv("PGPORT") or 5432)
-    
-    con = ibis.postgres.connect(user=user,    
-                                host=host,
-                                port=port,
-                                database=database)
-    
-    sql = """
-    SELECT obj_description(
-             to_regclass(%(fqname)s),
-             'pg_class'
-           ) AS comment
-    """
-    fqname = f"{schema}.{table_name}"
-    cur = con.raw_sql(sql, params={"fqname": fqname})
-    try:
-        row = cur.fetchone()
-    finally:
-        cur.close()
-    return row[0] if row else None
-
-def get_wrds_comment(table_name, schema, *, wrds_id=None):
-    if wrds_id is None:
-        wrds_id = os.getenv("WRDS_ID")
-        if not wrds_id:
-            raise ValueError(
-                "wrds_id must be provided either as an argument or "
-                "via the WRDS_ID environment variable"
-            )
-
-    return get_pg_comment(
-        table_name,
-        schema,
-        user=wrds_id,
-        host="wrds-pgdata.wharton.upenn.edu",
-        database="wrds",
-        port=9737,
-    )
+    return pq_files                      
 
 
 
