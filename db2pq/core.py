@@ -10,6 +10,8 @@ from .files.paths import get_pq_file, get_pq_files
 from .files.parquet import write_parquet
 from .postgres.duckdb_pg import read_postgres_table
 from .postgres.comments import get_wrds_comment
+from .postgres._defaults import resolve_pg_connection
+from .postgres.schema import db_schema_tables
 
 def db_to_pq(
     table_name,
@@ -57,8 +59,10 @@ def db_to_pq(
         or (if not set) the current directory.
     
     col_types: Dict [Optional]
-        Dictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files.
-        For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB.
+        Dictionary of PostgreSQL data types to be used when importing data to
+        PostgreSQL or writing to Parquet files.
+        For Parquet files, conversion from PostgreSQL to PyArrow types is
+        handled by DuckDB.
         Only a subset of columns needs to be supplied.
         Supplied types should be compatible with data emitted by PostgreSQL 
         (i.e., one can't "fix" arbitrary type issues using this argument).
@@ -78,7 +82,8 @@ def db_to_pq(
         Last modified string.
         
     alt_table_name: string [Optional]
-        Basename of parquet file. Used when file should have different name from `table_name`.
+        Basename of parquet file. Used when file should have different name from 
+        `table_name`.
 
     keep: string [Optional]
         Regular expression indicating columns to keep.
@@ -107,22 +112,6 @@ def db_to_pq(
     >>> db_to_pq("dsi", "crsp")
     >>> db_to_pq("feed21_bankruptcy_notification", "audit")
     """
-
-    if user is None:
-        user = os.getenv("PGUSER") or getpass.getuser()
-
-    if host is None:
-        host = os.getenv("PGHOST", "localhost")
-
-    if database is None:
-        database = os.getenv("PGDATABASE") or user
-
-    if port is None:
-        port = int(os.getenv("PGPORT") or 5432)
-
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-    data_dir = Path(os.path.expanduser(data_dir))
     
     if not alt_table_name:
         alt_table_name = table_name
@@ -248,10 +237,6 @@ def wrds_pg_to_pq(
                 "wrds_id must be provided either as an argument or "
                 "via the WRDS_ID environment variable"
             )
-
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-    data_dir = Path(os.path.expanduser(data_dir))
     
     return db_to_pq(
         table_name,
@@ -274,66 +259,6 @@ def wrds_pg_to_pq(
         archive_dir=archive_dir,
     )
 
-def db_schema_tables(
-    schema,
-    *,
-    user=None,
-    host=None,
-    database=None,
-    port=None,
-):
-    """Get list of all tables in a PostgreSQL schema.
-
-    Parameters
-    ----------
-    schema :
-        Name of the PostgreSQL database schema.
-
-    user : string, optional
-        PostgreSQL user role.
-        If not provided, defaults to the value of the `PGUSER`
-        environment variable, or (if unset) the current system user.
-
-    host : string, optional
-        Host name for the PostgreSQL server.
-        If not provided, defaults to the value of the `PGHOST`
-        environment variable, or `"localhost"` if unset.
-
-    database : string, optional
-        Name of the PostgreSQL database.
-        If not provided, defaults to the value of the `PGDATABASE`
-        environment variable, or (if unset) the resolved `user`.
-
-    port : int, optional
-        Port for the PostgreSQL server.
-        If not provided, defaults to the value of the `PGPORT`
-        environment variable, or `5432` if unset.
-        
-    Returns
-    -------
-    tables : list of strings
-        Names of tables in schema.
-    
-    Examples
-    ----------
-    >>> db_schema_tables("crsp")
-    >>> db_schema_tables("audit")
-    """
-    if user is None:
-        user = os.getenv("PGUSER") or getpass.getuser()
-
-    if host is None:
-        host = os.getenv("PGHOST", "localhost")
-
-    if database is None:
-        database = os.getenv("PGDATABASE") or user
-
-    if port is None:
-        port = int(os.getenv("PGPORT") or 5432)
-
-    con = ibis.postgres.connect(user=user, host=host, port=port, database=database)
-    tables = con.list_tables(database=schema)
-    return tables
     
 def db_schema_to_pq(
     schema: str,
@@ -414,22 +339,6 @@ def db_schema_to_pq(
     >>> db_schema_to_pq("crsp")
     >>> db_schema_to_pq("audit", archive=True)
     """
-    if user is None:
-        user = os.getenv("PGUSER") or getpass.getuser()
-
-    if host is None:
-        host = os.getenv("PGHOST", "localhost")
-
-    if database is None:
-        database = os.getenv("PGDATABASE") or user
-
-    if port is None:
-        port = int(os.getenv("PGPORT") or 5432)
-
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-    data_dir = Path(os.path.expanduser(data_dir))
-
     if row_group_size <= 0:
         raise ValueError("row_group_size must be positive")
 
@@ -568,10 +477,6 @@ def wrds_update_pq(
                 "wrds_id must be provided either as an argument or "
                 "via the WRDS_ID environment variable"
             )
-
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-    data_dir = Path(os.path.expanduser(data_dir))
         
     if not sas_schema:
         sas_schema = schema
@@ -648,10 +553,6 @@ def update_schema(schema, *, data_dir=None, threads=3, archive=False):
     pq_files : list[str]
         Names of parquet files updated.
     """
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-    data_dir = Path(os.path.expanduser(data_dir))
-
     pq_files = get_pq_files(schema=schema, data_dir=data_dir)
 
     for pq_file in pq_files:

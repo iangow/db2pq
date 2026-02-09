@@ -2,11 +2,14 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-def get_pq_file(table_name, schema, *, data_dir=None):
+def resolve_data_dir(data_dir: str | Path | None = None) -> Path:
     if data_dir is None:
         data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    return Path(os.path.expanduser(data_dir)).expanduser()
 
-    data_dir = Path(data_dir).expanduser()
+def get_pq_file(table_name, schema, *, data_dir=None):
+    data_dir = resolve_data_dir(data_dir)
+
     schema_dir = data_dir / schema
     schema_dir.mkdir(parents=True, exist_ok=True)
 
@@ -30,17 +33,16 @@ def get_pq_files(schema, *, data_dir=None):
     pq_files: [string]
         Names of parquet files found.
     """
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
+    data_dir = resolve_data_dir(data_dir)
 
-    pq_dir = Path(data_dir).expanduser() / schema
+    pq_dir = data_dir / schema
     return [p.stem for p in pq_dir.glob("*.parquet")]
 
 def parquet_paths(data_dir: Path, schema: str, table_basename: str):
     """
     Return (pq_dir, pq_file, tmp_pq_file) and ensure pq_dir exists.
     """
-    pq_dir = (Path(data_dir).expanduser() / schema)
+    pq_dir = data_dir / schema
     pq_dir.mkdir(parents=True, exist_ok=True)
 
     pq_file = pq_dir / f"{table_basename}.parquet"
