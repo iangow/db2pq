@@ -9,6 +9,7 @@ from .postgres.comments import get_wrds_comment
 from .postgres.schema import db_schema_tables
 from .sync.modified import is_up_to_date
 from .sync.modified import modified_info, update_available
+from .postgres._defaults import resolve_pg_connection
 
 def db_to_pq(
     table_name,
@@ -110,6 +111,10 @@ def db_to_pq(
     >>> db_to_pq("feed21_bankruptcy_notification", "audit")
     """
     
+    user, host, dbname, port = resolve_pg_connection(
+        user=user, host=host, dbname=database, port=port
+    )
+    
     if not alt_table_name:
         alt_table_name = table_name
 
@@ -117,7 +122,7 @@ def db_to_pq(
         user=user,
         host=host,
         port=port,
-        database=database,
+        database=dbname,
         schema=schema,
         table_name=table_name,
         threads=threads,

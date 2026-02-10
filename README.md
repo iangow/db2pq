@@ -20,17 +20,66 @@ pip install db2pq --upgrade
 ```
 
 ### 2. A WRDS ID
-To use public-key authentication to access WRDS, follow hints taken from [here](https://debian-administration.org/article/152/Password-less_logins_with_OpenSSH) to set up a public key.
-Copy that key to the WRDS server from the terminal on your computer. 
-(Note that this code assumes you have a directory `.ssh` in your home directory. If not, log into WRDS via SSH, then type `mkdir ~/.ssh` to create this.) 
-Here's code to create the key and send it to WRDS:
 
-```bash
-ssh-keygen -t rsa
-cat ~/.ssh/id_rsa.pub | ssh $WRDS_ID@wrds-cloud-sshkey.wharton.upenn.edu "cat >> ~/.ssh/authorized_keys"
+To access WRDS non-interactively (e.g., from Python scripts), you must use
+**SSH public-key authentication**.
+
+WRDS provides a dedicated SSH endpoint for key-based authentication:
+
+`wrds-cloud-sshkey.wharton.upenn.edu`
+
+#### Step 1: Generate a modern SSH key (recommended)
+WRDS supports modern SSH key types. We recommend **ed25519**:
+
+`ssh-keygen -t ed25519 -C "your_wrds_id@wrds"`
+
+Accept the default location (`~/.ssh/id_ed25519`).
+
+You may use a passphrase if your SSH agent is running.
+For unattended jobs (cron / CI), an empty passphrase may be required.
+
+#### Step 2: Install the public key on WRDS
+Copy your public key to the WRDS SSH-key host:
+
+```
+cat ~/.ssh/id_ed25519.pub | \
+ssh your_wrds_id@wrds-cloud-sshkey.wharton.upenn.edu \
+  "mkdir -p ~/.ssh && chmod 700 ~/.ssh && \
+   cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
-Use an empty passphrase in setting up the key so that the scripts can run without user intervention.
+If `~/.ssh` does not exist on WRDS, the command above will create it.
+
+#### Step 3: (Recommended) Configure SSH
+Add an entry to `~/.ssh/config`:
+
+```
+Host wrds
+    HostName wrds-cloud-sshkey.wharton.upenn.edu
+    User your_wrds_id
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+```
+You can now connect with:
+
+```
+ssh wrds
+```
+
+This configuration is also used automatically by `paramiko`, enabling
+password-less access from Python.
+
+#### Troubleshooting
+If SSH still prompts for a password, run:
+
+```
+ssh -vvv wrds
+```
+
+and confirm that `publickey` appears in the list of authentication methods.
+
+`wrds2pg` uses `paramiko` to execute SAS code on WRDS via SSH.
+Password-based authentication will not work in unattended scripts.
 
 ### 3. Environment variables
 
