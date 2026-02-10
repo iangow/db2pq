@@ -30,22 +30,3 @@ def resolve_uri(
     )
     uri = f"postgres://{user}@{host}:{port}/{dbname}"
     return uri
-
-def resolve_wrds_id(wrds_id: str | None = None) -> str:
-    wrds_id = wrds_id or os.getenv("WRDS_ID")
-    if not wrds_id:
-        raise ValueError(
-            "wrds_id must be provided either as an argument or "
-            "via the WRDS_ID environment variable"
-        )
-    return wrds_id
-
-def get_wrds_url(wrds_id: str | None = None) -> str:
-    """
-    Return a PostgreSQL connection URL for the WRDS database.
-    """
-    wrds_id = resolve_wrds_id(wrds_id)
-    return (
-        f"postgresql://{wrds_id}"
-        f"@wrds-pgdata.wharton.upenn.edu:9737/wrds"
-    )

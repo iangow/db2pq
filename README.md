@@ -7,7 +7,8 @@ This package has four major functions, one for each of three popular data format
  - `db_to_pq()`: Exports a PostgreSQL table to a parquet file.
  - `db_schema_to_pq()`: Exports a PostgreSQL schema to parquet files.
  - `wrds_update_pq()`: A variant on `wrds_pg_to_pq()` that checks the "last modified" value for the relevant SAS file against that of the local parquet before getting new data from the WRDS PostgreSQL server.
-
+ - `wrds_pg_to_pg()`: Exports a WRDS PostgreSQL table to another PostgreSQL database.
+ 
 ## Requirements
 
 ### 1. Python

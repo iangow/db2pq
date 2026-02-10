@@ -1,6 +1,13 @@
 import ibis
 
-from .select import apply_keep_drop
+import ibis.selectors as s
+
+def apply_keep_drop(df, *, keep=None, drop=None):
+    if drop:
+        df = df.drop(s.matches(drop))
+    if keep:
+        df = df.select(s.matches(keep))
+    return df
 
 def read_postgres_table(
     *,

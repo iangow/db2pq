@@ -2,9 +2,12 @@ from .introspect import get_table_columns
 from .select_sql import build_wrds_select_sql, select_columns
 from .duckdb_ddl import create_table_from_select_duckdb
 from .copy import copy_wrds_select_to_pg_table
-from .comments import get_pg_comment_conn, get_pg_conn, get_wrds_conn
-from ._defaults import get_wrds_url, resolve_uri
+from .comments import get_pg_comment_conn, get_pg_conn, get_wrds_conn, set_table_comment
+from .wrds import get_wrds_uri
+from ._defaults import resolve_uri
+from ..core import get_now
 # from ..files.paths import resolve_data_dir  # later, when you add pq piece
+from ..sync.modified import modified_info, update_available
 
 def wrds_update_pg(
     table_name,
@@ -20,7 +23,7 @@ def wrds_update_pg(
     host=None,
     dbname=None,
     port=None,
-    temp_suffix=None,
+    force=False,
 ):
     """
     Materialize a WRDS PostgreSQL table into a local PostgreSQL database.
@@ -36,21 +39,31 @@ def wrds_update_pg(
     """
     
     uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
-    print(f"uri: {uri}")
 
     alt_table_name = alt_table_name or table_name
-    temp_suffix = "_temp" if temp_suffix is None else temp_suffix
-    temp_name = f"{alt_table_name}{temp_suffix}"
     
     col_types = col_types or {}
 
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
         all_cols = get_table_columns(wrds, schema, table_name)
         cols = select_columns(all_cols, keep=keep, drop=drop)
-        
-        comment = get_pg_comment_conn(wrds, schema=schema,
-                                      table_name=table_name)
-        print(f"WRDS comment: {comment}")
+        wrds_comment = get_pg_comment_conn(wrds, schema=schema,
+                                                table_name=table_name)
+        if not force:
+            pg_comment = get_pg_comment_conn(pg, schema=schema,
+                                             table_name=alt_table_name)
+            wrds_mod = modified_info("wrds_pg", wrds_comment)
+            pg_mod   = modified_info("pg", pg_comment)
+
+            if not update_available(src=wrds_mod, dst=pg_mod):
+                # optionally print why
+                print(f"{schema}.{alt_table_name} already up to date.")
+                return
+            print(f"Updated {schema}.{alt_table_name} is available.")
+        else:
+            print("Forcing update based on user request.")
+        print(f"Beginning file import at {get_now()} UTC.")
+        print(f"Importing data into {schema}.{alt_table_name}.")
         
         duckdb_sql = build_wrds_select_sql(
             conn=pg,
@@ -75,10 +88,10 @@ def wrds_update_pg(
         # DuckDB uses conn strings, not the already-open psycopg conns
         create_table_from_select_duckdb(
             select_sql=duckdb_sql,
-            wrds_uri=get_wrds_url(wrds_id),
+            wrds_uri=get_wrds_uri(wrds_id),
             dst_uri=uri,
             dst_schema=schema,
-            dst_table=temp_name,
+            dst_table=alt_table_name,
             drop_if_exists=True,
         )
         
@@ -87,9 +100,11 @@ def wrds_update_pg(
             pg_conn=pg,
             select_sql=copy_sql,
             dst_schema=schema,
-            dst_table=temp_name,
+            dst_table=alt_table_name,
             cols=cols,
             uri=uri
         )
-
-    return f"{schema}.{temp_name}"
+    
+        set_table_comment(pg, schema=schema, table_name=alt_table_name,
+                          comment=wrds_comment)
+        print(f"Completed file import at {get_now()} UTC.\n")

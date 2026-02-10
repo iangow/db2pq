@@ -8,6 +8,7 @@ from .postgres.duckdb_pg import read_postgres_table
 from .postgres.comments import get_wrds_comment
 from .postgres.schema import db_schema_tables
 from .sync.modified import is_up_to_date
+from .sync.modified import modified_info, update_available
 
 def db_to_pq(
     table_name,
@@ -481,28 +482,27 @@ def wrds_update_pq(
         alt_table_name = table_name
                 
     if use_sas:
-        modified = get_modified_str(
-            table_name=table_name, sas_schema=sas_schema, wrds_id=wrds_id, encoding=encoding
+        wrds_comment = get_modified_str(
+            table_name=table_name, sas_schema=sas_schema, wrds_id=wrds_id, 
+            encoding=encoding
         )
     else:
-        modified = get_wrds_comment(table_name=table_name, schema=schema, wrds_id=wrds_id)
-
-    if not modified:
-        return False
-    
+        wrds_comment = get_wrds_comment(
+            table_name=table_name, schema=schema, wrds_id=wrds_id)
+           
     pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
-    pq_modified = get_modified_pq(pq_file)
+    pq_comment = get_modified_pq(pq_file)
+    wrds_mod = modified_info("wrds_pg", wrds_comment)
+    pq_mod   = modified_info("pq", pq_comment)
     
-    up_to_date = is_up_to_date(src=modified, dst=pq_modified)
-
     if force:
         print("Forcing update based on user request.")
-    elif up_to_date:
+    elif not update_available(src=wrds_mod, dst=pq_mod):
         print(f"{schema}.{alt_table_name} already up to date.")
-        return False
+        return
     else:
         print(f"Updated {schema}.{alt_table_name} is available.")
-        print("Getting from WRDS.")
+        print(f"Beginning file download at {get_now()} UTC.\n")
 
     wrds_pg_to_pq(table_name=table_name,
                   schema=schema,
@@ -511,7 +511,7 @@ def wrds_update_pq(
                   col_types=col_types,
                   row_group_size=row_group_size,
                   obs=obs,
-                  modified=modified,
+                  modified=wrds_comment,
                   alt_table_name=alt_table_name,
                   keep=keep,
                   drop=drop,
