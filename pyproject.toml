@@ -15,6 +15,8 @@ dependencies = [
   "ibis-framework[duckdb,postgres]",
   "pyarrow",
   "pandas",
+  "duckdb",
+  "psycopg",
 ]
 
 [project.optional-dependencies]
@@ -27,3 +29,6 @@ Issues = "https://github.com/iangow/db2pq/issues"
 
 [tool.setuptools]
 packages = { find = {} }
+
+[tool.deptry.package_module_name_map]
+ibis-framework = "ibis"
