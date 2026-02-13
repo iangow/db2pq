@@ -6,6 +6,9 @@
 
 # Jupyter
 .ipynb_checkpoints/
+Untitled*.ipynb
+db2pq/Untitled*.ipynb
+db2pq/wrds_to_pq.ipynb
 
 # Python
 __pycache__/

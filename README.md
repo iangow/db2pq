@@ -169,6 +169,13 @@ With optional SAS dependency:
 pip install -e ".[sas]"
 ```
 
+## Project docs
+
+- Docs index: `docs/README.md`
+- Contributor guide: `CONTRIBUTING.md`
+- Release process: `RELEASING.md`
+- Changelog: `CHANGELOG.md`
+
 ## License
 
 MIT License. See `LICENSE`.
