@@ -21,6 +21,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Updated `README.md` to link project documentation files.
 - `wrds_update_pg()` now returns `bool` (`True` on update, `False` when already
   up to date) and normalizes string `keep`/`drop` arguments.
+- `wrds_update_pg()` now uses safe boolean coercion for `col_types` boolean
+  targets (for example, values like `0/1` in WRDS float columns).
 
 ## [0.1.6] - 2026-02-12
 
