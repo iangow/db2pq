@@ -12,11 +12,15 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - `CONTRIBUTING.md` with development workflow and versioning guidance.
 - `RELEASING.md` with a repeatable release checklist.
 - `create_roles` support in `wrds_update_pg()` to create schema roles and grants.
+- `wrds_schema` support in `wrds_update_pg()` to read from a source schema
+  different from the destination schema.
 
 ### Changed
 
 - Bumped version to `0.1.7` to begin the next patch cycle.
 - Updated `README.md` to link project documentation files.
+- `wrds_update_pg()` now returns `bool` (`True` on update, `False` when already
+  up to date) and normalizes string `keep`/`drop` arguments.
 
 ## [0.1.6] - 2026-02-12
 

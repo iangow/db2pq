@@ -1,3 +1,5 @@
+import re
+
 from .introspect import get_table_columns
 from .select_sql import build_wrds_select_sql, select_columns
 from .duckdb_ddl import create_table_from_select_duckdb
@@ -50,6 +52,15 @@ def _apply_table_roles(conn, schema: str, table_name: str) -> None:
     _execute_ident_sql(conn, "ALTER TABLE {}.{} OWNER TO {}", schema, table_name, schema)
     _execute_ident_sql(conn, "GRANT SELECT ON {}.{} TO {}", schema, table_name, access_role)
 
+def _normalize_col_filter_arg(value):
+    if value is None:
+        return None
+    if isinstance(value, str):
+        # Accept comma and/or whitespace separated column names.
+        parts = [p for p in re.split(r"[\s,]+", value.strip()) if p]
+        return parts
+    return list(value)
+
 def wrds_update_pg(
     table_name,
     schema,
@@ -66,6 +77,7 @@ def wrds_update_pg(
     port=None,
     force=False,
     create_roles=True,
+    wrds_schema=None,
 ):
     """
     Materialize a WRDS PostgreSQL table into a local PostgreSQL database.
@@ -80,18 +92,29 @@ def wrds_update_pg(
     - Update / fingerprint logic is handled elsewhere (or added later).
     - If ``create_roles`` is True, ensures schema owner role (``<schema>``)
       and read-only role (``<schema>_access``) exist, then applies grants.
+    - If ``wrds_schema`` is provided, it is used as the source WRDS schema while
+      data are still written to destination ``schema``.
+
+    Returns
+    -------
+    bool
+        ``True`` if an update was performed, ``False`` if the destination
+        table was already up to date.
     """
     
     uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
 
     alt_table_name = alt_table_name or table_name
+    source_schema = wrds_schema or schema
     
     col_types = col_types or {}
+    keep = _normalize_col_filter_arg(keep)
+    drop = _normalize_col_filter_arg(drop)
 
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
-        all_cols = get_table_columns(wrds, schema, table_name)
+        all_cols = get_table_columns(wrds, source_schema, table_name)
         cols = select_columns(all_cols, keep=keep, drop=drop)
-        wrds_comment = get_pg_comment_conn(wrds, schema=schema,
+        wrds_comment = get_pg_comment_conn(wrds, schema=source_schema,
                                                 table_name=table_name)
         if not force:
             pg_comment = get_pg_comment_conn(pg, schema=schema,
@@ -102,7 +125,7 @@ def wrds_update_pg(
             if not update_available(src=wrds_mod, dst=pg_mod):
                 # optionally print why
                 print(f"{schema}.{alt_table_name} already up to date.")
-                return
+                return False
             print(f"Updated {schema}.{alt_table_name} is available.")
         else:
             print("Forcing update based on user request.")
@@ -113,7 +136,7 @@ def wrds_update_pg(
         
         duckdb_sql = build_wrds_select_sql(
             conn=pg,
-            schema=schema,
+            schema=source_schema,
             table=table_name,
             columns=cols,
             col_types=col_types,
@@ -123,7 +146,7 @@ def wrds_update_pg(
         
         copy_sql = build_wrds_select_sql(
             conn=pg,
-            schema=schema,
+            schema=source_schema,
             table=table_name,
             columns=cols,
             col_types=col_types,
@@ -157,3 +180,4 @@ def wrds_update_pg(
         if create_roles:
             _apply_table_roles(pg, schema, alt_table_name)
         print(f"Completed file import at {get_now()} UTC.\n")
+        return True
