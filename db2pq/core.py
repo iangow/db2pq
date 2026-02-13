@@ -83,11 +83,12 @@ def db_to_pq(
         Basename of parquet file. Used when file should have different name from 
         `table_name`.
 
-    keep: string [Optional]
-        Regular expression indicating columns to keep.
+    keep: string or iterable [Optional]
+        Regex pattern(s) indicating columns to keep.
         
-    drop: string [Optional]
-        Regular expression indicating columns to drop.
+    drop: string or iterable [Optional]
+        Regex pattern(s) indicating columns to drop.
+        If both `drop` and `keep` are provided, `drop` is applied first.
     
     batched: bool [Optional]
         Indicates whether data will be extracting in batches using
@@ -205,11 +206,12 @@ def wrds_pg_to_pq(
     alt_table_name : string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
 
-    keep : string [Optional]
-        Regular expression indicating columns to keep.
+    keep : string or iterable [Optional]
+        Regex pattern(s) indicating columns to keep.
         
-    drop : string [Optional]
-        Regular expression indicating columns to drop.
+    drop : string or iterable [Optional]
+        Regex pattern(s) indicating columns to drop.
+        If both `drop` and `keep` are provided, `drop` is applied first.
 
     batched : bool [Optional]
         Indicates whether data will be extracting in batches using
@@ -441,11 +443,12 @@ def wrds_update_pq(
     alt_table_name: string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
 
-    keep: string [Optional]
-        Regular expression indicating columns to keep.
+    keep: string or iterable [Optional]
+        Regex pattern(s) indicating columns to keep.
         
-    drop: string [Optional]
-        Regular expression indicating columns to drop.
+    drop: string or iterable [Optional]
+        Regex pattern(s) indicating columns to drop.
+        If both `drop` and `keep` are provided, `drop` is applied first.
 
     batched: bool [Optional]
         Indicates whether data will be extracting in batches using
@@ -565,6 +568,5 @@ def update_schema(schema, *, data_dir=None, threads=3, archive=False):
         )
 
     return pq_files                      
-
 
 

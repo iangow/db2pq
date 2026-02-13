@@ -1,5 +1,3 @@
-import re
-
 from .introspect import get_table_columns
 from .select_sql import build_wrds_select_sql, select_columns
 from .duckdb_ddl import create_table_from_select_duckdb
@@ -52,15 +50,6 @@ def _apply_table_roles(conn, schema: str, table_name: str) -> None:
     _execute_ident_sql(conn, "ALTER TABLE {}.{} OWNER TO {}", schema, table_name, schema)
     _execute_ident_sql(conn, "GRANT SELECT ON {}.{} TO {}", schema, table_name, access_role)
 
-def _normalize_col_filter_arg(value):
-    if value is None:
-        return None
-    if isinstance(value, str):
-        # Accept comma and/or whitespace separated column names.
-        parts = [p for p in re.split(r"[\s,]+", value.strip()) if p]
-        return parts
-    return list(value)
-
 def wrds_update_pg(
     table_name,
     schema,
@@ -89,6 +78,8 @@ def wrds_update_pg(
     Notes
     -----
     - Any existing destination table is dropped.
+    - `keep`/`drop` use regex matching on source column names.
+    - If both `drop` and `keep` are provided, `drop` is applied first.
     - Update / fingerprint logic is handled elsewhere (or added later).
     - If ``create_roles`` is True, ensures schema owner role (``<schema>``)
       and read-only role (``<schema>_access``) exist, then applies grants.
@@ -108,9 +99,6 @@ def wrds_update_pg(
     source_schema = wrds_schema or schema
     
     col_types = col_types or {}
-    keep = _normalize_col_filter_arg(keep)
-    drop = _normalize_col_filter_arg(drop)
-
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
         all_cols = get_table_columns(wrds, source_schema, table_name)
         cols = select_columns(all_cols, keep=keep, drop=drop)

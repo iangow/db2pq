@@ -1,12 +1,10 @@
 import ibis
-
-import ibis.selectors as s
+from .column_filter import filter_columns
 
 def apply_keep_drop(df, *, keep=None, drop=None):
-    if drop:
-        df = df.drop(s.matches(drop))
-    if keep:
-        df = df.select(s.matches(keep))
+    cols = filter_columns(df.columns, keep=keep, drop=drop)
+    if cols != list(df.columns):
+        df = df.select(*cols)
     return df
 
 def read_postgres_table(

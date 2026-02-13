@@ -1,4 +1,5 @@
 from psycopg import sql
+from .column_filter import filter_columns
 
 def qident(conn, name: str) -> str:
     return sql.Identifier(name).as_string(conn)
@@ -53,14 +54,4 @@ def build_wrds_select_sql(
     return out
 
 def select_columns(all_cols, *, keep=None, drop=None):
-    if keep and drop:
-        raise ValueError("Use only one of keep or drop")
-
-    if keep is not None:
-        return list(keep)
-
-    if drop is not None:
-        drop_set = set(drop)
-        return [c for c in all_cols if c not in drop_set]
-
-    return list(all_cols)
+    return filter_columns(all_cols, keep=keep, drop=drop)

@@ -154,6 +154,8 @@ From `db2pq`:
 - WRDS PostgreSQL access uses host `wrds-pgdata.wharton.upenn.edu` and port `9737`.
 - `batched=True` (default) lowers memory usage for large tables.
 - `col_types` can be used to cast selected columns before writing Parquet.
+- `keep`/`drop` accept regex pattern(s) in both `wrds_update_pq()` and
+  `wrds_update_pg()`. If both are supplied, `drop` is applied before `keep`.
 
 ## Development
 
