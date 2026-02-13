@@ -225,6 +225,36 @@ def pq_last_modified_raw(p: Path):
     info = modified_info(kind="parquet", comment=comment)
     return info.raw
 
+def _parquet_storage(p: Path) -> str:
+    """Best-effort check whether parquet bytes are available locally."""
+    try:
+        if not p.exists():
+            return "cloud"
+        if p.stat().st_size == 0:
+            return "cloud"
+    except OSError:
+        return "cloud"
+    return "local"
+
+def _scan_row_for_parquet(p: Path, schema_name: str) -> dict:
+    storage = _parquet_storage(p)
+    comment = None
+
+    if storage == "local":
+        try:
+            comment = get_modified_pq(p)
+        except Exception:
+            storage = "cloud"
+
+    info = modified_info(kind="parquet", comment=comment)
+    return {
+        "table": p.stem,
+        "schema": schema_name,
+        "last_mod": info.dttm_local,
+        "last_mod_str": info.raw,
+        "storage": storage,
+    }
+
 def pq_last_updated(table_name=None, schema=None, data_dir=None, file_name=None):
     """
     Get last-updated metadata for parquet data files.
@@ -233,7 +263,8 @@ def pq_last_updated(table_name=None, schema=None, data_dir=None, file_name=None)
     Else if table_name is provided, resolve the parquet file from
     table_name/schema/data_dir and return metadata for that file.
     Else, return a DataFrame summary for all parquet files (optionally
-    constrained to a schema).
+    constrained to a schema), including a storage indicator
+    with values local/cloud.
     """
     if file_name is not None:
         return get_modified_pq(file_name)
@@ -253,23 +284,13 @@ def pq_last_updated(table_name=None, schema=None, data_dir=None, file_name=None)
     if schema is not None:
         subdir = data_dir / schema
         for p in subdir.glob("*.parquet"):
-            rows.append({
-                "table": p.stem,
-                "schema": subdir.name,
-                "last_mod": pq_last_modified_dttm(p),
-                "last_mod_str": pq_last_modified_raw(p),
-            })
+            rows.append(_scan_row_for_parquet(p, subdir.name))
     else:
         for subdir in data_dir.iterdir():
             if not subdir.is_dir():
                 continue
             for p in subdir.glob("*.parquet"):
-                rows.append({
-                    "table": p.stem,
-                    "schema": subdir.name,
-                    "last_mod": pq_last_modified_dttm(p),
-                    "last_mod_str": pq_last_modified_raw(p),
-                })
+                rows.append(_scan_row_for_parquet(p, subdir.name))
 
     df = pd.DataFrame(rows)
 
