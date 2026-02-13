@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "db2pq"
-version = "0.1.6"
+version = "0.1.7"
 description = "Convert database tables to Parquet files."
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [

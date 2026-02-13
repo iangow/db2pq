@@ -1,101 +1,174 @@
-# Library to convert PostgreSQL data to parquet files
+# db2pq: export PostgreSQL and WRDS data to Parquet
 
-This package was created to convert PostgreSQL data to parquet format.
-This package has four major functions, one for each of three popular data formats, plus an "update" function that only updates if necessary.
+`db2pq` is a Python library for moving data from PostgreSQL into Apache Parquet files.
+It is designed for both general PostgreSQL sources and the WRDS PostgreSQL service.
 
- - `wrds_pg_to_pq()`: Exports a WRDS PostgreSQL table to a parquet file.
- - `db_to_pq()`: Exports a PostgreSQL table to a parquet file.
- - `db_schema_to_pq()`: Exports a PostgreSQL schema to parquet files.
- - `wrds_update_pq()`: A variant on `wrds_pg_to_pq()` that checks the "last modified" value for the relevant SAS file against that of the local parquet before getting new data from the WRDS PostgreSQL server.
- - `wrds_pg_to_pg()`: Exports a WRDS PostgreSQL table to another PostgreSQL database.
- 
-## Requirements
+## What it does
 
-### 1. Python
-The software uses Python 3 and depends on Ibis, `pyarrow` (Python API for Apache Arrow libraries), and Paramiko.
-These dependencies are installed when you use Pip:
+- Export a single PostgreSQL table to Parquet.
+- Export all tables in a PostgreSQL schema to Parquet.
+- Export WRDS tables to Parquet.
+- Update Parquet files only when the WRDS source table is newer.
+- Mirror WRDS tables into a local PostgreSQL database.
+- Read `last_modified` metadata embedded in Parquet files.
+
+## Installation
+
+Install from PyPI:
 
 ```bash
-pip install db2pq --upgrade
+pip install --upgrade db2pq
 ```
 
-### 2. A WRDS ID
+Install optional SAS support (used by `wrds_update_pq(..., use_sas=True)`):
 
-To access WRDS non-interactively (e.g., from Python scripts), you must use
-**SSH public-key authentication**.
-
-WRDS provides a dedicated SSH endpoint for key-based authentication:
-
-`wrds-cloud-sshkey.wharton.upenn.edu`
-
-#### Step 1: Generate a modern SSH key (recommended)
-WRDS supports modern SSH key types. We recommend **ed25519**:
-
-`ssh-keygen -t ed25519 -C "your_wrds_id@wrds"`
-
-Accept the default location (`~/.ssh/id_ed25519`).
-
-You may use a passphrase if your SSH agent is running.
-For unattended jobs (cron / CI), an empty passphrase may be required.
-
-#### Step 2: Install the public key on WRDS
-Copy your public key to the WRDS SSH-key host:
-
+```bash
+pip install --upgrade "db2pq[sas]"
 ```
+
+## Environment variables
+
+`db2pq` supports explicit function arguments and environment-based defaults.
+
+Connection defaults:
+
+- `PGUSER`: PostgreSQL user (falls back to local OS user)
+- `PGHOST`: PostgreSQL host (default: `localhost`)
+- `PGDATABASE`: PostgreSQL database (default: `PGUSER`)
+- `PGPORT`: PostgreSQL port (default: `5432`)
+
+WRDS + output defaults:
+
+- `WRDS_ID`: WRDS username (required for WRDS helpers unless passed directly)
+- `DATA_DIR`: base directory where Parquet files are written
+
+Example shell setup:
+
+```bash
+export WRDS_ID="your_wrds_id"
+export DATA_DIR="$HOME/pq_data"
+```
+
+## WRDS SSH setup (for SAS-based metadata)
+
+`wrds_update_pq(..., use_sas=True)` uses SSH to execute SAS remotely. Configure
+an SSH key for your WRDS account first:
+
+```bash
+ssh-keygen -t ed25519 -C "your_wrds_id@wrds"
 cat ~/.ssh/id_ed25519.pub | \
 ssh your_wrds_id@wrds-cloud-sshkey.wharton.upenn.edu \
-  "mkdir -p ~/.ssh && chmod 700 ~/.ssh && \
-   cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+"mkdir -p ~/.ssh && chmod 700 ~/.ssh && \
+ cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
-If `~/.ssh` does not exist on WRDS, the command above will create it.
+## Quickstart
 
-#### Step 3: (Recommended) Configure SSH
-Add an entry to `~/.ssh/config`:
+### 1) Export a PostgreSQL table
 
-```
-Host wrds
-    HostName wrds-cloud-sshkey.wharton.upenn.edu
-    User your_wrds_id
-    IdentityFile ~/.ssh/id_ed25519
-    IdentitiesOnly yes
-```
-You can now connect with:
+```python
+from db2pq import db_to_pq
 
-```
-ssh wrds
-```
+pq_file = db_to_pq(
+    table_name="my_table",
+    schema="public",
+    host="localhost",
+    database="mydb",
+)
 
-This configuration is also used automatically by `paramiko`, enabling
-password-less access from Python.
-
-#### Troubleshooting
-If SSH still prompts for a password, run:
-
-```
-ssh -vvv wrds
+print(pq_file)
 ```
 
-and confirm that `publickey` appears in the list of authentication methods.
+### 2) Export a WRDS table to Parquet
 
-`wrds2pg` uses `paramiko` to execute SAS code on WRDS via SSH.
-Password-based authentication will not work in unattended scripts.
+```python
+from db2pq import wrds_pg_to_pq
 
-### 3. Environment variables
+wrds_pg_to_pq(
+    table_name="dsi",
+    schema="crsp",
+    wrds_id="your_wrds_id",  # or set WRDS_ID in the environment
+)
+```
 
-Environment variables that the code uses include:
+### 3) Update only when WRDS data changed
 
-- `WRDS_ID`: Your [WRDS](https://wrds-web.wharton.upenn.edu/wrds/) ID.
-- `DATA_DIR`: The local repository for parquet files.
+```python
+from db2pq import wrds_update_pq
 
-Once can set these environment variables in (say) `~/.zprofile`:
+wrds_update_pq(
+    table_name="dsi",
+    schema="crsp",
+    wrds_id="your_wrds_id",
+)
+```
+
+### 4) Export all tables in a PostgreSQL schema
+
+```python
+from db2pq import db_schema_to_pq
+
+files = db_schema_to_pq(schema="public")
+print(files)
+```
+
+## Parquet layout
+
+Files are organized as:
+
+```text
+<DATA_DIR>/<schema>/<table>.parquet
+```
+
+For example:
+
+```text
+/data/crsp/dsi.parquet
+```
+
+When `archive=True`, replaced files are moved under:
+
+```text
+<DATA_DIR>/<schema>/<archive_dir>/<table>_<timestamp>.parquet
+```
+
+## Public API
+
+From `db2pq`:
+
+- `db_to_pq(table_name, schema, ...)`
+- `wrds_pg_to_pq(table_name, schema, ...)`
+- `db_schema_to_pq(schema, ...)`
+- `wrds_update_pq(table_name, schema, ...)`
+- `update_schema(schema, ...)`
+- `get_pq_files(schema, ...)`
+- `get_modified_pq(file_name)`
+- `pq_last_updated(data_dir=None)`
+- `db_schema_tables(schema, ...)`
+- `get_wrds_comment(table_name, schema, ...)`
+- `get_pg_comment(table_name, schema, ...)`
+- `wrds_update_pg(table_name, schema, ...)`
+
+## Notes
+
+- WRDS PostgreSQL access uses host `wrds-pgdata.wharton.upenn.edu` and port `9737`.
+- `batched=True` (default) lowers memory usage for large tables.
+- `col_types` can be used to cast selected columns before writing Parquet.
+
+## Development
+
+Run editable install in this repository:
 
 ```bash
-export WRDS_ID="iangow"
-export DATA_DIR="~/Dropbox/pq_data"
+pip install -e .
 ```
 
-As an alternative to setting these environment variables, they can be passed as values of arguments `wrds_id` and `data_dir`, respectively, of the functions above.
+With optional SAS dependency:
 
-### Report bugs
-Author: Ian Gow, <iandgow@gmail.com>
+```bash
+pip install -e ".[sas]"
+```
+
+## License
+
+MIT License. See `LICENSE`.
