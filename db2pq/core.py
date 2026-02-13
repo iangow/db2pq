@@ -535,7 +535,7 @@ def wrds_update_pq(
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
             
-def update_schema(schema, *, data_dir=None, threads=3, archive=False):
+def wrds_update_schema(schema, *, data_dir=None, threads=3, archive=False):
     """Update existing parquet files in a schema.
 
     Parameters
