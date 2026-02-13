@@ -25,6 +25,7 @@ def db_to_pq(
     alt_table_name=None,
     keep=None,
     drop=None,
+    where=None,
     batched=True,
     threads=None,
     tz="UTC",
@@ -128,6 +129,7 @@ def db_to_pq(
         threads=threads,
         keep=keep,
         drop=drop,
+        where=where,
     )
         
     pq_file = write_parquet(
@@ -160,6 +162,7 @@ def wrds_pg_to_pq(
     alt_table_name=None,
     keep=None,
     drop=None,
+    where=None,
     batched=True,
     threads=3,
     tz="UTC",
@@ -258,6 +261,7 @@ def wrds_pg_to_pq(
         alt_table_name=alt_table_name,
         keep=keep,
         drop=drop,
+        where=where,
         batched=batched,
         threads=threads,
         tz=tz,
@@ -395,6 +399,7 @@ def wrds_update_pq(
     alt_table_name=None,
     keep=None,
     drop=None,
+    where=None,
     batched=True,
     threads=3,
     tz="UTC",
@@ -527,6 +532,7 @@ def wrds_update_pq(
                             alt_table_name=alt_table_name,
                             keep=keep,
                             drop=drop,
+                            where=where,
                             batched=batched,
                             threads=threads,
                             tz=tz,

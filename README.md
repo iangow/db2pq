@@ -149,6 +149,10 @@ From `db2pq`:
 - `get_pg_comment(table_name, schema, ...)`
 - `wrds_update_pg(table_name, schema, ...)`
 
+`wrds_update_pq()` supports SQL-style filtering via `where`, for example:
+
+`wrds_update_pq("funda", "comp", where="indfmt = 'INDL' AND datafmt = 'STD'")`
+
 ## Notes
 
 - WRDS PostgreSQL access uses host `wrds-pgdata.wharton.upenn.edu` and port `9737`.
