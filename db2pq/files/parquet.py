@@ -10,7 +10,8 @@ import pyarrow.parquet as pq
 import pandas as pd
 
 from .paths import parquet_paths, archive_existing_parquet, promote_temp_parquet
-from .timestamps import parse_last_modified  
+from .timestamps import parse_last_modified
+from ..sync.modified import modified_info
 
 def df_to_arrow(df, col_types=None, obs=None, batches=False):
     
@@ -130,30 +131,59 @@ def write_parquet(
     promote_temp_parquet(tmp_pq_file, pq_file)
     return pq_file
     
-def pq_last_updated(data_dir=None):
+def pq_last_modified_dttm(p: Path):
     """
-    Get `last_updated` metadata for data files in a parquet data repository
-    set up along the lines described at 
-    https://iangow.github.io/far_book/parquet-wrds.html.
+    Return last-modified timestamp for a parquet file as a local datetime,
+    or None if unavailable/unparseable.
+    """
+    comment = get_modified_pq(p)
+    info = modified_info(kind="parquet", comment=comment)
+    return info.dttm_local
+
+def pq_last_modified_raw(p: Path):
+    """
+    Return last-modified timestamp for a parquet file as a local datetime,
+    or None if unavailable/unparseable.
+    """
+    comment = get_modified_pq(p)
+    info = modified_info(kind="parquet", comment=comment)
+    return info.raw
+
+def pq_last_updated(data_dir=None, schema=None):
+    """
+    Get last-updated metadata for parquet data files.
     """
     if data_dir is None:
         data_dir = os.getenv("DATA_DIR") or os.getcwd()
     data_dir = Path(os.path.expanduser(data_dir))
 
-    df = pd.DataFrame([
-        {"table": p.stem,
-         "schema": subdir.name,
-         "last_mod_str": get_modified_pq(p)}
-        for subdir in data_dir.iterdir()
-        if subdir.is_dir()
-        for p in subdir.glob("*.parquet")
-    ])
+    rows = []
 
-    df["last_mod"] = (
-        df["last_mod_str"]
-          .str.extract(r"^Last modified:\s*(.*)$", expand=False)
-          .pipe(pd.to_datetime, errors="coerce")
-          .dt.tz_localize("US/Eastern")
+    if schema is not None:
+        subdir = data_dir / schema
+        for p in subdir.glob("*.parquet"):
+            rows.append({
+                "table": p.stem,
+                "schema": subdir.name,
+                "last_mod": pq_last_modified_dttm(p),
+                "last_mod_str": pq_last_modified_raw(p),
+            })
+    else:
+        for subdir in data_dir.iterdir():
+            if not subdir.is_dir():
+                continue
+            for p in subdir.glob("*.parquet"):
+                rows.append({
+                    "table": p.stem,
+                    "schema": subdir.name,
+                    "last_mod": pq_last_modified_dttm(p),
+                    "last_mod_str": pq_last_modified_raw(p),
+                })
+
+    df = pd.DataFrame(rows)
+
+    return (
+        df
+        .sort_values(["schema", "table"])
+        .reset_index(drop=True)
     )
-
-    return df.sort_values("schema").reset_index(drop=True)
