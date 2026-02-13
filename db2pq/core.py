@@ -145,7 +145,7 @@ def db_to_pq(
         archive_dir=archive_dir,
     )
     
-    return str(pq_file)
+    return str(pq_file) if pq_file is not None else None
 
 def wrds_pg_to_pq(
     table_name,
@@ -512,22 +512,25 @@ def wrds_update_pq(
         print(f"Updated {schema}.{alt_table_name} is available.")
         print(f"Beginning file download at {get_now()} UTC.")
 
-    wrds_pg_to_pq(table_name=table_name,
-                  schema=schema,
-                  data_dir=data_dir,
-                  wrds_id=wrds_id,
-                  col_types=col_types,
-                  row_group_size=row_group_size,
-                  obs=obs,
-                  modified=wrds_comment,
-                  alt_table_name=alt_table_name,
-                  keep=keep,
-                  drop=drop,
-                  batched=batched,
-                  threads=threads,
-                  archive=archive,
-                  archive_dir=archive_dir)
-    print(f"Completed file download at {get_now()} UTC.")
+    pq_file = wrds_pg_to_pq(table_name=table_name,
+                            schema=schema,
+                            data_dir=data_dir,
+                            wrds_id=wrds_id,
+                            col_types=col_types,
+                            row_group_size=row_group_size,
+                            obs=obs,
+                            modified=wrds_comment,
+                            alt_table_name=alt_table_name,
+                            keep=keep,
+                            drop=drop,
+                            batched=batched,
+                            threads=threads,
+                            archive=archive,
+                            archive_dir=archive_dir)
+    if pq_file is None:
+        print(f"No file download completed at {get_now()} UTC (no rows returned).")
+    else:
+        print(f"Completed file download at {get_now()} UTC.")
     
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
@@ -568,4 +571,3 @@ def update_schema(schema, *, data_dir=None, threads=3, archive=False):
         )
 
     return pq_files                      
-

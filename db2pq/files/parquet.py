@@ -5,7 +5,6 @@ from pathlib import Path
 
 import ibis.selectors as s
 from ibis import _
-import pyarrow as pa
 import pyarrow.parquet as pq
 
 import pandas as pd
@@ -29,14 +28,6 @@ def df_to_arrow(df, col_types=None, obs=None, batches=False):
     else:
         return df.to_pyarrow()
         
-def _infer_parquet_schema(df, *, col_types):
-    from tempfile import TemporaryFile
-    with TemporaryFile() as tmp:
-        arrow = df_to_arrow(df, col_types=col_types, obs=10)
-        pq.write_table(arrow, tmp)
-        tmp.seek(0)
-        return pq.read_schema(tmp)
-        
 def get_modified_pq(file_name):
     file_path = Path(file_name)
 
@@ -59,19 +50,34 @@ def _write_tmp_parquet(
     batched=True,
     row_group_size=1024 * 1024,
 ):
-    """Write df to tmp_pq_file (no archiving, no promotion)."""
+    """Write df to tmp_pq_file (no archiving, no promotion).
+
+    Returns True if a temporary parquet file was written, else False.
+    """
     if batched:
-        pq_schema = _infer_parquet_schema(df, col_types=col_types)
+        batches = iter(df_to_arrow(df, col_types=col_types, obs=obs, batches=True))
+        try:
+            first_batch = next(batches)
+        except StopIteration:
+            return False
+
+        pq_schema = first_batch.schema
         if modified:
-            pq_schema = pq_schema.with_metadata({b"last_modified": modified.encode()})
+            md = dict(pq_schema.metadata or {})
+            md[b"last_modified"] = modified.encode()
+            pq_schema = pq_schema.with_metadata(md)
 
         with pq.ParquetWriter(tmp_pq_file, pq_schema) as writer:
-            batches = df_to_arrow(df, col_types=col_types, obs=obs, batches=True)
+            writer.write_batch(first_batch)
             for batch in batches:
                 writer.write_batch(batch)
+        return True
     else:
         df_arrow = df_to_arrow(df, col_types=col_types, obs=obs)
+        if df_arrow.num_rows == 0:
+            return False
         pq.write_table(df_arrow, tmp_pq_file, row_group_size=row_group_size)
+        return True
 
 def write_parquet(
     df,
@@ -93,12 +99,12 @@ def write_parquet(
       - write tmp parquet (batched or not)
       - optionally archive existing final file
       - promote tmp -> final
-    Returns Path to final parquet file.
+    Returns Path to final parquet file, or None if no rows were selected.
     """
     _, pq_file, tmp_pq_file = parquet_paths(data_dir, schema, table_name)
 
     # --- existing inner logic (writes tmp_pq_file) ---
-    _write_tmp_parquet(
+    wrote_rows = _write_tmp_parquet(
         df,
         tmp_pq_file=tmp_pq_file,
         col_types=col_types,
@@ -107,6 +113,9 @@ def write_parquet(
         batched=batched,
         row_group_size=row_group_size,
     )
+    if not wrote_rows:
+        print(f"No rows returned for {schema}.{table_name}; no parquet file created.")
+        return None
 
     if archive and pq_file.exists():
         modified_str = parse_last_modified(get_modified_pq(pq_file))

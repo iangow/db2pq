@@ -20,6 +20,9 @@ def read_postgres_table(
     drop=None,
 ):
     con = ibis.duckdb.connect()
+    # Required for very large text columns/aggregates that exceed Arrow's
+    # regular 2 GiB string buffer limit.
+    con.raw_sql("SET arrow_large_buffer_size=true;")
     if threads:
         con.raw_sql(f"SET threads TO {int(threads)};")
 
