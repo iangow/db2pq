@@ -143,9 +143,9 @@ From `db2pq`:
 - `wrds_update_schema(schema, ...)`
 - `get_pq_files(schema, ...)`
 - `get_modified_pq(file_name)`
-- `pq_last_updated(data_dir=None)`
+- `pq_last_updated(table_name=None, schema=None, data_dir=None, file_name=None)`
 - `db_schema_tables(schema, ...)`
-- `get_wrds_comment(table_name, schema, ...)`
+- `get_wrds_comment(table_name, schema, use_sas=False, sas_schema=None, ...)`
 - `get_pg_comment(table_name, schema, ...)`
 - `wrds_update_pg(table_name, schema, ...)`
 
