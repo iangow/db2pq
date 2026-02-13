@@ -3,7 +3,7 @@ name = "db2pq"
 from .core import (
     db_to_pq, wrds_pg_to_pq,
     db_schema_to_pq,
-    wrds_update_pq, get_pq_files, update_schema,
+    wrds_update_pq, get_pq_files, wrds_update_schema,
     get_modified_pq,
 )
 
@@ -15,7 +15,7 @@ from .postgres.update import wrds_update_pg
 __all__ = [
     "db_to_pq", "wrds_pg_to_pq",
     "db_schema_to_pq", "db_schema_tables",
-    "wrds_update_pq", "get_pq_files", "update_schema",
+    "wrds_update_pq", "get_pq_files", "wrds_update_schema",
     "get_modified_pq", "pq_last_updated",
     "get_wrds_comment", "get_pg_comment",
     "wrds_update_pg"

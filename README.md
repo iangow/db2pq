@@ -140,7 +140,7 @@ From `db2pq`:
 - `wrds_pg_to_pq(table_name, schema, ...)`
 - `db_schema_to_pq(schema, ...)`
 - `wrds_update_pq(table_name, schema, ...)`
-- `update_schema(schema, ...)`
+- `wrds_update_schema(schema, ...)`
 - `get_pq_files(schema, ...)`
 - `get_modified_pq(file_name)`
 - `pq_last_updated(data_dir=None)`
