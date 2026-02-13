@@ -510,7 +510,7 @@ def wrds_update_pq(
         return
     else:
         print(f"Updated {schema}.{alt_table_name} is available.")
-        print(f"Beginning file download at {get_now()} UTC.\n")
+        print(f"Beginning file download at {get_now()} UTC.")
 
     wrds_pg_to_pq(table_name=table_name,
                   schema=schema,
@@ -527,7 +527,7 @@ def wrds_update_pq(
                   threads=threads,
                   archive=archive,
                   archive_dir=archive_dir)
-    print(f"Completed file download at {get_now()} UTC.\n")
+    print(f"Completed file download at {get_now()} UTC.")
     
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
@@ -568,5 +568,4 @@ def update_schema(schema, *, data_dir=None, threads=3, archive=False):
         )
 
     return pq_files                      
-
 
