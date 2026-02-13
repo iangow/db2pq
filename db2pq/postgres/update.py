@@ -9,6 +9,47 @@ from ..core import get_now
 # from ..files.paths import resolve_data_dir  # later, when you add pq piece
 from ..sync.modified import modified_info, update_available
 
+def _schema_exists(conn, schema: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s LIMIT 1", (schema,))
+        return cur.fetchone() is not None
+
+def _role_exists(conn, role: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s LIMIT 1", (role,))
+        return cur.fetchone() is not None
+
+def _execute_ident_sql(conn, sql_template: str, *idents: str) -> None:
+    from psycopg import sql as psql
+    stmt = psql.SQL(sql_template).format(*(psql.Identifier(i) for i in idents))
+    with conn.cursor() as cur:
+        cur.execute(stmt)
+
+def _create_role(conn, role: str) -> None:
+    _execute_ident_sql(conn, "CREATE ROLE {}", role)
+
+def _ensure_schema_and_roles(conn, schema: str, *, create_roles: bool) -> None:
+    if not _schema_exists(conn, schema):
+        _execute_ident_sql(conn, "CREATE SCHEMA {}", schema)
+
+    if not create_roles:
+        return
+
+    access_role = f"{schema}_access"
+
+    if not _role_exists(conn, schema):
+        _create_role(conn, schema)
+    if not _role_exists(conn, access_role):
+        _create_role(conn, access_role)
+
+    _execute_ident_sql(conn, "ALTER SCHEMA {} OWNER TO {}", schema, schema)
+    _execute_ident_sql(conn, "GRANT USAGE ON SCHEMA {} TO {}", schema, access_role)
+
+def _apply_table_roles(conn, schema: str, table_name: str) -> None:
+    access_role = f"{schema}_access"
+    _execute_ident_sql(conn, "ALTER TABLE {}.{} OWNER TO {}", schema, table_name, schema)
+    _execute_ident_sql(conn, "GRANT SELECT ON {}.{} TO {}", schema, table_name, access_role)
+
 def wrds_update_pg(
     table_name,
     schema,
@@ -24,6 +65,7 @@ def wrds_update_pg(
     dbname=None,
     port=None,
     force=False,
+    create_roles=True,
 ):
     """
     Materialize a WRDS PostgreSQL table into a local PostgreSQL database.
@@ -36,6 +78,8 @@ def wrds_update_pg(
     -----
     - Any existing destination table is dropped.
     - Update / fingerprint logic is handled elsewhere (or added later).
+    - If ``create_roles`` is True, ensures schema owner role (``<schema>``)
+      and read-only role (``<schema>_access``) exist, then applies grants.
     """
     
     uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
@@ -64,6 +108,8 @@ def wrds_update_pg(
             print("Forcing update based on user request.")
         print(f"Beginning file import at {get_now()} UTC.")
         print(f"Importing data into {schema}.{alt_table_name}.")
+
+        _ensure_schema_and_roles(pg, schema, create_roles=create_roles)
         
         duckdb_sql = build_wrds_select_sql(
             conn=pg,
@@ -107,4 +153,7 @@ def wrds_update_pg(
     
         set_table_comment(pg, schema=schema, table_name=alt_table_name,
                           comment=wrds_comment)
+
+        if create_roles:
+            _apply_table_roles(pg, schema, alt_table_name)
         print(f"Completed file import at {get_now()} UTC.\n")

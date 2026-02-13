@@ -11,6 +11,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 - `CONTRIBUTING.md` with development workflow and versioning guidance.
 - `RELEASING.md` with a repeatable release checklist.
+- `create_roles` support in `wrds_update_pg()` to create schema roles and grants.
 
 ### Changed
 
