@@ -78,10 +78,30 @@ def get_wrds_comment(
     schema: str,
     *,
     wrds_id: str | None = None,
+    use_sas: bool = False,
+    sas_schema: str | None = None,
+    encoding: str = "utf-8",
 ) -> str | None:
+    if use_sas:
+        # Lazy import so SAS/paramiko dependency is only needed for SAS lookups.
+        from ..sas.stream import get_modified_str
+
+        comment = get_modified_str(
+            table_name=table_name,
+            sas_schema=sas_schema or schema,
+            wrds_id=wrds_id,
+            encoding=encoding,
+        )
+        if not comment:
+            print(f"No comment found for {sas_schema or schema}.{table_name}.")
+        return comment
+
     with get_wrds_conn(wrds_id) as conn:
-        return get_pg_comment_conn(
+        comment = get_pg_comment_conn(
             conn,
             schema=schema,
             table_name=table_name,
         )
+    if not comment:
+        print(f"No comment found for {schema}.{table_name}.")
+    return comment

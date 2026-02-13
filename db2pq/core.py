@@ -1,7 +1,5 @@
 import os
 from time import gmtime, strftime
-
-from .sas.stream import get_modified_str
 from .files.paths import get_pq_file, get_pq_files
 from .files.parquet import write_parquet, get_modified_pq
 from .postgres.duckdb_pg import read_postgres_table
@@ -29,6 +27,7 @@ def db_to_pq(
     drop=None,
     batched=True,
     threads=None,
+    tz="UTC",
     archive=False,
     archive_dir=None,
 ):
@@ -141,6 +140,7 @@ def db_to_pq(
         obs=obs,
         batched=batched,
         row_group_size=row_group_size,
+        tz=tz,
         archive=archive,
         archive_dir=archive_dir,
     )
@@ -162,6 +162,7 @@ def wrds_pg_to_pq(
     drop=None,
     batched=True,
     threads=3,
+    tz="UTC",
     archive=False,
     archive_dir=None,
 ):
@@ -259,6 +260,7 @@ def wrds_pg_to_pq(
         drop=drop,
         batched=batched,
         threads=threads,
+        tz=tz,
         archive=archive,
         archive_dir=archive_dir,
     )
@@ -395,6 +397,7 @@ def wrds_update_pq(
     drop=None,
     batched=True,
     threads=3,
+    tz="UTC",
     use_sas=False,
     archive=False,
     archive_dir=None,
@@ -489,18 +492,19 @@ def wrds_update_pq(
     if not alt_table_name:
         alt_table_name = table_name
                 
-    if use_sas:
-        wrds_comment = get_modified_str(
-            table_name=table_name, sas_schema=sas_schema, wrds_id=wrds_id, 
-            encoding=encoding
-        )
-    else:
-        wrds_comment = get_wrds_comment(
-            table_name=table_name, schema=schema, wrds_id=wrds_id)
+    wrds_comment = get_wrds_comment(
+        table_name=table_name,
+        schema=schema,
+        wrds_id=wrds_id,
+        use_sas=use_sas,
+        sas_schema=sas_schema,
+        encoding=encoding,
+    )
            
     pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
     pq_comment = get_modified_pq(pq_file)
-    wrds_mod = modified_info("wrds_pg", wrds_comment)
+    wrds_kind = "wrds_sas" if use_sas else "wrds_pg"
+    wrds_mod = modified_info(wrds_kind, wrds_comment)
     pq_mod   = modified_info("pq", pq_comment)
     
     if force:
@@ -525,6 +529,7 @@ def wrds_update_pq(
                             drop=drop,
                             batched=batched,
                             threads=threads,
+                            tz=tz,
                             archive=archive,
                             archive_dir=archive_dir)
     if pq_file is None:
