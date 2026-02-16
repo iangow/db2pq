@@ -26,6 +26,19 @@ Install optional SAS support (used by `wrds_update_pq(..., use_sas=True)`):
 pip install --upgrade "db2pq[sas]"
 ```
 
+Install optional pandas support (needed for DataFrame outputs from
+`pq_last_modified(...)`):
+
+```bash
+pip install --upgrade "db2pq[pandas]"
+```
+
+Install both optional SAS and pandas support:
+
+```bash
+pip install --upgrade "db2pq[sas,pandas]"
+```
+
 ## Environment variables
 
 `db2pq` supports explicit function arguments and environment-based defaults.
@@ -141,12 +154,12 @@ From `db2pq`:
 - `db_schema_to_pq(schema, ...)`
 - `wrds_update_pq(table_name, schema, ...)`
 - `wrds_update_schema(schema, ...)`
-- `get_pq_files(schema, ...)`
-- `get_modified_pq(file_name)`
-- `pq_last_updated(table_name=None, schema=None, data_dir=None, file_name=None)`
+- `pq_list_files(schema, data_dir=None, archive=False, archive_dir=None)`
+- `pq_last_modified(table_name=None, schema=None, data_dir=None, file_name=None, archive=False, archive_dir="archive")`
+- `pq_archive(table_name=None, schema=None, data_dir=None, file_name=None, archive_dir=None)`
+- `pq_restore(file_basename, schema, data_dir=None, archive=True, archive_dir=None)`
+- `pq_remove(table_name=None, schema=None, data_dir=None, file_name=None, archive=False, archive_dir="archive")`
 - `db_schema_tables(schema, ...)`
-- `get_wrds_comment(table_name, schema, use_sas=False, sas_schema=None, ...)`
-- `get_pg_comment(table_name, schema, ...)`
 - `wrds_update_pg(table_name, schema, ...)`
 
 `wrds_update_pq()` supports SQL-style filtering via `where`, for example:

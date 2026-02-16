@@ -1,6 +1,6 @@
 import os
 from time import gmtime, strftime
-from .files.paths import get_pq_file, get_pq_files
+from .files.paths import get_pq_file, pq_list_files
 from .files.parquet import write_parquet, get_modified_pq
 from .postgres.duckdb_pg import read_postgres_table
 from .postgres.comments import get_wrds_comment
@@ -570,7 +570,7 @@ def wrds_update_schema(schema, *, data_dir=None, threads=3, archive=False):
     pq_files : list[str]
         Names of parquet files updated.
     """
-    pq_files = get_pq_files(schema=schema, data_dir=data_dir)
+    pq_files = pq_list_files(schema=schema, data_dir=data_dir)
 
     for pq_file in pq_files:
         wrds_update_pq(

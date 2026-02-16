@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "db2pq"
-version = "0.1.8"
+version = "0.2.0"
 description = "Convert database tables to Parquet files."
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [
@@ -14,13 +14,13 @@ requires-python = ">=3.8"
 dependencies = [
   "ibis-framework[duckdb,postgres]",
   "pyarrow",
-  "pandas",
   "duckdb",
   "psycopg",
 ]
 
 [project.optional-dependencies]
 sas = ["paramiko"]
+pandas = ["pandas"]
 
 [project.urls]
 Homepage = "https://github.com/iangow/db2pq/"
