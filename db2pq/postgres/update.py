@@ -29,21 +29,36 @@ def _create_role(conn, role: str) -> None:
     _execute_ident_sql(conn, "CREATE ROLE {}", role)
 
 def _ensure_schema_and_roles(conn, schema: str, *, create_roles: bool) -> None:
+    changed = False
+
     if not _schema_exists(conn, schema):
         _execute_ident_sql(conn, "CREATE SCHEMA {}", schema)
+        changed = True
 
     if not create_roles:
+        if changed:
+            # DDL must be committed so separate connections (e.g., DuckDB DDL
+            # using dst_uri) can resolve the new schema immediately.
+            conn.commit()
         return
 
     access_role = f"{schema}_access"
 
     if not _role_exists(conn, schema):
         _create_role(conn, schema)
+        changed = True
     if not _role_exists(conn, access_role):
         _create_role(conn, access_role)
+        changed = True
 
     _execute_ident_sql(conn, "ALTER SCHEMA {} OWNER TO {}", schema, schema)
     _execute_ident_sql(conn, "GRANT USAGE ON SCHEMA {} TO {}", schema, access_role)
+    changed = True
+
+    if changed:
+        # DDL must be committed so separate connections (e.g., DuckDB DDL
+        # using dst_uri) can resolve the new schema immediately.
+        conn.commit()
 
 def _apply_table_roles(conn, schema: str, table_name: str) -> None:
     access_role = f"{schema}_access"
@@ -139,9 +154,6 @@ def wrds_update_pg(
         print(f"Importing data into {schema}.{alt_table_name}.")
 
         _ensure_schema_and_roles(pg, schema, create_roles=create_roles)
-        # DuckDB DDL uses a separate destination connection; commit schema/role
-        # DDL so that connection can resolve dst_schema immediately.
-        pg.commit()
         
         duckdb_sql = build_wrds_select_sql(
             conn=pg,
