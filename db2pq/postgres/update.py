@@ -139,6 +139,9 @@ def wrds_update_pg(
         print(f"Importing data into {schema}.{alt_table_name}.")
 
         _ensure_schema_and_roles(pg, schema, create_roles=create_roles)
+        # DuckDB DDL uses a separate destination connection; commit schema/role
+        # DDL so that connection can resolve dst_schema immediately.
+        pg.commit()
         
         duckdb_sql = build_wrds_select_sql(
             conn=pg,
