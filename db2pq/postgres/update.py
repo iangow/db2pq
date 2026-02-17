@@ -1,4 +1,4 @@
-from .introspect import get_table_columns
+from .introspect import get_table_columns, get_table_column_types
 from .select_sql import build_wrds_select_sql, select_columns
 from .duckdb_ddl import create_table_from_select_duckdb
 from .copy import copy_wrds_select_to_pg_table
@@ -67,6 +67,7 @@ def wrds_update_pg(
     force=False,
     create_roles=True,
     wrds_schema=None,
+    tz="UTC",
 ):
     """
     Materialize a WRDS PostgreSQL table into a local PostgreSQL database.
@@ -85,6 +86,8 @@ def wrds_update_pg(
       and read-only role (``<schema>_access``) exist, then applies grants.
     - If ``wrds_schema`` is provided, it is used as the source WRDS schema while
       data are still written to destination ``schema``.
+    - ``tz`` (default ``"UTC"``) is used to convert source
+      ``timestamp without time zone`` columns via ``AT TIME ZONE``.
 
     Returns
     -------
@@ -101,7 +104,22 @@ def wrds_update_pg(
     col_types = col_types or {}
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
         all_cols = get_table_columns(wrds, source_schema, table_name)
+        source_col_types = get_table_column_types(wrds, source_schema, table_name)
         cols = select_columns(all_cols, keep=keep, drop=drop)
+        if tz:
+            selected_types = [source_col_types.get(c, "").strip().lower() for c in cols]
+            n_naive_ts = sum(t == "timestamp without time zone" for t in selected_types)
+            n_tz_ts = sum(t == "timestamp with time zone" for t in selected_types)
+            if n_naive_ts > 0:
+                print(
+                    f"Applying tz='{tz}' conversion to "
+                    f"{n_naive_ts} timestamp without time zone column(s)."
+                )
+            if n_tz_ts > 0:
+                print(
+                    f"No tz conversion applied to {n_tz_ts} "
+                    "timestamp with time zone column(s)."
+                )
         wrds_comment = get_pg_comment_conn(wrds, schema=source_schema,
                                                 table_name=table_name)
         if not force:
@@ -128,6 +146,8 @@ def wrds_update_pg(
             table=table_name,
             columns=cols,
             col_types=col_types,
+            source_col_types=source_col_types,
+            tz=tz,
             obs=obs,
             qualify="wrds",
         )
@@ -138,6 +158,8 @@ def wrds_update_pg(
             table=table_name,
             columns=cols,
             col_types=col_types,
+            source_col_types=source_col_types,
+            tz=tz,
             obs=obs,
             qualify=None,
         )

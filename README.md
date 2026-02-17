@@ -173,6 +173,10 @@ From `db2pq`:
 - `col_types` can be used to cast selected columns before writing Parquet.
 - `keep`/`drop` accept regex pattern(s) in both `wrds_update_pq()` and
   `wrds_update_pg()`. If both are supplied, `drop` is applied before `keep`.
+- `tz` defaults to `"UTC"` in both update paths:
+  `wrds_update_pq()` uses it to interpret source naive timestamps before writing
+  timezone-aware UTC parquet timestamps; `wrds_update_pg()` converts source
+  `timestamp without time zone` columns using `AT TIME ZONE '<tz>'`.
 
 ## Development
 
