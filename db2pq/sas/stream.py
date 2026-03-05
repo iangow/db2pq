@@ -1,6 +1,7 @@
 # db2pq/sas/stream.py
-import os
 import warnings
+
+from ..postgres.wrds import resolve_wrds_id
 
 def get_process(sas_code: str, *, wrds_id: str = None):
     """
@@ -15,11 +16,7 @@ def get_process(sas_code: str, *, wrds_id: str = None):
             "the SAS optional dependency: pip install 'db2pq[sas]'"
         ) from exc
 
-    wrds_id = wrds_id or os.getenv("WRDS_ID")
-    if not wrds_id:
-        raise ValueError(
-            "wrds_id must be provided either as an argument or via the WRDS_ID environment variable"
-        )
+    wrds_id = resolve_wrds_id(wrds_id)
 
     client = paramiko.SSHClient()
     # optional: load host keys / suppress warnings

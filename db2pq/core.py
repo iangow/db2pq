@@ -1,4 +1,3 @@
-import os
 from time import gmtime, strftime
 from .files.paths import get_pq_file, pq_list_files
 from .files.parquet import write_parquet, get_modified_pq
@@ -8,6 +7,7 @@ from .postgres.schema import db_schema_tables
 from .sync.modified import is_up_to_date
 from .sync.modified import modified_info, update_available
 from .postgres._defaults import resolve_pg_connection
+from .postgres.wrds import resolve_wrds_id
 
 def db_to_pq(
     table_name,
@@ -238,13 +238,7 @@ def wrds_pg_to_pq(
     >>> wrds_pg_to_pq("dsi", "crsp")
     >>> wrds_pg_to_pq("feed21_bankruptcy_notification", "audit")
     """
-    if wrds_id is None:
-        wrds_id = os.getenv("WRDS_ID")
-        if not wrds_id:
-            raise ValueError(
-                "wrds_id must be provided either as an argument or "
-                "via the WRDS_ID environment variable"
-            )
+    wrds_id = resolve_wrds_id(wrds_id)
     
     return db_to_pq(
         table_name,
@@ -483,13 +477,7 @@ def wrds_update_pq(
     >>> wrds_update_pq("dsi", "crsp")
     >>> wrds_update_pq("feed21_bankruptcy_notification", "audit")
     """                       
-    if wrds_id is None:
-        wrds_id = os.getenv("WRDS_ID")
-        if not wrds_id:
-            raise ValueError(
-                "wrds_id must be provided either as an argument or "
-                "via the WRDS_ID environment variable"
-            )
+    wrds_id = resolve_wrds_id(wrds_id)
         
     if not sas_schema:
         sas_schema = schema

@@ -42,6 +42,7 @@ pip install --upgrade "db2pq[sas,pandas]"
 ## Environment variables
 
 `db2pq` supports explicit function arguments and environment-based defaults.
+It also loads a local `.env` file automatically (via `python-dotenv`) when resolving defaults.
 
 Connection defaults:
 

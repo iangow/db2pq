@@ -456,9 +456,7 @@ def pq_last_modified(
             pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
             return get_modified_pq(pq_file)
 
-    if data_dir is None:
-        data_dir = os.getenv("DATA_DIR") or os.getcwd()
-    data_dir = Path(os.path.expanduser(data_dir))
+    data_dir = resolve_data_dir(data_dir)
 
     rows = []
 

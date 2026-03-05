@@ -7,24 +7,19 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-03-05
+
 ### Added
 
-- `CONTRIBUTING.md` with development workflow and versioning guidance.
-- `RELEASING.md` with a repeatable release checklist.
-- `create_roles` support in `wrds_update_pg()` to create schema roles and grants.
-- `wrds_schema` support in `wrds_update_pg()` to read from a source schema
-  different from the destination schema.
+- `python-dotenv` as a dependency for environment-based defaults.
+- Automatic `.env` loading when resolving default `DATA_DIR` and `WRDS_ID`.
 
 ### Changed
 
-- Bumped version to `0.1.7` to begin the next patch cycle.
-- Updated `README.md` to link project documentation files.
-- `wrds_update_pg()` now returns `bool` (`True` on update, `False` when already
-  up to date).
-- `wrds_update_pg()` now uses safe boolean coercion for `col_types` boolean
-  targets (for example, values like `0/1` in WRDS float columns).
-- `keep`/`drop` filtering is now regex-based and consistent across
-  `wrds_update_pq()` and `wrds_update_pg()` (drop filters apply first, then keep).
+- Centralized WRDS ID resolution through `resolve_wrds_id()` and reused it in
+  core WRDS helpers and SAS streaming helpers.
+- `pq_last_updated()` now uses the shared data directory resolver.
+- Updated `README.md` to document automatic `.env` loading behavior.
 
 ## [0.1.6] - 2026-02-12
 
@@ -34,5 +29,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added WRDS SSH setup documentation for SAS-based metadata workflows.
 - Improved API and output layout documentation.
 
-[Unreleased]: https://github.com/iangow/db2pq/compare/0.1.6...HEAD
+[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.2...HEAD
+[0.2.2]: https://github.com/iangow/db2pq/releases/tag/0.2.2
 [0.1.6]: https://github.com/iangow/db2pq/releases/tag/0.1.6
