@@ -56,7 +56,10 @@ fi
 source "$VENV_DIR/bin/activate"
 uv pip install --upgrade "git+${DB2PQ_GIT_REPO}@${DB2PQ_GIT_REF}"
 
-uv run --active python - <<'PY'
+TMP_PY="$(mktemp "${SCRATCH_HOME}/db2pq-run-XXXXXX.py")"
+trap 'rm -f "$TMP_PY"' EXIT
+
+cat >"$TMP_PY" <<'PY'
 from db2pq import set_wrds_use_private, wrds_update_pq
 
 set_wrds_use_private(True)
@@ -93,4 +96,7 @@ wrds_update_pq("aco_pnfnda", "comp")
 wrds_update_pq("seg_customer", "compseg")
 wrds_update_pq("names_seg", "compseg")
 PY
+
+echo "Running db2pq workload on WRDS Cloud..."
+uv run --active python "$TMP_PY"
 REMOTE
