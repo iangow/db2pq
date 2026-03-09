@@ -44,6 +44,8 @@ export DATA_DIR
 export WRDS_ID
 export DB2PQ_DUCKDB_HOME="$DUCKDB_HOME"
 export DB2PQ_DUCKDB_TEMP_DIRECTORY="$DUCKDB_TEMP_DIR"
+export PYTHONUNBUFFERED=1
+export PYTHONFAULTHANDLER=1
 
 if [[ ! -x "$UV_ROOT/uv" ]]; then
   curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL="$UV_ROOT" sh
@@ -60,41 +62,46 @@ TMP_PY="$(mktemp "${SCRATCH_HOME}/db2pq-run-XXXXXX.py")"
 trap 'rm -f "$TMP_PY"' EXIT
 
 cat >"$TMP_PY" <<'PY'
+import traceback
+
 from db2pq import set_wrds_use_private, wrds_update_pq
 
 set_wrds_use_private(True)
 
-# CRSP
-wrds_update_pq("ccmxpf_lnkhist", "crsp",
-               col_types={"lpermno": "int32",
-                          "lpermco": "int32"})
-wrds_update_pq("stocknames", "crsp")
-wrds_update_pq("dsi", "crsp")
-wrds_update_pq("comphist", "crsp")
-wrds_update_pq("dsedelist", "crsp")
-wrds_update_pq("dseexchdates", "crsp")
-wrds_update_pq("dsedist", "crsp")
-wrds_update_pq("msi", "crsp")
-wrds_update_pq("mse", "crsp")
-wrds_update_pq("msf", "crsp")
-wrds_update_pq("erdport1", "crsp")
-wrds_update_pq("dsf", "crsp")
+jobs = [
+    ("ccmxpf_lnkhist", "crsp", {"col_types": {"lpermno": "int32", "lpermco": "int32"}}),
+    ("stocknames", "crsp", {}),
+    ("dsi", "crsp", {}),
+    ("comphist", "crsp", {}),
+    ("dsedelist", "crsp", {}),
+    ("dseexchdates", "crsp", {}),
+    ("dsedist", "crsp", {}),
+    ("msi", "crsp", {}),
+    ("mse", "crsp", {}),
+    ("msf", "crsp", {}),
+    ("erdport1", "crsp", {}),
+    ("dsf", "crsp", {}),
+    ("factors_daily", "ff", {}),
+    ("company", "comp", {}),
+    ("funda", "comp", {}),
+    ("funda_fncd", "comp", {}),
+    ("fundq", "comp", {}),
+    ("r_auditors", "comp", {}),
+    ("idx_daily", "comp", {}),
+    ("aco_pnfnda", "comp", {}),
+    ("seg_customer", "compseg", {}),
+    ("names_seg", "compseg", {}),
+]
 
-# Fama-French library
-wrds_update_pq("factors_daily", "ff")
-
-# Compustat
-wrds_update_pq("company", "comp")
-wrds_update_pq("funda", "comp")
-wrds_update_pq("funda_fncd", "comp")
-wrds_update_pq("fundq", "comp")
-wrds_update_pq("r_auditors", "comp")
-wrds_update_pq("idx_daily", "comp")
-wrds_update_pq("aco_pnfnda", "comp")
-
-# compseg
-wrds_update_pq("seg_customer", "compseg")
-wrds_update_pq("names_seg", "compseg")
+for table_name, schema, kwargs in jobs:
+    print(f"Starting {schema}.{table_name} with kwargs={kwargs}", flush=True)
+    try:
+        wrds_update_pq(table_name, schema, **kwargs)
+        print(f"Finished {schema}.{table_name}", flush=True)
+    except Exception:
+        print(f"Failed {schema}.{table_name}", flush=True)
+        traceback.print_exc()
+        raise
 PY
 
 echo "Running db2pq workload on WRDS Cloud..."
