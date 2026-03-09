@@ -105,5 +105,7 @@ for table_name, schema, kwargs in jobs:
 PY
 
 echo "Running db2pq workload on WRDS Cloud..."
-uv run --active python "$TMP_PY"
+python -c 'print("Python smoke test OK", flush=True)'
+python -c 'import db2pq; print("db2pq import OK", flush=True)'
+python "$TMP_PY"
 REMOTE
