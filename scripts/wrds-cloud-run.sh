@@ -47,6 +47,10 @@ export DB2PQ_DUCKDB_TEMP_DIRECTORY="$DUCKDB_TEMP_DIR"
 export PYTHONUNBUFFERED=1
 export PYTHONFAULTHANDLER=1
 
+JOB_ROOT="$SCRATCH_HOME/db2pq-batch"
+JOB_LOG_DIR="$JOB_ROOT/logs"
+mkdir -p "$JOB_LOG_DIR"
+
 if [[ ! -x "$UV_ROOT/uv" ]]; then
   curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL="$UV_ROOT" sh
 fi
@@ -58,8 +62,11 @@ fi
 source "$VENV_DIR/bin/activate"
 uv pip install --upgrade "git+${DB2PQ_GIT_REPO}@${DB2PQ_GIT_REF}"
 
-TMP_PY="$(mktemp "${SCRATCH_HOME}/db2pq-run-XXXXXX.py")"
-trap 'rm -f "$TMP_PY"' EXIT
+RUN_ID="$(date +%Y%m%d-%H%M%S)"
+TMP_PY="$JOB_ROOT/db2pq-run-${RUN_ID}.py"
+TMP_SH="$JOB_ROOT/db2pq-run-${RUN_ID}.sh"
+STDOUT_LOG="$JOB_LOG_DIR/db2pq-run-${RUN_ID}.out"
+STDERR_LOG="$JOB_LOG_DIR/db2pq-run-${RUN_ID}.err"
 
 cat >"$TMP_PY" <<'PY'
 import traceback
@@ -104,8 +111,66 @@ for table_name, schema, kwargs in jobs:
         raise
 PY
 
-echo "Running db2pq workload on WRDS Cloud..."
+cat >"$TMP_SH" <<EOF
+#!/bin/bash
+#$ -cwd
+#$ -pe onenode 4
+#$ -l m_mem_free=6G
+#$ -o ${STDOUT_LOG}
+#$ -e ${STDERR_LOG}
+
+set -euo pipefail
+
+export UV_UNMANAGED_INSTALL="${UV_ROOT}"
+export UV_CACHE_DIR="${UV_CACHE_DIR}"
+export XDG_CACHE_HOME="${SCRATCH_HOME}/.cache"
+export PATH="${UV_ROOT}:\$PATH"
+export DATA_DIR="${DATA_DIR}"
+export WRDS_ID="${WRDS_ID}"
+export DB2PQ_DUCKDB_HOME="${DUCKDB_HOME}"
+export DB2PQ_DUCKDB_TEMP_DIRECTORY="${DUCKDB_TEMP_DIR}"
+export PYTHONUNBUFFERED=1
+export PYTHONFAULTHANDLER=1
+
+source "${VENV_DIR}/bin/activate"
+
+echo "Starting WRDS batch job at \$(date)"
 python -c 'print("Python smoke test OK", flush=True)'
 python -c 'import db2pq; print("db2pq import OK", flush=True)'
-python "$TMP_PY"
+python "${TMP_PY}"
+echo "Ending WRDS batch job at \$(date)"
+EOF
+
+chmod +x "$TMP_SH"
+
+echo "Submitting WRDS batch job..."
+QSUB_OUTPUT="$(qsub "$TMP_SH")"
+echo "$QSUB_OUTPUT"
+JOB_ID="$(printf '%s\n' "$QSUB_OUTPUT" | sed -n 's/.*Your job \([0-9][0-9]*\).*/\1/p')"
+
+if [[ -z "$JOB_ID" ]]; then
+  echo "Failed to parse qsub job id." >&2
+  exit 1
+fi
+
+echo "Tracking job ${JOB_ID}"
+echo "stdout: ${STDOUT_LOG}"
+echo "stderr: ${STDERR_LOG}"
+
+while qstat | awk '{print $1}' | grep -qx "$JOB_ID"; do
+  echo "Job ${JOB_ID} is still queued/running at $(date)"
+  sleep 30
+done
+
+echo "Job ${JOB_ID} is no longer in qstat at $(date)"
+
+if [[ -f "$STDOUT_LOG" ]]; then
+  echo "Last 40 lines of stdout log:"
+  tail -n 40 "$STDOUT_LOG"
+fi
+
+if [[ -f "$STDERR_LOG" ]]; then
+  echo "Last 40 lines of stderr log:"
+  tail -n 40 "$STDERR_LOG"
+fi
 REMOTE
