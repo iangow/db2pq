@@ -144,7 +144,8 @@ EOF
 chmod +x "$TMP_SH"
 
 echo "Submitting WRDS batch job..."
-QSUB_OUTPUT="$(qsub "$TMP_SH")"
+cd "$JOB_ROOT"
+QSUB_OUTPUT="$(qsub "$(basename "$TMP_SH")")"
 echo "$QSUB_OUTPUT"
 JOB_ID="$(printf '%s\n' "$QSUB_OUTPUT" | sed -n 's/.*Your job \([0-9][0-9]*\).*/\1/p')"
 
