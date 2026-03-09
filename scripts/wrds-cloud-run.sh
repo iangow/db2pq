@@ -64,7 +64,8 @@ uv pip install --upgrade "git+${DB2PQ_GIT_REPO}@${DB2PQ_GIT_REF}"
 
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
 TMP_PY="$JOB_ROOT/db2pq-run-${RUN_ID}.py"
-TMP_SH="$HOME/db2pq-run-${RUN_ID}.sh"
+TMP_SH_NAME="db2pq-run-${RUN_ID}.sh"
+TMP_SH="$HOME/${TMP_SH_NAME}"
 STDOUT_LOG="$JOB_LOG_DIR/db2pq-run-${RUN_ID}.out"
 STDERR_LOG="$JOB_LOG_DIR/db2pq-run-${RUN_ID}.err"
 
@@ -144,7 +145,9 @@ EOF
 chmod +x "$TMP_SH"
 
 echo "Submitting WRDS batch job..."
-QSUB_OUTPUT="$(qsub "$TMP_SH")"
+echo "Batch wrapper: $TMP_SH"
+cd "$HOME"
+QSUB_OUTPUT="$(qsub "$TMP_SH_NAME")"
 echo "$QSUB_OUTPUT"
 JOB_ID="$(printf '%s\n' "$QSUB_OUTPUT" | sed -n 's/.*Your job \([0-9][0-9]*\).*/\1/p')"
 
