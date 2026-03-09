@@ -10,9 +10,15 @@ fi
 
 : "${WRDS_ID:?WRDS_ID must be set in the environment or .env}"
 
-REMOTE_WRDS_ID="$(printf '%q' "$WRDS_ID")"
+DB2PQ_GIT_REPO="${DB2PQ_GIT_REPO:-https://github.com/iangow/db2pq.git}"
+DB2PQ_GIT_REF="${DB2PQ_GIT_REF:-codex/wrds-private-host}"
 
-ssh "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu" "WRDS_ID=${REMOTE_WRDS_ID} bash -s" <<'REMOTE'
+REMOTE_WRDS_ID="$(printf '%q' "$WRDS_ID")"
+REMOTE_DB2PQ_GIT_REPO="$(printf '%q' "$DB2PQ_GIT_REPO")"
+REMOTE_DB2PQ_GIT_REF="$(printf '%q' "$DB2PQ_GIT_REF")"
+
+ssh "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu" \
+  "WRDS_ID=${REMOTE_WRDS_ID} DB2PQ_GIT_REPO=${REMOTE_DB2PQ_GIT_REPO} DB2PQ_GIT_REF=${REMOTE_DB2PQ_GIT_REF} bash -s" <<'REMOTE'
 set -euo pipefail
 
 SCRATCH_HOME="${HOME/#\/home/\/scratch}"
@@ -48,7 +54,7 @@ if [[ ! -x "$VENV_DIR/bin/python" ]]; then
 fi
 
 source "$VENV_DIR/bin/activate"
-uv pip install --upgrade db2pq
+uv pip install --upgrade "git+${DB2PQ_GIT_REPO}@${DB2PQ_GIT_REF}"
 
 uv run --active python - <<'PY'
 from db2pq import set_wrds_use_private, wrds_update_pq
