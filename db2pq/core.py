@@ -7,7 +7,18 @@ from .postgres.schema import db_schema_tables
 from .sync.modified import is_up_to_date
 from .sync.modified import modified_info, update_available
 from .postgres._defaults import resolve_pg_connection
-from .postgres.wrds import resolve_wrds_host, resolve_wrds_id
+from .postgres.wrds import resolve_wrds_host, resolve_wrds_id, resolve_wrds_use_private
+
+DEFAULT_ROW_GROUP_SIZE = 1024 * 1024
+PRIVATE_WRDS_ROW_GROUP_SIZE = 100_000
+
+
+def _resolve_wrds_row_group_size(row_group_size, *, use_private):
+    if row_group_size is not None:
+        return row_group_size
+    if resolve_wrds_use_private(use_private):
+        return PRIVATE_WRDS_ROW_GROUP_SIZE
+    return DEFAULT_ROW_GROUP_SIZE
 
 def db_to_pq(
     table_name,
@@ -19,7 +30,7 @@ def db_to_pq(
     port=None,
     data_dir=None,
     col_types=None,
-    row_group_size=1048576,
+    row_group_size=DEFAULT_ROW_GROUP_SIZE,
     obs=None,
     modified=None,
     alt_table_name=None,
@@ -156,7 +167,7 @@ def wrds_pg_to_pq(
     wrds_id=None,
     data_dir=None,
     col_types=None,
-    row_group_size=1048576,
+    row_group_size=None,
     obs=None,
     modified=None,
     alt_table_name=None,
@@ -199,8 +210,9 @@ def wrds_pg_to_pq(
         For example, `col_types = {'permno': 'int32', 'permco': 'int32'}`.
     
     row_group_size : int [Optional]
-        Maximum number of rows in each written row group. 
-        Default is `1024 * 1024`.    
+        Maximum number of rows in each written row group.
+        Defaults to `1024 * 1024`, or `100_000` when `use_private`
+        resolves to True.
     
     obs : Integer [Optional]
         Number of observations to import from database table.
@@ -247,6 +259,10 @@ def wrds_pg_to_pq(
     >>> wrds_pg_to_pq("feed21_bankruptcy_notification", "audit")
     """
     wrds_id = resolve_wrds_id(wrds_id)
+    row_group_size = _resolve_wrds_row_group_size(
+        row_group_size,
+        use_private=use_private,
+    )
     
     return db_to_pq(
         table_name,
@@ -396,7 +412,7 @@ def wrds_update_pq(
     col_types=None,
     encoding="utf-8",
     sas_schema=None,
-    row_group_size=1048576,
+    row_group_size=None,
     obs=None,
     alt_table_name=None,
     keep=None,
@@ -442,8 +458,9 @@ def wrds_update_pq(
         For example, `col_types = {'permno': 'int32', 'permco': 'int32'}`.
     
     row_group_size: int [Optional]
-        Maximum number of rows in each written row group. 
-        Default is `1024 * 1024`.    
+        Maximum number of rows in each written row group.
+        Defaults to `1024 * 1024`, or `100_000` when `use_private`
+        resolves to True.
     
     obs: Integer [Optional]
         Number of observations to import from database table.
@@ -494,6 +511,10 @@ def wrds_update_pq(
     >>> wrds_update_pq("feed21_bankruptcy_notification", "audit")
     """                       
     wrds_id = resolve_wrds_id(wrds_id)
+    row_group_size = _resolve_wrds_row_group_size(
+        row_group_size,
+        use_private=use_private,
+    )
         
     if not sas_schema:
         sas_schema = schema

@@ -139,6 +139,10 @@ set_wrds_use_private(True)
 wrds_update_pq("dsi", "crsp")
 ```
 
+When private-host mode is active, `wrds_update_pq()` and `wrds_pg_to_pq()`
+also use a smaller default `row_group_size` of `100_000` to reduce memory
+pressure on WRDS Cloud. Pass `row_group_size=` explicitly to override it.
+
 ### 4) Export all tables in a PostgreSQL schema
 
 ```python

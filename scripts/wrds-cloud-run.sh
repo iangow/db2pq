@@ -54,7 +54,6 @@ uv run --active python - <<'PY'
 from db2pq import set_wrds_use_private, wrds_update_pq
 
 set_wrds_use_private(True)
-DEFAULT_ROW_GROUP_SIZE = 100_000
 
 # CRSP
 wrds_update_pq("ccmxpf_lnkhist", "crsp",
@@ -70,7 +69,7 @@ wrds_update_pq("msi", "crsp")
 wrds_update_pq("mse", "crsp")
 wrds_update_pq("msf", "crsp")
 wrds_update_pq("erdport1", "crsp")
-wrds_update_pq("dsf", "crsp", row_group_size=DEFAULT_ROW_GROUP_SIZE)
+wrds_update_pq("dsf", "crsp")
 
 # Fama-French library
 wrds_update_pq("factors_daily", "ff")
