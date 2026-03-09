@@ -64,7 +64,7 @@ uv pip install --upgrade "git+${DB2PQ_GIT_REPO}@${DB2PQ_GIT_REF}"
 
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
 TMP_PY="$JOB_ROOT/db2pq-run-${RUN_ID}.py"
-TMP_SH="$JOB_ROOT/db2pq-run-${RUN_ID}.sh"
+TMP_SH="$HOME/db2pq-run-${RUN_ID}.sh"
 STDOUT_LOG="$JOB_LOG_DIR/db2pq-run-${RUN_ID}.out"
 STDERR_LOG="$JOB_LOG_DIR/db2pq-run-${RUN_ID}.err"
 
@@ -144,8 +144,7 @@ EOF
 chmod +x "$TMP_SH"
 
 echo "Submitting WRDS batch job..."
-cd "$JOB_ROOT"
-QSUB_OUTPUT="$(qsub "$(basename "$TMP_SH")")"
+QSUB_OUTPUT="$(qsub "$TMP_SH")"
 echo "$QSUB_OUTPUT"
 JOB_ID="$(printf '%s\n' "$QSUB_OUTPUT" | sed -n 's/.*Your job \([0-9][0-9]*\).*/\1/p')"
 
@@ -174,4 +173,6 @@ if [[ -f "$STDERR_LOG" ]]; then
   echo "Last 40 lines of stderr log:"
   tail -n 40 "$STDERR_LOG"
 fi
+
+rm -f "$TMP_SH"
 REMOTE
