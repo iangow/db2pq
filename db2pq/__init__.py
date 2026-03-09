@@ -10,6 +10,7 @@ from .core import (
 from .files.parquet import pq_last_modified, pq_archive, pq_restore, pq_remove
 from .postgres.schema import db_schema_tables
 from .postgres.update import wrds_update_pg
+from .postgres.wrds import get_wrds_use_private, set_wrds_use_private
 
 __all__ = [
     "__version__",
@@ -17,5 +18,5 @@ __all__ = [
     "db_schema_to_pq", "db_schema_tables",
     "wrds_update_pq", "pq_list_files", "wrds_update_schema",
     "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",
-    "wrds_update_pg"
+    "wrds_update_pg", "set_wrds_use_private", "get_wrds_use_private"
 ]

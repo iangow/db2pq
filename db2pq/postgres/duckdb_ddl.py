@@ -1,5 +1,7 @@
 import duckdb
 
+from .duckdb_config import configure_duckdb_connection
+
 def create_table_from_select_duckdb(
     *,
     select_sql: str,
@@ -10,6 +12,7 @@ def create_table_from_select_duckdb(
     drop_if_exists: bool = True,
 ):
     con = duckdb.connect()
+    configure_duckdb_connection(con)
     con.install_extension("postgres")
     con.load_extension("postgres")
 

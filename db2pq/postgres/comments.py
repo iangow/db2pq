@@ -69,15 +69,16 @@ def get_pg_comment(
 def get_pg_conn(uri):
     return psycopg.connect(uri)
 
-def get_wrds_conn(wrds_id: str | None = None):
+def get_wrds_conn(wrds_id: str | None = None, *, use_private: bool | None = None):
     wrds_id = resolve_wrds_id(wrds_id)
-    return get_pg_conn(get_wrds_uri(wrds_id))
+    return get_pg_conn(get_wrds_uri(wrds_id, use_private=use_private))
 
 def get_wrds_comment(
     table_name: str,
     schema: str,
     *,
     wrds_id: str | None = None,
+    use_private: bool | None = None,
     use_sas: bool = False,
     sas_schema: str | None = None,
     encoding: str = "utf-8",
@@ -96,7 +97,7 @@ def get_wrds_comment(
             print(f"No comment found for {sas_schema or schema}.{table_name}.")
         return comment
 
-    with get_wrds_conn(wrds_id) as conn:
+    with get_wrds_conn(wrds_id, use_private=use_private) as conn:
         comment = get_pg_comment_conn(
             conn,
             schema=schema,

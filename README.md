@@ -55,6 +55,10 @@ WRDS + output defaults:
 
 - `WRDS_ID`: WRDS username (required for WRDS helpers unless passed directly)
 - `DATA_DIR`: base directory where Parquet files are written
+- `DB2PQ_WRDS_USE_PRIVATE`: if truthy, use
+  `wrds-pgdata-ident-w.wharton.private` for WRDS PostgreSQL connections
+- `DB2PQ_DUCKDB_HOME`: optional DuckDB home directory override
+- `DB2PQ_DUCKDB_TEMP_DIRECTORY`: optional DuckDB temp directory override
 
 Example shell setup:
 
@@ -75,6 +79,14 @@ ssh your_wrds_id@wrds-cloud-sshkey.wharton.upenn.edu \
 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && \
  cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
+
+## WRDS Cloud helper script
+
+For WRDS Cloud environments where `/home` storage is constrained, see
+[`scripts/wrds-cloud-run.sh`](scripts/wrds-cloud-run.sh). It installs `uv`
+under scratch storage, creates a venv there, sets `DATA_DIR`, and points
+DuckDB home/temp state at scratch via `DB2PQ_DUCKDB_HOME` and
+`DB2PQ_DUCKDB_TEMP_DIRECTORY`.
 
 ## Quickstart
 
@@ -115,6 +127,16 @@ wrds_update_pq(
     schema="crsp",
     wrds_id="your_wrds_id",
 )
+```
+
+To force WRDS PostgreSQL access over the private host, either pass
+`use_private=True` or set a module-level default:
+
+```python
+from db2pq import set_wrds_use_private, wrds_update_pq
+
+set_wrds_use_private(True)
+wrds_update_pq("dsi", "crsp")
 ```
 
 ### 4) Export all tables in a PostgreSQL schema

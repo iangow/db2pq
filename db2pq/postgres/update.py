@@ -83,6 +83,7 @@ def wrds_update_pg(
     create_roles=True,
     wrds_schema=None,
     tz="UTC",
+    use_private=None,
 ):
     """
     Materialize a WRDS PostgreSQL table into a local PostgreSQL database.
@@ -117,7 +118,7 @@ def wrds_update_pg(
     source_schema = wrds_schema or schema
     
     col_types = col_types or {}
-    with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
+    with get_wrds_conn(wrds_id, use_private=use_private) as wrds, get_pg_conn(uri) as pg:
         all_cols = get_table_columns(wrds, source_schema, table_name)
         source_col_types = get_table_column_types(wrds, source_schema, table_name)
         cols = select_columns(all_cols, keep=keep, drop=drop)
@@ -182,7 +183,7 @@ def wrds_update_pg(
         # DuckDB uses conn strings, not the already-open psycopg conns
         create_table_from_select_duckdb(
             select_sql=duckdb_sql,
-            wrds_uri=get_wrds_uri(wrds_id),
+            wrds_uri=get_wrds_uri(wrds_id, use_private=use_private),
             dst_uri=uri,
             dst_schema=schema,
             dst_table=alt_table_name,

@@ -1,5 +1,6 @@
 import ibis
 from .column_filter import filter_columns
+from .duckdb_config import configure_duckdb_connection
 
 def _quote_ident(name: str) -> str:
     escaped = name.replace('"', '""')
@@ -31,9 +32,7 @@ def read_postgres_table(
     where=None,
 ):
     con = ibis.duckdb.connect()
-    # Required for very large text columns/aggregates that exceed Arrow's
-    # regular 2 GiB string buffer limit.
-    con.raw_sql("SET arrow_large_buffer_size=true;")
+    configure_duckdb_connection(con)
     if threads:
         con.raw_sql(f"SET threads TO {int(threads)};")
 

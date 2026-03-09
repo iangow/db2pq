@@ -7,7 +7,7 @@ from .postgres.schema import db_schema_tables
 from .sync.modified import is_up_to_date
 from .sync.modified import modified_info, update_available
 from .postgres._defaults import resolve_pg_connection
-from .postgres.wrds import resolve_wrds_id
+from .postgres.wrds import resolve_wrds_host, resolve_wrds_id
 
 def db_to_pq(
     table_name,
@@ -166,6 +166,7 @@ def wrds_pg_to_pq(
     batched=True,
     threads=3,
     tz="UTC",
+    use_private=None,
     archive=False,
     archive_dir=None,
 ):
@@ -227,6 +228,13 @@ def wrds_pg_to_pq(
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
+
+    use_private : bool, optional
+        Whether to connect to the WRDS private PostgreSQL host
+        (`wrds-pgdata-ident-w.wharton.private`) instead of the public host.
+        If not provided, uses the module-level default from
+        `db2pq.set_wrds_use_private(...)` or the `DB2PQ_WRDS_USE_PRIVATE`
+        environment variable.
     
     Returns
     -------
@@ -244,7 +252,7 @@ def wrds_pg_to_pq(
         table_name,
         schema,
         user=wrds_id,
-        host="wrds-pgdata.wharton.upenn.edu",
+        host=resolve_wrds_host(use_private),
         database="wrds",
         port=9737,
         data_dir=data_dir,
@@ -397,6 +405,7 @@ def wrds_update_pq(
     batched=True,
     threads=3,
     tz="UTC",
+    use_private=None,
     use_sas=False,
     archive=False,
     archive_dir=None,
@@ -462,6 +471,13 @@ def wrds_update_pq(
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
+
+    use_private : bool, optional
+        Whether to connect to the WRDS private PostgreSQL host
+        (`wrds-pgdata-ident-w.wharton.private`) instead of the public host.
+        If not provided, uses the module-level default from
+        `db2pq.set_wrds_use_private(...)` or the `DB2PQ_WRDS_USE_PRIVATE`
+        environment variable.
     
     use_sas: bool [Optional]
         Should update get table comments from SAS data file.
@@ -489,6 +505,7 @@ def wrds_update_pq(
         table_name=table_name,
         schema=schema,
         wrds_id=wrds_id,
+        use_private=use_private,
         use_sas=use_sas,
         sas_schema=sas_schema,
         encoding=encoding,
@@ -524,6 +541,7 @@ def wrds_update_pq(
                             batched=batched,
                             threads=threads,
                             tz=tz,
+                            use_private=use_private,
                             archive=archive,
                             archive_dir=archive_dir)
     if pq_file is None:
