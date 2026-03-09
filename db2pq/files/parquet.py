@@ -81,7 +81,7 @@ def _normalize_timestamp_table(table, *, default_tz: str = "UTC"):
 
     return out
 
-def df_to_arrow(df, col_types=None, obs=None, batches=False):
+def df_to_arrow(df, col_types=None, obs=None, batches=False, chunk_size=1024 * 1024):
     
     if col_types:
         types = set(col_types.values())
@@ -93,7 +93,7 @@ def df_to_arrow(df, col_types=None, obs=None, batches=False):
         df = df.limit(obs)
 
     if batches:
-        return df.to_pyarrow_batches()   
+        return df.to_pyarrow_batches(chunk_size=chunk_size)
     else:
         return df.to_pyarrow()
         
@@ -266,7 +266,15 @@ def _write_tmp_parquet(
     Returns True if a temporary parquet file was written, else False.
     """
     if batched:
-        batches = iter(df_to_arrow(df, col_types=col_types, obs=obs, batches=True))
+        batches = iter(
+            df_to_arrow(
+                df,
+                col_types=col_types,
+                obs=obs,
+                batches=True,
+                chunk_size=row_group_size,
+            )
+        )
         try:
             first_batch = next(batches)
         except StopIteration:
