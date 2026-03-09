@@ -10,7 +10,9 @@ fi
 
 : "${WRDS_ID:?WRDS_ID must be set in the environment or .env}"
 
-ssh "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu" 'bash -s' <<'REMOTE'
+REMOTE_WRDS_ID="$(printf '%q' "$WRDS_ID")"
+
+ssh "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu" "WRDS_ID=${REMOTE_WRDS_ID} bash -s" <<'REMOTE'
 set -euo pipefail
 
 SCRATCH_HOME="${HOME/#\/home/\/scratch}"
@@ -20,7 +22,6 @@ if [[ "$SCRATCH_HOME" == "$HOME" ]]; then
 fi
 
 UV_ROOT="$SCRATCH_HOME/uv"
-UV_BIN="$UV_ROOT/bin"
 UV_CACHE_DIR="$SCRATCH_HOME/.cache/uv"
 VENV_DIR="$SCRATCH_HOME/venvs/db2pq"
 DATA_DIR="$SCRATCH_HOME/data/db2pq"
@@ -32,13 +33,14 @@ mkdir -p "$UV_CACHE_DIR" "$VENV_DIR" "$DATA_DIR" "$DUCKDB_TEMP_DIR"
 export UV_UNMANAGED_INSTALL="$UV_ROOT"
 export UV_CACHE_DIR
 export XDG_CACHE_HOME="$SCRATCH_HOME/.cache"
-export PATH="$UV_BIN:$PATH"
+export PATH="$UV_ROOT:$PATH"
 export DATA_DIR
+export WRDS_ID
 export DB2PQ_DUCKDB_HOME="$DUCKDB_HOME"
 export DB2PQ_DUCKDB_TEMP_DIRECTORY="$DUCKDB_TEMP_DIR"
 
-if [[ ! -x "$UV_BIN/uv" ]]; then
-  curl -LsSf https://astral.sh/uv/install.sh | sh
+if [[ ! -x "$UV_ROOT/uv" ]]; then
+  curl -LsSf https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL="$UV_ROOT" sh
 fi
 
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then
@@ -49,7 +51,10 @@ source "$VENV_DIR/bin/activate"
 uv pip install --upgrade db2pq
 
 uv run --active python - <<'PY'
-from db2pq import wrds_update_pq
+from db2pq import set_wrds_use_private, wrds_update_pq
+
+set_wrds_use_private(True)
+DEFAULT_ROW_GROUP_SIZE = 100_000
 
 # CRSP
 wrds_update_pq("ccmxpf_lnkhist", "crsp",
@@ -65,7 +70,7 @@ wrds_update_pq("msi", "crsp")
 wrds_update_pq("mse", "crsp")
 wrds_update_pq("msf", "crsp")
 wrds_update_pq("erdport1", "crsp")
-wrds_update_pq("dsf", "crsp")
+wrds_update_pq("dsf", "crsp", row_group_size=DEFAULT_ROW_GROUP_SIZE)
 
 # Fama-French library
 wrds_update_pq("factors_daily", "ff")
