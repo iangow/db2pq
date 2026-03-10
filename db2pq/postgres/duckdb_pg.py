@@ -24,9 +24,9 @@ def apply_keep_drop(df, *, keep=None, drop=None):
 def _ensure_postgres_extension(con):
     from duckdb_extensions import import_extension
 
-    import_extension("postgres")
+    import_extension("postgres_scanner")
     run_sql = con.raw_sql if hasattr(con, "raw_sql") else con.execute
-    run_sql("LOAD postgres")
+    run_sql("LOAD postgres_scanner")
 
 def read_postgres_table(
     *,

@@ -24,10 +24,10 @@ class EnsurePostgresExtensionTests(unittest.TestCase):
         ):
             _ensure_postgres_extension(con)
 
-        import_extension.assert_called_once_with("postgres")
+        import_extension.assert_called_once_with("postgres_scanner")
         self.assertEqual(
             con.calls,
-            ["LOAD postgres"],
+            ["LOAD postgres_scanner"],
         )
 
 

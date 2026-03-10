@@ -44,8 +44,8 @@ pip install --upgrade "db2pq[sas,pandas]"
 `db2pq` supports explicit function arguments and environment-based defaults.
 It also loads a local `.env` file automatically (via `python-dotenv`) when resolving defaults.
 
-DuckDB-based PostgreSQL reads use the PyPI-packaged DuckDB `postgres`
-extension (`duckdb-extensions` and `duckdb-extension-postgres`) so they work
+DuckDB-based PostgreSQL reads use the PyPI-packaged DuckDB `postgres_scanner`
+extension (`duckdb-extensions` and `duckdb-extension-postgres_scanner`) so they work
 in environments where DuckDB cannot fetch extensions directly from its own
 extension repository.
 

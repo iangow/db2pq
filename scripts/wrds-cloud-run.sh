@@ -79,8 +79,8 @@ uv pip install --upgrade "git+${DB2PQ_GIT_REPO}@${DB2PQ_GIT_REF}"
 python - <<'PY'
 from duckdb_extensions import import_extension
 
-import_extension("postgres")
-print("DuckDB postgres extension import OK", flush=True)
+import_extension("postgres_scanner")
+print("DuckDB postgres_scanner extension import OK", flush=True)
 PY
 
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
@@ -161,8 +161,8 @@ python -c 'print("Python smoke test OK", flush=True)'
 python - <<'PY'
 from duckdb_extensions import import_extension
 
-import_extension("postgres")
-print("DuckDB postgres extension import OK", flush=True)
+import_extension("postgres_scanner")
+print("DuckDB postgres_scanner extension import OK", flush=True)
 PY
 python -c 'import db2pq; print("db2pq import OK", flush=True)'
 python "${TMP_PY}"

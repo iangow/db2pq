@@ -16,7 +16,7 @@ dependencies = [
   "pyarrow",
   "duckdb",
   "duckdb-extensions",
-  "duckdb-extension-postgres",
+  "duckdb-extension-postgres_scanner",
   "psycopg",
   "python-dotenv",
 ]
