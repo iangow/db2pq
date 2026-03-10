@@ -15,6 +15,8 @@ dependencies = [
   "ibis-framework[duckdb,postgres]",
   "pyarrow",
   "duckdb",
+  "duckdb-extensions",
+  "duckdb-extension-postgres",
   "psycopg",
   "python-dotenv",
 ]

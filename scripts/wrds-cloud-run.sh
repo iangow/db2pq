@@ -13,14 +13,16 @@ fi
 DB2PQ_GIT_REPO="${DB2PQ_GIT_REPO:-https://github.com/iangow/db2pq.git}"
 DB2PQ_GIT_REF="${DB2PQ_GIT_REF:-codex/wrds-private-host}"
 LOCAL_DATA_DIR="${DATA_DIR:-$PWD/db2pq-data}"
-REMOTE_DATA_DIR="${REMOTE_DATA_DIR:-/scratch/unimelb/${WRDS_ID}/data/db2pq}"
+REMOTE_DATA_DIR="${REMOTE_DATA_DIR:-}"
 SYNC_DATA="${SYNC_DATA:-1}"
 
 REMOTE_WRDS_ID="$(printf '%q' "$WRDS_ID")"
 REMOTE_DB2PQ_GIT_REPO="$(printf '%q' "$DB2PQ_GIT_REPO")"
 REMOTE_DB2PQ_GIT_REF="$(printf '%q' "$DB2PQ_GIT_REF")"
 REMOTE_REMOTE_DATA_DIR="$(printf '%q' "$REMOTE_DATA_DIR")"
+SSH_LOG="$(mktemp)"
 
+{
 ssh "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu" \
   "WRDS_ID=${REMOTE_WRDS_ID} DB2PQ_GIT_REPO=${REMOTE_DB2PQ_GIT_REPO} DB2PQ_GIT_REF=${REMOTE_DB2PQ_GIT_REF} REMOTE_DATA_DIR=${REMOTE_REMOTE_DATA_DIR} bash -s" <<'REMOTE'
 set -euo pipefail
@@ -31,10 +33,15 @@ if [[ "$SCRATCH_HOME" == "$HOME" ]]; then
   exit 1
 fi
 
+if [[ -n "${REMOTE_DATA_DIR:-}" ]]; then
+  DATA_DIR="$REMOTE_DATA_DIR"
+else
+  DATA_DIR="$SCRATCH_HOME/data/db2pq"
+fi
+
 UV_ROOT="$SCRATCH_HOME/uv"
 UV_CACHE_DIR="$SCRATCH_HOME/.cache/uv"
 VENV_DIR="$SCRATCH_HOME/venvs/db2pq"
-DATA_DIR="$REMOTE_DATA_DIR"
 DUCKDB_HOME="$SCRATCH_HOME/.duckdb"
 DUCKDB_TEMP_DIR="$DUCKDB_HOME/tmp"
 
@@ -51,6 +58,9 @@ export DB2PQ_DUCKDB_TEMP_DIRECTORY="$DUCKDB_TEMP_DIR"
 export PYTHONUNBUFFERED=1
 export PYTHONFAULTHANDLER=1
 
+echo "Resolved remote DATA_DIR: ${DATA_DIR}"
+echo "DB2PQ_REMOTE_DATA_DIR=${DATA_DIR}"
+
 JOB_ROOT="$SCRATCH_HOME/db2pq-batch"
 JOB_LOG_DIR="$JOB_ROOT/logs"
 mkdir -p "$JOB_LOG_DIR"
@@ -65,6 +75,13 @@ fi
 
 source "$VENV_DIR/bin/activate"
 uv pip install --upgrade "git+${DB2PQ_GIT_REPO}@${DB2PQ_GIT_REF}"
+
+python - <<'PY'
+from duckdb_extensions import import_extension
+
+import_extension("postgres")
+print("DuckDB postgres extension import OK", flush=True)
+PY
 
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
 TMP_PY="$JOB_ROOT/db2pq-run-${RUN_ID}.py"
@@ -141,6 +158,12 @@ source "${VENV_DIR}/bin/activate"
 
 echo "Starting WRDS batch job at \$(date)"
 python -c 'print("Python smoke test OK", flush=True)'
+python - <<'PY'
+from duckdb_extensions import import_extension
+
+import_extension("postgres")
+print("DuckDB postgres extension import OK", flush=True)
+PY
 python -c 'import db2pq; print("db2pq import OK", flush=True)'
 python "${TMP_PY}"
 echo "Ending WRDS batch job at \$(date)"
@@ -183,11 +206,20 @@ fi
 
 rm -f "$TMP_SH"
 REMOTE
+} | tee "$SSH_LOG"
+
+REMOTE_DATA_DIR_RESOLVED="$(grep '^DB2PQ_REMOTE_DATA_DIR=' "$SSH_LOG" | tail -n 1 | cut -d= -f2-)"
+rm -f "$SSH_LOG"
+
+if [[ -z "$REMOTE_DATA_DIR_RESOLVED" ]]; then
+  echo "Failed to determine remote DATA_DIR from WRDS session output." >&2
+  exit 1
+fi
 
 if [[ "$SYNC_DATA" != "0" ]]; then
   mkdir -p "$LOCAL_DATA_DIR"
-  echo "Syncing ${REMOTE_DATA_DIR} to ${LOCAL_DATA_DIR}"
+  echo "Syncing ${REMOTE_DATA_DIR_RESOLVED} to ${LOCAL_DATA_DIR}"
   rsync -av --progress \
-    "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu:${REMOTE_DATA_DIR}/" \
+    "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu:${REMOTE_DATA_DIR_RESOLVED}/" \
     "${LOCAL_DATA_DIR}/"
 fi
