@@ -1,10 +1,14 @@
 import ibis
+from uuid import uuid4
 from .column_filter import filter_columns
 from .duckdb_config import configure_duckdb_connection
 
 def _quote_ident(name: str) -> str:
     escaped = name.replace('"', '""')
     return f'"{escaped}"'
+
+def _quote_sql_string(value: str) -> str:
+    return value.replace("'", "''")
 
 def apply_where_sql(df, *, con, table_name: str, schema: str | None = None, where=None):
     if not where:
@@ -48,6 +52,20 @@ def read_postgres_table(
         con.raw_sql(f"SET threads TO {int(threads)};")
 
     uri = f"postgres://{user}@{host}:{port}/{database}"
-    df = con.read_postgres(uri, table_name=table_name, database=schema)
-    df = apply_where_sql(df, con=con, table_name=table_name, where=where)
+    attach_name = f"pgscan_{uuid4().hex[:8]}"
+    con.raw_sql(
+        "ATTACH '{uri}' AS {attach_name} "
+        "(TYPE postgres_scanner, SCHEMA {schema}, READ_ONLY)".format(
+            uri=_quote_sql_string(uri),
+            attach_name=_quote_ident(attach_name),
+            schema=_quote_ident(schema),
+        )
+    )
+    table_ident = (
+        f"{_quote_ident(attach_name)}.{_quote_ident(schema)}.{_quote_ident(table_name)}"
+    )
+    sql = f"SELECT * FROM {table_ident}"
+    if where:
+        sql = f"{sql} WHERE {where}"
+    df = con.sql(sql)
     return apply_keep_drop(df, keep=keep, drop=drop)

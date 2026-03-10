@@ -34,7 +34,7 @@ class EnsurePostgresExtensionTests(unittest.TestCase):
         events = []
         fake_con = Mock()
         fake_df = Mock()
-        fake_con.read_postgres.return_value = fake_df
+        fake_con.sql.return_value = fake_df
 
         def record_extension(_con):
             events.append("extension")
@@ -46,8 +46,8 @@ class EnsurePostgresExtensionTests(unittest.TestCase):
             patch("db2pq.postgres.duckdb_pg.ibis.duckdb.connect", return_value=fake_con),
             patch("db2pq.postgres.duckdb_pg._ensure_postgres_extension", side_effect=record_extension),
             patch("db2pq.postgres.duckdb_pg.configure_duckdb_connection", side_effect=record_config),
-            patch("db2pq.postgres.duckdb_pg.apply_where_sql", return_value=fake_df),
             patch("db2pq.postgres.duckdb_pg.apply_keep_drop", return_value=fake_df),
+            patch("db2pq.postgres.duckdb_pg.uuid4", side_effect=[SimpleNamespace(hex="abcdef0123456789")]),
         ):
             result = read_postgres_table(
                 user="iangow",
@@ -60,6 +60,13 @@ class EnsurePostgresExtensionTests(unittest.TestCase):
 
         self.assertIs(result, fake_df)
         self.assertEqual(events, ["extension", "config"])
+        fake_con.raw_sql.assert_any_call(
+            'ATTACH \'postgres://iangow@wrds-pgdata-ident-w.wharton.private:9737/wrds\' '
+            'AS "pgscan_abcdef01" (TYPE postgres_scanner, SCHEMA "crsp", READ_ONLY)'
+        )
+        fake_con.sql.assert_called_once_with(
+            'SELECT * FROM "pgscan_abcdef01"."crsp"."dsf"'
+        )
 
 
 if __name__ == "__main__":
