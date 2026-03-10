@@ -2,6 +2,14 @@ import duckdb
 
 from .duckdb_config import configure_duckdb_connection
 
+
+def _ensure_postgres_extension(con):
+    from duckdb_extensions import import_extension
+
+    import_extension("postgres_scanner")
+    con.load_extension("postgres_scanner")
+
+
 def create_table_from_select_duckdb(
     *,
     select_sql: str,
@@ -12,9 +20,8 @@ def create_table_from_select_duckdb(
     drop_if_exists: bool = True,
 ):
     con = duckdb.connect()
+    _ensure_postgres_extension(con)
     configure_duckdb_connection(con)
-    con.install_extension("postgres")
-    con.load_extension("postgres")
 
     # Attach source and destination
     con.execute(

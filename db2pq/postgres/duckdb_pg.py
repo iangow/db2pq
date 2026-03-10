@@ -42,8 +42,8 @@ def read_postgres_table(
     where=None,
 ):
     con = ibis.duckdb.connect()
-    configure_duckdb_connection(con)
     _ensure_postgres_extension(con)
+    configure_duckdb_connection(con)
     if threads:
         con.raw_sql(f"SET threads TO {int(threads)};")
 
