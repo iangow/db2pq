@@ -12,13 +12,17 @@ fi
 
 DB2PQ_GIT_REPO="${DB2PQ_GIT_REPO:-https://github.com/iangow/db2pq.git}"
 DB2PQ_GIT_REF="${DB2PQ_GIT_REF:-codex/wrds-private-host}"
+LOCAL_DATA_DIR="${DATA_DIR:-$PWD/db2pq-data}"
+REMOTE_DATA_DIR="${REMOTE_DATA_DIR:-/scratch/unimelb/${WRDS_ID}/data/db2pq}"
+SYNC_DATA="${SYNC_DATA:-1}"
 
 REMOTE_WRDS_ID="$(printf '%q' "$WRDS_ID")"
 REMOTE_DB2PQ_GIT_REPO="$(printf '%q' "$DB2PQ_GIT_REPO")"
 REMOTE_DB2PQ_GIT_REF="$(printf '%q' "$DB2PQ_GIT_REF")"
+REMOTE_REMOTE_DATA_DIR="$(printf '%q' "$REMOTE_DATA_DIR")"
 
 ssh "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu" \
-  "WRDS_ID=${REMOTE_WRDS_ID} DB2PQ_GIT_REPO=${REMOTE_DB2PQ_GIT_REPO} DB2PQ_GIT_REF=${REMOTE_DB2PQ_GIT_REF} bash -s" <<'REMOTE'
+  "WRDS_ID=${REMOTE_WRDS_ID} DB2PQ_GIT_REPO=${REMOTE_DB2PQ_GIT_REPO} DB2PQ_GIT_REF=${REMOTE_DB2PQ_GIT_REF} REMOTE_DATA_DIR=${REMOTE_REMOTE_DATA_DIR} bash -s" <<'REMOTE'
 set -euo pipefail
 
 SCRATCH_HOME="${HOME/#\/home/\/scratch}"
@@ -30,7 +34,7 @@ fi
 UV_ROOT="$SCRATCH_HOME/uv"
 UV_CACHE_DIR="$SCRATCH_HOME/.cache/uv"
 VENV_DIR="$SCRATCH_HOME/venvs/db2pq"
-DATA_DIR="$SCRATCH_HOME/data/db2pq"
+DATA_DIR="$REMOTE_DATA_DIR"
 DUCKDB_HOME="$SCRATCH_HOME/.duckdb"
 DUCKDB_TEMP_DIR="$DUCKDB_HOME/tmp"
 
@@ -179,3 +183,11 @@ fi
 
 rm -f "$TMP_SH"
 REMOTE
+
+if [[ "$SYNC_DATA" != "0" ]]; then
+  mkdir -p "$LOCAL_DATA_DIR"
+  echo "Syncing ${REMOTE_DATA_DIR} to ${LOCAL_DATA_DIR}"
+  rsync -av --progress \
+    "${WRDS_ID}@wrds-cloud-sshkey.wharton.upenn.edu:${REMOTE_DATA_DIR}/" \
+    "${LOCAL_DATA_DIR}/"
+fi
