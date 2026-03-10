@@ -18,3 +18,4 @@ __pycache__/
 # Build artifacts
 build/
 dist/
+.positai
