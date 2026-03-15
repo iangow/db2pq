@@ -2,11 +2,17 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
+
+def _load_dotenv():
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv()
 
 def resolve_data_dir(data_dir: str | Path | None = None) -> Path:
     if data_dir is None:
-        load_dotenv()
+        _load_dotenv()
         data_dir = os.getenv("DATA_DIR") or os.getcwd()
     return Path(os.path.expanduser(data_dir)).expanduser()
 

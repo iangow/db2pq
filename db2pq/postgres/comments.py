@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import psycopg
-
-from ._defaults import resolve_pg_connection
 from .wrds import resolve_wrds_id, get_wrds_uri
 
 def get_pg_comment_conn(conn, *, schema: str, table_name: str) -> str | None:
@@ -34,12 +31,12 @@ def get_table_comment(conn, *,  schema: str, table_name: str) -> str:
 
     return conn.execute(sql, {"schema": schema, "table": table_name}).scalar() or ""
 
-from psycopg import sql as psql
-
 def set_table_comment(conn, *, schema: str, table_name: str, comment: str | None) -> None:
     """
     Set (or clear) a PostgreSQL table comment using psycopg.
     """
+    from psycopg import sql as psql
+
     stmt = psql.SQL("COMMENT ON TABLE {}.{} IS {}").format(
         psql.Identifier(schema),
         psql.Identifier(table_name),
@@ -58,6 +55,9 @@ def get_pg_comment(
     dbname: str | None = None,
     port: int | None = None,
 ) -> str | None:
+    import psycopg
+    from ._defaults import resolve_pg_connection
+
     user, host, dbname, port = resolve_pg_connection(
         user=user, host=host, dbname=dbname, port=port
     )
@@ -67,6 +67,8 @@ def get_pg_comment(
         return get_pg_comment_conn(conn, schema=schema, table_name=table_name)
 
 def get_pg_conn(uri):
+    import psycopg
+
     return psycopg.connect(uri)
 
 def get_wrds_conn(wrds_id: str | None = None):

@@ -7,6 +7,18 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-03-15
+
+### Changed
+
+- Reduced import-time overhead across the package by switching top-level
+  exports to lazy wrappers.
+- Delayed loading of heavy dependencies such as `ibis`, `pyarrow`,
+  `psycopg`, and `python-dotenv` until the specific functions that need
+  them are called.
+- Made `from db2pq import wrds_update_pq` substantially snappier by
+  trimming work from both package import and first-call setup.
+
 ## [0.2.2] - 2026-03-05
 
 ### Added
@@ -29,6 +41,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added WRDS SSH setup documentation for SAS-based metadata workflows.
 - Improved API and output layout documentation.
 
-[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.2...HEAD
+[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.3...HEAD
+[0.2.3]: https://github.com/iangow/db2pq/releases/tag/0.2.3
 [0.2.2]: https://github.com/iangow/db2pq/releases/tag/0.2.2
 [0.1.6]: https://github.com/iangow/db2pq/releases/tag/0.1.6

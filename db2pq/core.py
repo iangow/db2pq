@@ -1,13 +1,4 @@
 from time import gmtime, strftime
-from .files.paths import get_pq_file, pq_list_files
-from .files.parquet import write_parquet, get_modified_pq
-from .postgres.duckdb_pg import read_postgres_table
-from .postgres.comments import get_wrds_comment
-from .postgres.schema import db_schema_tables
-from .sync.modified import is_up_to_date
-from .sync.modified import modified_info, update_available
-from .postgres._defaults import resolve_pg_connection
-from .postgres.wrds import resolve_wrds_id
 
 def db_to_pq(
     table_name,
@@ -111,6 +102,9 @@ def db_to_pq(
     >>> db_to_pq("dsi", "crsp")
     >>> db_to_pq("feed21_bankruptcy_notification", "audit")
     """
+    from .files.parquet import write_parquet
+    from .postgres._defaults import resolve_pg_connection
+    from .postgres.duckdb_pg import read_postgres_table
     
     user, host, dbname, port = resolve_pg_connection(
         user=user, host=host, dbname=database, port=port
@@ -238,6 +232,8 @@ def wrds_pg_to_pq(
     >>> wrds_pg_to_pq("dsi", "crsp")
     >>> wrds_pg_to_pq("feed21_bankruptcy_notification", "audit")
     """
+    from .postgres.wrds import resolve_wrds_id
+
     wrds_id = resolve_wrds_id(wrds_id)
     
     return db_to_pq(
@@ -343,6 +339,8 @@ def db_schema_to_pq(
     >>> db_schema_to_pq("crsp")
     >>> db_schema_to_pq("audit", archive=True)
     """
+    from .postgres.schema import db_schema_tables
+
     if row_group_size <= 0:
         raise ValueError("row_group_size must be positive")
 
@@ -477,6 +475,12 @@ def wrds_update_pq(
     >>> wrds_update_pq("dsi", "crsp")
     >>> wrds_update_pq("feed21_bankruptcy_notification", "audit")
     """                       
+    from .files.parquet import get_modified_pq
+    from .files.paths import get_pq_file
+    from .postgres.comments import get_wrds_comment
+    from .postgres.wrds import resolve_wrds_id
+    from .sync.modified import modified_info, update_available
+
     wrds_id = resolve_wrds_id(wrds_id)
         
     if not sas_schema:
@@ -558,6 +562,8 @@ def wrds_update_schema(schema, *, data_dir=None, threads=3, archive=False):
     pq_files : list[str]
         Names of parquet files updated.
     """
+    from .files.paths import pq_list_files
+
     pq_files = pq_list_files(schema=schema, data_dir=data_dir)
 
     for pq_file in pq_files:

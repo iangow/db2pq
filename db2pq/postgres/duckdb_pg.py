@@ -1,4 +1,3 @@
-import ibis
 from .column_filter import filter_columns
 
 def _quote_ident(name: str) -> str:
@@ -30,6 +29,8 @@ def read_postgres_table(
     drop=None,
     where=None,
 ):
+    import ibis
+
     con = ibis.duckdb.connect()
     # Required for very large text columns/aggregates that exceed Arrow's
     # regular 2 GiB string buffer limit.

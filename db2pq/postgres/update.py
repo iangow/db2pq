@@ -1,3 +1,5 @@
+from time import gmtime, strftime
+
 from .introspect import get_table_columns, get_table_column_types
 from .select_sql import build_wrds_select_sql, select_columns
 from .duckdb_ddl import create_table_from_select_duckdb
@@ -5,9 +7,12 @@ from .copy import copy_wrds_select_to_pg_table
 from .comments import get_pg_comment_conn, get_pg_conn, get_wrds_conn, set_table_comment
 from .wrds import get_wrds_uri
 from ._defaults import resolve_uri
-from ..core import get_now
 # from ..files.paths import resolve_data_dir  # later, when you add pq piece
 from ..sync.modified import modified_info, update_available
+
+
+def get_now():
+    return strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
 def _schema_exists(conn, schema: str) -> bool:
     with conn.cursor() as cur:

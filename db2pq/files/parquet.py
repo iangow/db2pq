@@ -4,12 +4,6 @@ import os
 import re
 from pathlib import Path
 
-import ibis.selectors as s
-from ibis import _
-import pyarrow as pa
-import pyarrow.compute as pc
-import pyarrow.parquet as pq
-
 from .paths import (
     parquet_paths,
     archive_existing_parquet,
@@ -17,8 +11,14 @@ from .paths import (
     get_pq_file,
     resolve_data_dir,
 )
-from .timestamps import parse_last_modified
-from ..sync.modified import modified_info
+
+
+def _pyarrow():
+    import pyarrow as pa
+    import pyarrow.compute as pc
+    import pyarrow.parquet as pq
+
+    return pa, pc, pq
 
 def _require_pandas():
     try:
@@ -33,6 +33,8 @@ def _require_pandas():
 
 def _normalize_timestamp_array(arr, *, source_tz: str, target_tz: str = "UTC"):
     """Convert a timestamp array to timezone-aware target_tz."""
+    pa, pc, _ = _pyarrow()
+
     if not pa.types.is_timestamp(arr.type):
         return arr
 
@@ -53,6 +55,8 @@ def _normalize_timestamp_array(arr, *, source_tz: str, target_tz: str = "UTC"):
 
 def _normalize_timestamp_batch(batch, *, default_tz: str = "UTC"):
     """Normalize timestamp columns in a RecordBatch to timezone-aware UTC."""
+    pa, _, _ = _pyarrow()
+
     arrays = []
     fields = []
 
@@ -66,6 +70,8 @@ def _normalize_timestamp_batch(batch, *, default_tz: str = "UTC"):
 
 def _normalize_timestamp_table(table, *, default_tz: str = "UTC"):
     """Normalize timestamp columns in a Table to timezone-aware UTC."""
+    pa, _, _ = _pyarrow()
+
     out = table
 
     for idx, field in enumerate(out.schema):
@@ -82,6 +88,8 @@ def _normalize_timestamp_table(table, *, default_tz: str = "UTC"):
     return out
 
 def df_to_arrow(df, col_types=None, obs=None, batches=False):
+    import ibis.selectors as s
+    from ibis import _
     
     if col_types:
         types = set(col_types.values())
@@ -98,6 +106,8 @@ def df_to_arrow(df, col_types=None, obs=None, batches=False):
         return df.to_pyarrow()
         
 def get_modified_pq(file_name):
+    _, _, pq = _pyarrow()
+
     file_path = Path(file_name).expanduser()
 
     if file_path.exists():
@@ -117,6 +127,8 @@ def pq_archive(table_name=None, schema=None, data_dir=None, file_name=None, arch
     Otherwise, resolve the parquet file from table_name/schema/data_dir.
     Returns archived file path as a string, or None if no file was archived.
     """
+    from .timestamps import parse_last_modified
+
     if file_name is not None:
         pq_file = Path(file_name).expanduser()
         table_basename = pq_file.stem
@@ -265,6 +277,8 @@ def _write_tmp_parquet(
 
     Returns True if a temporary parquet file was written, else False.
     """
+    _, _, pq = _pyarrow()
+
     if batched:
         batches = iter(df_to_arrow(df, col_types=col_types, obs=obs, batches=True))
         try:
@@ -357,6 +371,8 @@ def pq_last_modified_dttm(p: Path):
     Return last-modified timestamp for a parquet file as a local datetime,
     or None if unavailable/unparseable.
     """
+    from ..sync.modified import modified_info
+
     comment = get_modified_pq(p)
     info = modified_info(kind="parquet", comment=comment)
     return info.dttm_local
@@ -366,6 +382,8 @@ def pq_last_modified_raw(p: Path):
     Return last-modified timestamp for a parquet file as a local datetime,
     or None if unavailable/unparseable.
     """
+    from ..sync.modified import modified_info
+
     comment = get_modified_pq(p)
     info = modified_info(kind="parquet", comment=comment)
     return info.raw
@@ -382,6 +400,8 @@ def _parquet_storage(p: Path) -> str:
     return "local"
 
 def _scan_row_for_parquet(p: Path, schema_name: str, *, archive: bool = False) -> dict:
+    from ..sync.modified import modified_info
+
     storage = _parquet_storage(p)
     comment = None
 
