@@ -50,16 +50,22 @@ Use the matching `CHANGELOG.md` version section as the release notes body.
 
 ## 5) Publish to PyPI (if needed)
 
+Install the release toolchain in a dedicated environment:
+
+```bash
+python -m pip install -e '.[release]'
+```
+
 Build:
 
 ```bash
-python -m build
+python -m build --no-isolation
 ```
 
 Upload:
 
 ```bash
-python -m twine upload dist/*
+python -m twine upload dist/X.Y.Z.tar.gz dist/X.Y.Z-py3-none-any.whl
 ```
 
 ## 6) Post-release

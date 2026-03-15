@@ -22,6 +22,12 @@ dependencies = [
 [project.optional-dependencies]
 sas = ["paramiko"]
 pandas = ["pandas"]
+release = [
+  "build>=1.1.1",
+  "twine>=6.2.0",
+  "pkginfo>=1.12.1.2",
+  "requests-toolbelt>=1.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/iangow/db2pq/"
