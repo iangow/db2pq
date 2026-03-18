@@ -7,10 +7,16 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-03-18
+
 ### Changed
 
 - Switched the core PostgreSQL dependency to `psycopg[binary]` so fresh
   installs work without a separate system `libpq` setup, especially on macOS.
+- Declared Python 3.9 as the minimum supported version.
+- Split `psycopg` dependency resolution by Python version:
+  `psycopg[binary]>=3.3.3` on Python 3.10+ and `psycopg>=3.1,<3.3`
+  on Python 3.9.
 
 ## [0.2.3] - 2026-03-15
 
@@ -46,7 +52,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added WRDS SSH setup documentation for SAS-based metadata workflows.
 - Improved API and output layout documentation.
 
-[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.3...HEAD
+[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.4...HEAD
+[0.2.4]: https://github.com/iangow/db2pq/releases/tag/0.2.4
 [0.2.3]: https://github.com/iangow/db2pq/releases/tag/0.2.3
 [0.2.2]: https://github.com/iangow/db2pq/releases/tag/0.2.2
 [0.1.6]: https://github.com/iangow/db2pq/releases/tag/0.1.6
