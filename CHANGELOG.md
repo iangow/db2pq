@@ -7,6 +7,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Changed
+
+- Switched the core PostgreSQL dependency to `psycopg[binary]` so fresh
+  installs work without a separate system `libpq` setup, especially on macOS.
+
 ## [0.2.3] - 2026-03-15
 
 ### Changed

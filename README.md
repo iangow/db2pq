@@ -20,6 +20,9 @@ Install from PyPI:
 pip install --upgrade db2pq
 ```
 
+This installs the bundled `psycopg` PostgreSQL client dependency, so most users
+do not need a separate system `libpq` installation.
+
 Install optional SAS support (used by `wrds_update_pq(..., use_sas=True)`):
 
 ```bash
