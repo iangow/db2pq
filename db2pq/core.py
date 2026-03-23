@@ -1,5 +1,6 @@
 from time import gmtime, strftime
 
+
 def db_to_pq(
     table_name,
     schema,

@@ -6,6 +6,7 @@ It is designed for both general PostgreSQL sources and the WRDS PostgreSQL servi
 ## What it does
 
 - Export a single PostgreSQL table to Parquet.
+- Export an Ibis PostgreSQL table expression to Parquet.
 - Export all tables in a PostgreSQL schema to Parquet.
 - Export WRDS tables to Parquet.
 - Update Parquet files only when the WRDS source table is newer.
@@ -34,6 +35,12 @@ Install optional pandas support (needed for DataFrame outputs from
 
 ```bash
 pip install --upgrade "db2pq[pandas]"
+```
+
+Install optional Ibis export support (needed for `ibis_to_pq(...)`):
+
+```bash
+pip install --upgrade "db2pq[ibis]"
 ```
 
 Install both optional SAS and pandas support:
@@ -108,7 +115,16 @@ wrds_pg_to_pq(
 )
 ```
 
-### 3) Update only when WRDS data changed
+### 3) Export an Ibis table to Parquet
+
+```python
+from db2pq import ibis_to_pq
+
+expr = con.table("my_table").filter(lambda t: t.id > 100)
+ibis_to_pq(expr, "my_table.parquet", compression="zstd")
+```
+
+### 4) Update only when WRDS data changed
 
 ```python
 from db2pq import wrds_update_pq
@@ -120,7 +136,7 @@ wrds_update_pq(
 )
 ```
 
-### 4) Export all tables in a PostgreSQL schema
+### 5) Export all tables in a PostgreSQL schema
 
 ```python
 from db2pq import db_schema_to_pq
@@ -154,6 +170,7 @@ When `archive=True`, replaced files are moved under:
 From `db2pq`:
 
 - `db_to_pq(table_name, schema, ...)`
+- `ibis_to_pq(table, out_file, **writer_kwargs)`
 - `wrds_pg_to_pq(table_name, schema, ...)`
 - `db_schema_to_pq(schema, ...)`
 - `wrds_update_pq(table_name, schema, ...)`

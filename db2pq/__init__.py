@@ -16,6 +16,7 @@ def _lazy_export(module_name, attr_name):
 
 
 db_to_pq = _lazy_export(".core", "db_to_pq")
+ibis_to_pq = _lazy_export(".ibis", "ibis_to_pq")
 wrds_pg_to_pq = _lazy_export(".core", "wrds_pg_to_pq")
 db_schema_to_pq = _lazy_export(".core", "db_schema_to_pq")
 wrds_update_pq = _lazy_export(".core", "wrds_update_pq")
@@ -31,7 +32,7 @@ wrds_update_pg = _lazy_export(".postgres.update", "wrds_update_pg")
 
 __all__ = [
     "__version__",
-    "db_to_pq", "wrds_pg_to_pq",
+    "db_to_pq", "ibis_to_pq", "wrds_pg_to_pq",
     "db_schema_to_pq", "db_schema_tables",
     "wrds_update_pq", "pq_list_files", "wrds_update_schema",
     "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",

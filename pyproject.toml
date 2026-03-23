@@ -23,6 +23,7 @@ dependencies = [
 [project.optional-dependencies]
 sas = ["paramiko"]
 pandas = ["pandas"]
+ibis = ["adbc-driver-postgresql"]
 release = [
   "build>=1.1.1",
   "twine>=6.2.0",
