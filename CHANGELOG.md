@@ -7,6 +7,19 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-03-23
+
+### Added
+
+- Added `ibis_to_pq()` as a public API for exporting PostgreSQL-backed
+  Ibis table expressions directly to Parquet.
+- Added the optional `db2pq[ibis]` extra for the ADBC PostgreSQL driver
+  required by `ibis_to_pq()`.
+
+### Changed
+
+- Updated `README.md` to document Ibis-backed Parquet exports.
+
 ## [0.2.4] - 2026-03-18
 
 ### Changed
@@ -52,7 +65,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added WRDS SSH setup documentation for SAS-based metadata workflows.
 - Improved API and output layout documentation.
 
-[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.4...HEAD
+[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.5...HEAD
+[0.2.5]: https://github.com/iangow/db2pq/releases/tag/0.2.5
 [0.2.4]: https://github.com/iangow/db2pq/releases/tag/0.2.4
 [0.2.3]: https://github.com/iangow/db2pq/releases/tag/0.2.3
 [0.2.2]: https://github.com/iangow/db2pq/releases/tag/0.2.2

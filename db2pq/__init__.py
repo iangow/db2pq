@@ -1,5 +1,5 @@
 name = "db2pq"
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 from importlib import import_module
 
