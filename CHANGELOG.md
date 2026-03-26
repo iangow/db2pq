@@ -7,6 +7,30 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Process-wide engine defaults via `set_default_engine()`,
+  `get_default_engine()`, and `DB2PQ_ENGINE`.
+- Cached PostgreSQL ADBC database handles via `close_adbc_cached()`.
+- Shared `col_types` normalization so common Arrow-style and PostgreSQL-style
+  type names work consistently across export and update paths.
+- A local integration test suite for the core PostgreSQL paths.
+- A `benchmarks/` directory with benchmark and probe scripts used during
+  development.
+
+### Changed
+
+- Refactored PostgreSQL query planning into a shared layer used by the ADBC,
+  DuckDB, and PostgreSQL update paths.
+- Removed Ibis from the core DuckDB PostgreSQL-to-Parquet export flow.
+- Improved ADBC Parquet writing by buffering with both row-count and byte-size
+  limits, reducing wide-table memory blowups while preserving streamed writes.
+- `wrds_update_pg()` now normalizes Arrow-style `col_types` such as `int32`
+  into PostgreSQL casts such as `integer`.
+- `wrds_update_pq()` update checks now respect `alt_table_name` correctly.
+- Updated README documentation with a high-level architecture overview and
+  engine-default behavior.
+ 
 ## [0.2.5] - 2026-03-23
 
 ### Added
