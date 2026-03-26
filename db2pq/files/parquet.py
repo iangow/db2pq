@@ -12,6 +12,8 @@ from .paths import (
     resolve_data_dir,
 )
 
+DEFAULT_MAX_BUFFER_BYTES = 256 * 1024 * 1024
+
 
 def _pyarrow():
     import pyarrow as pa
@@ -68,6 +70,49 @@ def _normalize_timestamp_batch(batch, *, default_tz: str = "UTC"):
     schema = pa.schema(fields, metadata=batch.schema.metadata)
     return pa.RecordBatch.from_arrays(arrays, schema=schema)
 
+
+def _decimal_arrow_type(precision: int, scale: int):
+    pa, _, _ = _pyarrow()
+
+    if precision <= 38:
+        return pa.decimal128(precision, scale)
+    if precision <= 76:
+        return pa.decimal256(precision, scale)
+    return None
+
+
+def _convert_decimal_batch(batch, *, decimal_columns: dict[str, tuple[int, int]] | None = None):
+    """Convert selected string-backed columns to Arrow decimal types."""
+    pa, pc, _ = _pyarrow()
+
+    if not decimal_columns:
+        return batch
+
+    arrays = []
+    fields = []
+
+    for field, arr in zip(batch.schema, batch.columns):
+        precision_scale = decimal_columns.get(field.name)
+        out_arr = arr
+        out_field = field
+
+        if precision_scale is not None:
+            decimal_type = _decimal_arrow_type(*precision_scale)
+            if decimal_type is not None:
+                out_arr = pc.cast(arr, decimal_type)
+                out_field = pa.field(
+                    field.name,
+                    decimal_type,
+                    nullable=field.nullable,
+                    metadata=field.metadata,
+                )
+
+        arrays.append(out_arr)
+        fields.append(out_field)
+
+    schema = pa.schema(fields, metadata=batch.schema.metadata)
+    return pa.RecordBatch.from_arrays(arrays, schema=schema)
+
 def _normalize_timestamp_table(table, *, default_tz: str = "UTC"):
     """Normalize timestamp columns in a Table to timezone-aware UTC."""
     pa, _, _ = _pyarrow()
@@ -87,15 +132,56 @@ def _normalize_timestamp_table(table, *, default_tz: str = "UTC"):
 
     return out
 
+def _write_batches_with_target_row_groups(
+    writer,
+    batches,
+    *,
+    row_group_size: int,
+    max_buffer_bytes: int = DEFAULT_MAX_BUFFER_BYTES,
+):
+    """Buffer batches so Parquet row groups are closer to the target size."""
+    pa, _, _ = _pyarrow()
+
+    buffered_batches = []
+    buffered_rows = 0
+    buffered_bytes = 0
+
+    def flush_buffer():
+        nonlocal buffered_batches, buffered_rows, buffered_bytes
+        if not buffered_batches:
+            return
+        table = pa.Table.from_batches(buffered_batches)
+        writer.write_table(table, row_group_size=row_group_size)
+        buffered_batches = []
+        buffered_rows = 0
+        buffered_bytes = 0
+
+    for batch in batches:
+        buffered_batches.append(batch)
+        buffered_rows += batch.num_rows
+        buffered_bytes += batch.nbytes
+        if buffered_rows >= row_group_size or buffered_bytes >= max_buffer_bytes:
+            flush_buffer()
+
+    flush_buffer()
+
 def df_to_arrow(df, col_types=None, obs=None, batches=False):
+    if hasattr(df, "fetch_arrow_reader") and hasattr(df, "fetch_arrow_table"):
+        if batches:
+            return df.fetch_arrow_reader()
+        return df.fetch_arrow_table()
+
+    from ..types import normalize_col_types
     import ibis.selectors as s
     from ibis import _
+
+    col_types = normalize_col_types(col_types, engine="duckdb")
     
     if col_types:
-        types = set(col_types.values())
-        for type in types:
-            to_convert = [key for (key, value) in col_types.items() if value == type]
-            df = df.mutate(s.across(to_convert, _.cast(type)))
+        target_types = set(col_types.values())
+        for target_type in target_types:
+            to_convert = [key for (key, value) in col_types.items() if value == target_type]
+            df = df.mutate(s.across(to_convert, _.cast(target_type)))
 
     if obs is not None:
         df = df.limit(obs)
@@ -271,6 +357,7 @@ def _write_tmp_parquet(
     obs=None,
     batched=True,
     row_group_size=1024 * 1024,
+    max_buffer_bytes: int = DEFAULT_MAX_BUFFER_BYTES,
     tz: str = "UTC",
 ):
     """Write df to tmp_pq_file (no archiving, no promotion).
@@ -297,13 +384,20 @@ def _write_tmp_parquet(
             pq_schema = pq_schema.with_metadata(md)
 
         with pq.ParquetWriter(tmp_pq_file, pq_schema) as writer:
-            writer.write_batch(first_batch)
-            for batch in batches:
-                batch = _normalize_timestamp_batch(
-                    batch,
-                    default_tz=tz,
-                )
-                writer.write_batch(batch)
+            def normalized_batches():
+                yield first_batch
+                for batch in batches:
+                    yield _normalize_timestamp_batch(
+                        batch,
+                        default_tz=tz,
+                    )
+
+            _write_batches_with_target_row_groups(
+                writer,
+                normalized_batches(),
+                row_group_size=row_group_size,
+                max_buffer_bytes=max_buffer_bytes,
+            )
         return True
     else:
         df_arrow = df_to_arrow(df, col_types=col_types, obs=obs)
@@ -320,6 +414,56 @@ def _write_tmp_parquet(
         pq.write_table(df_arrow, tmp_pq_file, row_group_size=row_group_size)
         return True
 
+
+def write_record_batch_reader_to_parquet(
+    reader,
+    out_file,
+    *,
+    modified: str | None = None,
+    row_group_size: int = 1024 * 1024,
+    max_buffer_bytes: int = DEFAULT_MAX_BUFFER_BYTES,
+    tz: str = "UTC",
+    decimal_columns: dict[str, tuple[int, int]] | None = None,
+):
+    """Write a RecordBatch reader to Parquet, normalizing timestamps to UTC."""
+    _, _, pq = _pyarrow()
+
+    try:
+        first_batch = reader.read_next_batch()
+    except StopIteration:
+        return False
+
+    first_batch = _convert_decimal_batch(first_batch, decimal_columns=decimal_columns)
+    first_batch = _normalize_timestamp_batch(first_batch, default_tz=tz)
+    pq_schema = first_batch.schema
+    if modified:
+        md = dict(pq_schema.metadata or {})
+        md[b"last_modified"] = modified.encode()
+        pq_schema = pq_schema.with_metadata(md)
+
+    with pq.ParquetWriter(
+        out_file,
+        pq_schema,
+    ) as writer:
+        def normalized_batches():
+            yield first_batch
+            while True:
+                try:
+                    batch = reader.read_next_batch()
+                except StopIteration:
+                    break
+                batch = _convert_decimal_batch(batch, decimal_columns=decimal_columns)
+                yield _normalize_timestamp_batch(batch, default_tz=tz)
+
+        _write_batches_with_target_row_groups(
+            writer,
+            normalized_batches(),
+            row_group_size=row_group_size,
+            max_buffer_bytes=max_buffer_bytes,
+        )
+
+    return True
+
 def write_parquet(
     df,
     *,
@@ -331,6 +475,7 @@ def write_parquet(
     obs=None,
     batched: bool = True,
     row_group_size: int = 1024 * 1024,
+    max_buffer_bytes: int = DEFAULT_MAX_BUFFER_BYTES,
     tz: str = "UTC",
     archive: bool = False,
     archive_dir: str | None = None,
@@ -354,6 +499,7 @@ def write_parquet(
         obs=obs,
         batched=batched,
         row_group_size=row_group_size,
+        max_buffer_bytes=max_buffer_bytes,
         tz=tz,
     )
     if not wrote_rows:

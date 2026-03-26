@@ -29,6 +29,9 @@ pq_restore = _lazy_export(".files.parquet", "pq_restore")
 pq_remove = _lazy_export(".files.parquet", "pq_remove")
 db_schema_tables = _lazy_export(".postgres.schema", "db_schema_tables")
 wrds_update_pg = _lazy_export(".postgres.update", "wrds_update_pg")
+close_adbc_cached = _lazy_export(".postgres.adbc", "close_adbc_cached")
+set_default_engine = _lazy_export(".config", "set_default_engine")
+get_default_engine = _lazy_export(".config", "get_default_engine")
 
 __all__ = [
     "__version__",
@@ -36,5 +39,6 @@ __all__ = [
     "db_schema_to_pq", "db_schema_tables",
     "wrds_update_pq", "pq_list_files", "wrds_update_schema",
     "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",
-    "wrds_update_pg"
+    "wrds_update_pg", "close_adbc_cached",
+    "set_default_engine", "get_default_engine"
 ]

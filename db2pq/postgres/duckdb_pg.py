@@ -1,20 +1,20 @@
-from .column_filter import filter_columns
+from dataclasses import dataclass
 
-def _quote_ident(name: str) -> str:
-    escaped = name.replace('"', '""')
-    return f'"{escaped}"'
+from .comments import get_pg_conn
+from .introspect import get_table_column_types, get_table_columns
+from .select_sql import plan_wrds_query
 
-def apply_where_sql(df, *, con, table_name: str, where=None):
-    if not where:
-        return df
-    table_ident = _quote_ident(table_name)
-    return con.sql(f"SELECT * FROM {table_ident} WHERE {where}")
 
-def apply_keep_drop(df, *, keep=None, drop=None):
-    cols = filter_columns(df.columns, keep=keep, drop=drop)
-    if cols != list(df.columns):
-        df = df.select(*cols)
-    return df
+@dataclass
+class DuckDBArrowQuery:
+    connection: object
+    relation: object
+
+    def fetch_arrow_reader(self):
+        return self.relation.fetch_arrow_reader()
+
+    def fetch_arrow_table(self):
+        return self.relation.fetch_arrow_table()
 
 def read_postgres_table(
     *,
@@ -24,23 +24,44 @@ def read_postgres_table(
     database,
     schema,
     table_name,
+    col_types=None,
+    obs=None,
     threads=None,
     keep=None,
     drop=None,
     where=None,
+    tz="UTC",
 ):
-    import ibis
+    import duckdb
 
-    con = ibis.duckdb.connect()
+    con = duckdb.connect()
     # Required for very large text columns/aggregates that exceed Arrow's
     # regular 2 GiB string buffer limit.
-    con.raw_sql("SET arrow_large_buffer_size=true;")
+    con.execute("SET arrow_large_buffer_size=true;")
     if threads:
-        con.raw_sql(f"SET threads TO {int(threads)};")
+        con.execute(f"SET threads TO {int(threads)};")
 
     uri = f"postgres://{user}@{host}:{port}/{database}"
-    df = con.read_postgres(uri, table_name=table_name, database=schema)
-    df = apply_where_sql(df, con=con, table_name=table_name, where=where)
+    with get_pg_conn(uri) as pg_conn:
+        all_cols = get_table_columns(pg_conn, schema, table_name)
+        source_col_types = get_table_column_types(pg_conn, schema, table_name)
+        plan = plan_wrds_query(
+            conn=pg_conn,
+            schema=schema,
+            table=table_name,
+            all_cols=all_cols,
+            source_col_types=source_col_types,
+            col_types=col_types,
+            keep=keep,
+            drop=drop,
+            tz=tz,
+            obs=obs,
+            where=where,
+            qualified_alias="wrds",
+        )
 
-    df = apply_keep_drop(df, keep=keep, drop=drop)
-    return df
+    con.execute(
+        f"ATTACH '{uri}' AS wrds (TYPE postgres, SCHEMA '{schema}')"
+    )
+    relation = con.sql(plan.qualified_sql)
+    return DuckDBArrowQuery(connection=con, relation=relation)

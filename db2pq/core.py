@@ -1,4 +1,5 @@
 from time import gmtime, strftime
+from pathlib import Path
 
 
 def db_to_pq(
@@ -21,6 +22,10 @@ def db_to_pq(
     batched=True,
     threads=None,
     tz="UTC",
+    engine=None,
+    numeric_mode="text",
+    adbc_batch_size_hint_bytes=None,
+    adbc_use_copy=None,
     archive=False,
     archive_dir=None,
 ):
@@ -92,6 +97,27 @@ def db_to_pq(
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
+
+    engine : {"duckdb", "adbc"} [Optional]
+        Query execution engine used to read PostgreSQL data before writing
+        Parquet. ``"adbc"`` streams Arrow record batches directly from
+        PostgreSQL.
+
+    numeric_mode : {"text", "float64", "decimal"} [Optional]
+        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
+        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
+        transports eligible values as text and converts them back to Arrow
+        decimal types using PostgreSQL precision/scale metadata. Explicit
+        ``col_types`` entries take precedence.
+
+    adbc_batch_size_hint_bytes : int [Optional]
+        On the ADBC path, hint the PostgreSQL ADBC driver about the desired
+        Arrow batch size in bytes. This can affect throughput by changing the
+        size of batches returned by ``fetch_record_batch()``.
+
+    adbc_use_copy : bool [Optional]
+        On the ADBC path, enable or disable the PostgreSQL driver's ``COPY``
+        optimization explicitly. If omitted, the driver default is used.
     
     Returns
     -------
@@ -103,8 +129,10 @@ def db_to_pq(
     >>> db_to_pq("dsi", "crsp")
     >>> db_to_pq("feed21_bankruptcy_notification", "audit")
     """
+    from .config import get_default_engine
     from .files.parquet import write_parquet
     from .postgres._defaults import resolve_pg_connection
+    from .postgres.adbc import export_postgres_table_via_adbc
     from .postgres.duckdb_pg import read_postgres_table
     
     user, host, dbname, port = resolve_pg_connection(
@@ -114,6 +142,50 @@ def db_to_pq(
     if not alt_table_name:
         alt_table_name = table_name
 
+    if engine is None:
+        engine = get_default_engine()
+
+    engine = engine.lower()
+    if engine not in {"duckdb", "adbc"}:
+        raise ValueError("engine must be either 'duckdb' or 'adbc'")
+
+    uri = f"postgresql://{user}@{host}:{port}/{dbname}"
+
+    if engine == "adbc":
+        from .files.parquet import pq_archive
+        from .files.paths import parquet_paths, promote_temp_parquet
+
+        _, pq_file, tmp_pq_file = parquet_paths(data_dir, schema, alt_table_name)
+        pq_file = Path(pq_file)
+        tmp_pq_file = Path(tmp_pq_file)
+
+        pq_result = export_postgres_table_via_adbc(
+            uri=uri,
+            schema=schema,
+            table_name=table_name,
+            out_file=tmp_pq_file,
+            col_types=col_types,
+            modified=modified,
+            obs=obs,
+            keep=keep,
+            drop=drop,
+            where=where,
+            row_group_size=row_group_size,
+            tz=tz,
+            numeric_mode=numeric_mode,
+            adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
+            adbc_use_copy=adbc_use_copy,
+        )
+        if pq_result is None:
+            print(f"No rows returned for {schema}.{alt_table_name}; no parquet file created.")
+            return None
+
+        if archive and pq_file.exists():
+            pq_archive(file_name=pq_file, archive_dir=archive_dir)
+
+        promote_temp_parquet(tmp_pq_file, pq_file)
+        return str(pq_file)
+
     df = read_postgres_table(
         user=user,
         host=host,
@@ -121,10 +193,13 @@ def db_to_pq(
         database=dbname,
         schema=schema,
         table_name=table_name,
+        col_types=col_types,
+        obs=obs,
         threads=threads,
         keep=keep,
         drop=drop,
         where=where,
+        tz=tz,
     )
         
     pq_file = write_parquet(
@@ -161,6 +236,10 @@ def wrds_pg_to_pq(
     batched=True,
     threads=3,
     tz="UTC",
+    engine=None,
+    numeric_mode="text",
+    adbc_batch_size_hint_bytes=None,
+    adbc_use_copy=None,
     archive=False,
     archive_dir=None,
 ):
@@ -222,6 +301,25 @@ def wrds_pg_to_pq(
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
+
+    engine : {"duckdb", "adbc"} [Optional]
+        Query execution engine used to read PostgreSQL data before writing
+        Parquet.
+
+    numeric_mode : {"text", "float64", "decimal"} [Optional]
+        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
+        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
+        transports eligible values as text and converts them back to Arrow
+        decimal types using PostgreSQL precision/scale metadata. Explicit
+        ``col_types`` entries take precedence.
+
+    adbc_batch_size_hint_bytes : int [Optional]
+        On the ADBC path, hint the PostgreSQL ADBC driver about the desired
+        Arrow batch size in bytes.
+
+    adbc_use_copy : bool [Optional]
+        On the ADBC path, enable or disable the PostgreSQL driver's ``COPY``
+        optimization explicitly.
     
     Returns
     -------
@@ -256,6 +354,10 @@ def wrds_pg_to_pq(
         batched=batched,
         threads=threads,
         tz=tz,
+        engine=engine,
+        numeric_mode=numeric_mode,
+        adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
+        adbc_use_copy=adbc_use_copy,
         archive=archive,
         archive_dir=archive_dir,
     )
@@ -272,6 +374,8 @@ def db_schema_to_pq(
     row_group_size: int = 1024 * 1024,
     batched: bool = True,
     threads: int | None = None,
+    engine: str | None = None,
+    numeric_mode: str = "text",
     archive: bool = False,
     archive_dir: str | None = None,
 ) -> list[str]:
@@ -321,6 +425,17 @@ def db_schema_to_pq(
         Number of threads DuckDB is allowed to use.
         If provided, must be positive.
 
+    engine : {"duckdb", "adbc"}, optional
+        Query execution engine used to read PostgreSQL data before writing
+        Parquet.
+
+    numeric_mode : {"text", "float64", "decimal"}, optional
+        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
+        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
+        transports eligible values as text and converts them back to Arrow
+        decimal types using PostgreSQL precision/scale metadata. Explicit
+        ``col_types`` entries take precedence.
+
     archive : bool, optional
         Whether an existing Parquet file should be archived before
         being replaced.
@@ -364,12 +479,14 @@ def db_schema_to_pq(
                 schema=schema,
                 user=user,
                 host=host,
-                database=database,
+                database=dbname,
                 port=port,
                 data_dir=data_dir,
                 row_group_size=row_group_size,
                 threads=threads,
                 batched=batched,
+                engine=engine,
+                numeric_mode=numeric_mode,
                 archive=archive,
                 archive_dir=archive_dir,
             )
@@ -396,6 +513,10 @@ def wrds_update_pq(
     batched=True,
     threads=3,
     tz="UTC",
+    engine=None,
+    numeric_mode="text",
+    adbc_batch_size_hint_bytes=None,
+    adbc_use_copy=None,
     use_sas=False,
     archive=False,
     archive_dir=None,
@@ -461,6 +582,25 @@ def wrds_update_pq(
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
+
+    engine : {"duckdb", "adbc"} [Optional]
+        Query execution engine used to read PostgreSQL data before writing
+        Parquet.
+
+    numeric_mode : {"text", "float64", "decimal"} [Optional]
+        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
+        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
+        transports eligible values as text and converts them back to Arrow
+        decimal types using PostgreSQL precision/scale metadata. Explicit
+        ``col_types`` entries take precedence.
+
+    adbc_batch_size_hint_bytes : int [Optional]
+        On the ADBC path, hint the PostgreSQL ADBC driver about the desired
+        Arrow batch size in bytes.
+
+    adbc_use_copy : bool [Optional]
+        On the ADBC path, enable or disable the PostgreSQL driver's ``COPY``
+        optimization explicitly.
     
     use_sas: bool [Optional]
         Should update get table comments from SAS data file.
@@ -499,7 +639,7 @@ def wrds_update_pq(
         encoding=encoding,
     )
            
-    pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
+    pq_file = get_pq_file(table_name=alt_table_name, schema=schema, data_dir=data_dir)
     pq_comment = get_modified_pq(pq_file)
     wrds_kind = "wrds_sas" if use_sas else "wrds_pg"
     wrds_mod = modified_info(wrds_kind, wrds_comment)
@@ -529,6 +669,10 @@ def wrds_update_pq(
                             batched=batched,
                             threads=threads,
                             tz=tz,
+                            engine=engine,
+                            numeric_mode=numeric_mode,
+                            adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
+                            adbc_use_copy=adbc_use_copy,
                             archive=archive,
                             archive_dir=archive_dir)
     if pq_file is None:

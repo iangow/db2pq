@@ -1,5 +1,20 @@
+from dataclasses import dataclass
+
 from psycopg import sql
 from .column_filter import filter_columns
+
+
+@dataclass(frozen=True)
+class QueryPlan:
+    schema: str
+    table: str
+    columns: list[str]
+    col_types: dict[str, str]
+    source_col_types: dict[str, str]
+    sql: str
+    qualified_sql: str | None = None
+    n_naive_ts: int = 0
+    n_tz_ts: int = 0
 
 def qident(conn, name: str) -> str:
     return sql.Identifier(name).as_string(conn)
@@ -33,6 +48,7 @@ def build_wrds_select_sql(
     source_col_types: dict[str, str] | None = None,
     tz: str | None = None,
     obs: int | None = None,
+    where: str | None = None,
     qualify: str | None = None,
 ) -> str:
     col_types = col_types or {}
@@ -60,9 +76,72 @@ def build_wrds_select_sql(
             select_items.append(f"{source_expr} AS {qc}")
 
     out = f"SELECT {', '.join(select_items)} FROM {qprefix}{qs}.{qt}"
+    if where:
+        out += f" WHERE {where}"
     if obs is not None:
         out += f" LIMIT {int(obs)}"
     return out
+
+
+def plan_wrds_query(
+    *,
+    conn,
+    schema: str,
+    table: str,
+    all_cols: list[str],
+    source_col_types: dict[str, str],
+    col_types: dict[str, str] | None = None,
+    keep=None,
+    drop=None,
+    tz: str | None = None,
+    obs: int | None = None,
+    where: str | None = None,
+    qualified_alias: str | None = None,
+) -> QueryPlan:
+    col_types = col_types or {}
+    columns = select_columns(all_cols, keep=keep, drop=drop)
+    selected_types = [source_col_types.get(c, "").strip().lower() for c in columns]
+    n_naive_ts = sum(t == "timestamp without time zone" for t in selected_types) if tz else 0
+    n_tz_ts = sum(t == "timestamp with time zone" for t in selected_types) if tz else 0
+
+    sql = build_wrds_select_sql(
+        conn=conn,
+        schema=schema,
+        table=table,
+        columns=columns,
+        col_types=col_types,
+        source_col_types=source_col_types,
+        tz=tz,
+        obs=obs,
+        where=where,
+        qualify=None,
+    )
+    qualified_sql = None
+    if qualified_alias:
+        qualified_sql = build_wrds_select_sql(
+            conn=conn,
+            schema=schema,
+            table=table,
+            columns=columns,
+            col_types=col_types,
+            source_col_types=source_col_types,
+            tz=tz,
+            obs=obs,
+            where=where,
+            qualify=qualified_alias,
+        )
+
+    return QueryPlan(
+        schema=schema,
+        table=table,
+        columns=columns,
+        col_types=dict(col_types),
+        source_col_types=dict(source_col_types),
+        sql=sql,
+        qualified_sql=qualified_sql,
+        n_naive_ts=n_naive_ts,
+        n_tz_ts=n_tz_ts,
+    )
 
 def select_columns(all_cols, *, keep=None, drop=None):
     return filter_columns(all_cols, keep=keep, drop=drop)

@@ -1,12 +1,13 @@
 from time import gmtime, strftime
 
 from .introspect import get_table_columns, get_table_column_types
-from .select_sql import build_wrds_select_sql, select_columns
+from .select_sql import plan_wrds_query
 from .duckdb_ddl import create_table_from_select_duckdb
 from .copy import copy_wrds_select_to_pg_table
 from .comments import get_pg_comment_conn, get_pg_conn, get_wrds_conn, set_table_comment
 from .wrds import get_wrds_uri
 from ._defaults import resolve_uri
+from ..types import normalize_col_types
 # from ..files.paths import resolve_data_dir  # later, when you add pq piece
 from ..sync.modified import modified_info, update_available
 
@@ -121,23 +122,32 @@ def wrds_update_pg(
     alt_table_name = alt_table_name or table_name
     source_schema = wrds_schema or schema
     
-    col_types = col_types or {}
+    col_types = normalize_col_types(col_types, engine="postgres") or {}
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
         all_cols = get_table_columns(wrds, source_schema, table_name)
         source_col_types = get_table_column_types(wrds, source_schema, table_name)
-        cols = select_columns(all_cols, keep=keep, drop=drop)
+        plan = plan_wrds_query(
+            conn=pg,
+            schema=source_schema,
+            table=table_name,
+            all_cols=all_cols,
+            source_col_types=source_col_types,
+            col_types=col_types,
+            keep=keep,
+            drop=drop,
+            tz=tz,
+            obs=obs,
+            qualified_alias="wrds",
+        )
         if tz:
-            selected_types = [source_col_types.get(c, "").strip().lower() for c in cols]
-            n_naive_ts = sum(t == "timestamp without time zone" for t in selected_types)
-            n_tz_ts = sum(t == "timestamp with time zone" for t in selected_types)
-            if n_naive_ts > 0:
+            if plan.n_naive_ts > 0:
                 print(
                     f"Applying tz='{tz}' conversion to "
-                    f"{n_naive_ts} timestamp without time zone column(s)."
+                    f"{plan.n_naive_ts} timestamp without time zone column(s)."
                 )
-            if n_tz_ts > 0:
+            if plan.n_tz_ts > 0:
                 print(
-                    f"No tz conversion applied to {n_tz_ts} "
+                    f"No tz conversion applied to {plan.n_tz_ts} "
                     "timestamp with time zone column(s)."
                 )
         wrds_comment = get_pg_comment_conn(wrds, schema=source_schema,
@@ -159,34 +169,10 @@ def wrds_update_pg(
         print(f"Importing data into {schema}.{alt_table_name}.")
 
         _ensure_schema_and_roles(pg, schema, create_roles=create_roles)
-        
-        duckdb_sql = build_wrds_select_sql(
-            conn=pg,
-            schema=source_schema,
-            table=table_name,
-            columns=cols,
-            col_types=col_types,
-            source_col_types=source_col_types,
-            tz=tz,
-            obs=obs,
-            qualify="wrds",
-        )
-        
-        copy_sql = build_wrds_select_sql(
-            conn=pg,
-            schema=source_schema,
-            table=table_name,
-            columns=cols,
-            col_types=col_types,
-            source_col_types=source_col_types,
-            tz=tz,
-            obs=obs,
-            qualify=None,
-        )
 
         # DuckDB uses conn strings, not the already-open psycopg conns
         create_table_from_select_duckdb(
-            select_sql=duckdb_sql,
+            select_sql=plan.qualified_sql,
             wrds_uri=get_wrds_uri(wrds_id),
             dst_uri=uri,
             dst_schema=schema,
@@ -197,10 +183,10 @@ def wrds_update_pg(
         copy_wrds_select_to_pg_table(
             wrds_conn=wrds,
             pg_conn=pg,
-            select_sql=copy_sql,
+            select_sql=plan.sql,
             dst_schema=schema,
             dst_table=alt_table_name,
-            cols=cols,
+            cols=plan.columns,
             uri=uri
         )
     
