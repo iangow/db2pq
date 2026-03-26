@@ -16,8 +16,10 @@ def _lazy_export(module_name, attr_name):
 
 
 db_to_pq = _lazy_export(".core", "db_to_pq")
+db_to_pg = _lazy_export(".core", "db_to_pg")
 ibis_to_pq = _lazy_export(".ibis", "ibis_to_pq")
 wrds_pg_to_pq = _lazy_export(".core", "wrds_pg_to_pq")
+wrds_pg_to_pg = _lazy_export(".core", "wrds_pg_to_pg")
 db_schema_to_pq = _lazy_export(".core", "db_schema_to_pq")
 wrds_update_pq = _lazy_export(".core", "wrds_update_pq")
 pq_list_files = _lazy_export(".files.paths", "pq_list_files")
@@ -29,6 +31,7 @@ pq_restore = _lazy_export(".files.parquet", "pq_restore")
 pq_remove = _lazy_export(".files.parquet", "pq_remove")
 db_schema_tables = _lazy_export(".postgres.schema", "db_schema_tables")
 wrds_update_pg = _lazy_export(".postgres.update", "wrds_update_pg")
+postgres_write_pg = _lazy_export(".postgres.update", "postgres_write_pg")
 close_adbc_cached = _lazy_export(".postgres.adbc", "close_adbc_cached")
 set_default_engine = _lazy_export(".config", "set_default_engine")
 get_default_engine = _lazy_export(".config", "get_default_engine")
@@ -43,14 +46,14 @@ ensure_wrds_credentials = _lazy_export(".credentials", "ensure_wrds_credentials"
 
 __all__ = [
     "__version__",
-    "db_to_pq", "ibis_to_pq", "wrds_pg_to_pq",
+    "db_to_pq", "db_to_pg", "ibis_to_pq", "wrds_pg_to_pq", "wrds_pg_to_pg",
     "db_schema_to_pq", "db_schema_tables",
     "wrds_update_pq", "pq_list_files", "wrds_update_schema",
     "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",
-    "wrds_update_pg", "close_adbc_cached",
+    "wrds_update_pg", "postgres_write_pg", "close_adbc_cached",
     "set_default_engine", "get_default_engine",
     "get_wrds_username", "get_wrds_conninfo",
     "ensure_wrds_id", "ensure_wrds_access",
     "find_pgpass_entry", "has_pgpass_password",
-    "save_password", "ensure_wrds_credentials"
+    "save_password", "ensure_wrds_credentials",
 ]

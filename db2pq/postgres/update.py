@@ -71,6 +71,134 @@ def _apply_table_roles(conn, schema: str, table_name: str) -> None:
     _execute_ident_sql(conn, "ALTER TABLE {}.{} OWNER TO {}", schema, table_name, schema)
     _execute_ident_sql(conn, "GRANT SELECT ON {}.{} TO {}", schema, table_name, access_role)
 
+def _write_pg_table_from_source(
+    *,
+    source_conn,
+    source_uri: str,
+    source_schema: str,
+    source_table_name: str,
+    pg_conn,
+    dst_uri: str,
+    dst_schema: str,
+    dst_table_name: str,
+    col_types=None,
+    obs=None,
+    keep=None,
+    drop=None,
+    create_roles=True,
+    tz="UTC",
+):
+    col_types = normalize_col_types(col_types, engine="postgres") or {}
+
+    all_cols = get_table_columns(source_conn, source_schema, source_table_name)
+    source_col_types = get_table_column_types(source_conn, source_schema, source_table_name)
+    plan = plan_wrds_query(
+        conn=pg_conn,
+        schema=source_schema,
+        table=source_table_name,
+        all_cols=all_cols,
+        source_col_types=source_col_types,
+        col_types=col_types,
+        keep=keep,
+        drop=drop,
+        tz=tz,
+        obs=obs,
+        qualified_alias="wrds",
+    )
+    if tz:
+        if plan.n_naive_ts > 0:
+            print(
+                f"Applying tz='{tz}' conversion to "
+                f"{plan.n_naive_ts} timestamp without time zone column(s)."
+            )
+        if plan.n_tz_ts > 0:
+            print(
+                f"No tz conversion applied to {plan.n_tz_ts} "
+                "timestamp with time zone column(s)."
+            )
+
+    source_comment = get_pg_comment_conn(
+        source_conn,
+        schema=source_schema,
+        table_name=source_table_name,
+    )
+    print(f"Beginning file import at {get_now()} UTC.")
+    print(f"Importing data into {dst_schema}.{dst_table_name}.")
+
+    _ensure_schema_and_roles(pg_conn, dst_schema, create_roles=create_roles)
+
+    create_table_from_select_duckdb(
+        select_sql=plan.qualified_sql,
+        wrds_uri=source_uri,
+        dst_uri=dst_uri,
+        dst_schema=dst_schema,
+        dst_table=dst_table_name,
+        drop_if_exists=True,
+    )
+
+    copy_wrds_select_to_pg_table(
+        wrds_conn=source_conn,
+        pg_conn=pg_conn,
+        select_sql=plan.sql,
+        dst_schema=dst_schema,
+        dst_table=dst_table_name,
+        cols=plan.columns,
+        uri=dst_uri
+    )
+
+    set_table_comment(
+        pg_conn,
+        schema=dst_schema,
+        table_name=dst_table_name,
+        comment=source_comment,
+    )
+
+    if create_roles:
+        _apply_table_roles(pg_conn, dst_schema, dst_table_name)
+    print(f"Completed file import at {get_now()} UTC.\n")
+    return True
+
+def postgres_write_pg(
+    table_name,
+    schema,
+    *,
+    src_uri,
+    dst_uri,
+    dst_schema=None,
+    col_types=None,
+    obs=None,
+    alt_table_name=None,
+    keep=None,
+    drop=None,
+    create_roles=True,
+    tz="UTC",
+):
+    """
+    Write a PostgreSQL table into another PostgreSQL database.
+
+    This is a straight PG-to-PG copy primitive with no update-date checks.
+    """
+    dst_schema = dst_schema or schema
+    alt_table_name = alt_table_name or table_name
+
+    with get_pg_conn(src_uri) as src, get_pg_conn(dst_uri) as dst:
+        return _write_pg_table_from_source(
+            source_conn=src,
+            source_uri=src_uri,
+            source_schema=schema,
+            source_table_name=table_name,
+            pg_conn=dst,
+            dst_uri=dst_uri,
+            dst_schema=dst_schema,
+            dst_table_name=alt_table_name,
+            col_types=col_types,
+            obs=obs,
+            keep=keep,
+            drop=drop,
+            create_roles=create_roles,
+            tz=tz,
+        )
+
 def wrds_update_pg(
     table_name,
     schema,
@@ -116,87 +244,43 @@ def wrds_update_pg(
         ``True`` if an update was performed, ``False`` if the destination
         table was already up to date.
     """
-    
     from ..credentials import ensure_wrds_access
 
     uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
     wrds_id = ensure_wrds_access(wrds_id)
-
     alt_table_name = alt_table_name or table_name
     source_schema = wrds_schema or schema
-    
-    col_types = normalize_col_types(col_types, engine="postgres") or {}
+    source_uri = get_wrds_uri(wrds_id)
+
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
-        all_cols = get_table_columns(wrds, source_schema, table_name)
-        source_col_types = get_table_column_types(wrds, source_schema, table_name)
-        plan = plan_wrds_query(
-            conn=pg,
+        wrds_comment = get_pg_comment_conn(
+            wrds,
             schema=source_schema,
-            table=table_name,
-            all_cols=all_cols,
-            source_col_types=source_col_types,
-            col_types=col_types,
-            keep=keep,
-            drop=drop,
-            tz=tz,
-            obs=obs,
-            qualified_alias="wrds",
+            table_name=table_name,
         )
-        if tz:
-            if plan.n_naive_ts > 0:
-                print(
-                    f"Applying tz='{tz}' conversion to "
-                    f"{plan.n_naive_ts} timestamp without time zone column(s)."
-                )
-            if plan.n_tz_ts > 0:
-                print(
-                    f"No tz conversion applied to {plan.n_tz_ts} "
-                    "timestamp with time zone column(s)."
-                )
-        wrds_comment = get_pg_comment_conn(wrds, schema=source_schema,
-                                                table_name=table_name)
         if not force:
-            pg_comment = get_pg_comment_conn(pg, schema=schema,
-                                             table_name=alt_table_name)
+            pg_comment = get_pg_comment_conn(pg, schema=schema, table_name=alt_table_name)
             wrds_mod = modified_info("wrds_pg", wrds_comment)
-            pg_mod   = modified_info("pg", pg_comment)
+            pg_mod = modified_info("pg", pg_comment)
 
             if not update_available(src=wrds_mod, dst=pg_mod):
-                # optionally print why
                 print(f"{schema}.{alt_table_name} already up to date.")
                 return False
             print(f"Updated {schema}.{alt_table_name} is available.")
         else:
             print("Forcing update based on user request.")
-        print(f"Beginning file import at {get_now()} UTC.")
-        print(f"Importing data into {schema}.{alt_table_name}.")
 
-        _ensure_schema_and_roles(pg, schema, create_roles=create_roles)
-
-        # DuckDB uses conn strings, not the already-open psycopg conns
-        create_table_from_select_duckdb(
-            select_sql=plan.qualified_sql,
-            wrds_uri=get_wrds_uri(wrds_id),
-            dst_uri=uri,
-            dst_schema=schema,
-            dst_table=alt_table_name,
-            drop_if_exists=True,
-        )
-        
-        copy_wrds_select_to_pg_table(
-            wrds_conn=wrds,
-            pg_conn=pg,
-            select_sql=plan.sql,
-            dst_schema=schema,
-            dst_table=alt_table_name,
-            cols=plan.columns,
-            uri=uri
-        )
-    
-        set_table_comment(pg, schema=schema, table_name=alt_table_name,
-                          comment=wrds_comment)
-
-        if create_roles:
-            _apply_table_roles(pg, schema, alt_table_name)
-        print(f"Completed file import at {get_now()} UTC.\n")
-        return True
+    return postgres_write_pg(
+        table_name=table_name,
+        schema=source_schema,
+        src_uri=source_uri,
+        dst_uri=uri,
+        dst_schema=schema,
+        col_types=col_types,
+        obs=obs,
+        alt_table_name=alt_table_name,
+        keep=keep,
+        drop=drop,
+        create_roles=create_roles,
+        tz=tz,
+    )

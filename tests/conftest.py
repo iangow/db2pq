@@ -16,15 +16,27 @@ def _pg_setting(name: str, default: str) -> str:
 
 @pytest.fixture(scope="session")
 def pg_test_config() -> dict[str, str | int]:
-    user = _pg_setting("DB2PQ_TEST_PGUSER", os.getenv("PGUSER") or getpass.getuser())
-    host = _pg_setting("DB2PQ_TEST_PGHOST", os.getenv("PGHOST") or "localhost")
-    port = int(_pg_setting("DB2PQ_TEST_PGPORT", os.getenv("PGPORT") or "5432"))
+    default_user = os.getenv("PGUSER") or getpass.getuser()
+    default_host = os.getenv("PGHOST") or "localhost"
+    default_port = os.getenv("PGPORT") or "5432"
+    src_user = _pg_setting("DB2PQ_TEST_SRC_PGUSER", _pg_setting("DB2PQ_TEST_PGUSER", default_user))
+    src_host = _pg_setting("DB2PQ_TEST_SRC_PGHOST", _pg_setting("DB2PQ_TEST_PGHOST", default_host))
+    src_port = int(_pg_setting("DB2PQ_TEST_SRC_PGPORT", _pg_setting("DB2PQ_TEST_PGPORT", default_port)))
+    dst_user = _pg_setting("DB2PQ_TEST_DST_PGUSER", _pg_setting("DB2PQ_TEST_PGUSER", src_user))
+    dst_host = _pg_setting("DB2PQ_TEST_DST_PGHOST", _pg_setting("DB2PQ_TEST_PGHOST", src_host))
+    dst_port = int(_pg_setting("DB2PQ_TEST_DST_PGPORT", _pg_setting("DB2PQ_TEST_PGPORT", str(src_port))))
     src_db = _pg_setting("DB2PQ_TEST_SRC_DB", "iangow")
     dst_db = _pg_setting("DB2PQ_TEST_DST_DB", "test")
     return {
-        "user": user,
-        "host": host,
-        "port": port,
+        "user": src_user,
+        "host": src_host,
+        "port": src_port,
+        "src_user": src_user,
+        "src_host": src_host,
+        "src_port": src_port,
+        "dst_user": dst_user,
+        "dst_host": dst_host,
+        "dst_port": dst_port,
         "src_db": src_db,
         "dst_db": dst_db,
     }
@@ -40,8 +52,8 @@ def _connect_or_skip(uri: str):
 @pytest.fixture(scope="session")
 def src_pg_conn(pg_test_config):
     uri = (
-        f"postgresql://{pg_test_config['user']}@{pg_test_config['host']}:"
-        f"{pg_test_config['port']}/{pg_test_config['src_db']}"
+        f"postgresql://{pg_test_config['src_user']}@{pg_test_config['src_host']}:"
+        f"{pg_test_config['src_port']}/{pg_test_config['src_db']}"
     )
     with _connect_or_skip(uri) as conn:
         yield conn
@@ -50,8 +62,8 @@ def src_pg_conn(pg_test_config):
 @pytest.fixture(scope="session")
 def dst_pg_conn(pg_test_config):
     uri = (
-        f"postgresql://{pg_test_config['user']}@{pg_test_config['host']}:"
-        f"{pg_test_config['port']}/{pg_test_config['dst_db']}"
+        f"postgresql://{pg_test_config['dst_user']}@{pg_test_config['dst_host']}:"
+        f"{pg_test_config['dst_port']}/{pg_test_config['dst_db']}"
     )
     with _connect_or_skip(uri) as conn:
         yield conn

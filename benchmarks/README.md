@@ -24,6 +24,23 @@ performance, connection behavior, memory use, and output characteristics.
   Measure peak RSS for local ADBC exports in a subprocess, to see whether
   memory usage scales with table size.
 
+- `script_pg_to_pg_memory_probe.py`
+  Run repeated large local PostgreSQL-to-PostgreSQL writes in a subprocess and
+  report both process-tree peak RSS and per-iteration in-process RSS deltas.
+  Defaults target:
+  - source: `postgresql://localhost:5432/igow`
+  - destination: `postgresql://localhost:5433/test`
+  - tables: `comp.funda`, `crsp.dsf`
+  Supported writers:
+  - `db_to_pg`
+  - `postgres_write_pg`
+  - `wrds_update_pg` using a monkeypatched local source connection
+  Useful env vars:
+  - `DB2PQ_MEMPROBE_WRITERS`
+  - `DB2PQ_MEMPROBE_ITERATIONS`
+  - `DB2PQ_MEMPROBE_FUNDA_OBS`
+  - `DB2PQ_MEMPROBE_DSF_OBS`
+
 - `script_adbc_batch_profile.py`
   Inspect incoming ADBC batch sizes (rows and bytes per batch) for selected
   local tables.

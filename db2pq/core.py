@@ -219,6 +219,60 @@ def db_to_pq(
     
     return str(pq_file) if pq_file is not None else None
 
+def db_to_pg(
+    table_name,
+    schema,
+    *,
+    user=None,
+    host=None,
+    database=None,
+    port=None,
+    dst_user=None,
+    dst_host=None,
+    dst_database=None,
+    dst_port=None,
+    dst_schema=None,
+    col_types=None,
+    obs=None,
+    alt_table_name=None,
+    keep=None,
+    drop=None,
+    tz="UTC",
+    create_roles=True,
+):
+    """Write a PostgreSQL table to another PostgreSQL database.
+
+    Parameters mirror ``db_to_pq()`` for the source side, with additional
+    ``dst_*`` parameters describing the destination PostgreSQL connection.
+    """
+    from .postgres._defaults import resolve_pg_connection
+    from .postgres.update import postgres_write_pg
+
+    user, host, dbname, port = resolve_pg_connection(
+        user=user, host=host, dbname=database, port=port
+    )
+    dst_user, dst_host, dst_dbname, dst_port = resolve_pg_connection(
+        user=dst_user, host=dst_host, dbname=dst_database, port=dst_port
+    )
+
+    src_uri = f"postgresql://{user}@{host}:{port}/{dbname}"
+    dst_uri = f"postgresql://{dst_user}@{dst_host}:{dst_port}/{dst_dbname}"
+
+    return postgres_write_pg(
+        table_name=table_name,
+        schema=schema,
+        src_uri=src_uri,
+        dst_uri=dst_uri,
+        dst_schema=dst_schema,
+        col_types=col_types,
+        obs=obs,
+        alt_table_name=alt_table_name,
+        keep=keep,
+        drop=drop,
+        create_roles=create_roles,
+        tz=tz,
+    )
+
 def wrds_pg_to_pq(
     table_name,
     schema,
@@ -360,6 +414,50 @@ def wrds_pg_to_pq(
         adbc_use_copy=adbc_use_copy,
         archive=archive,
         archive_dir=archive_dir,
+    )
+
+def wrds_pg_to_pg(
+    table_name,
+    schema,
+    *,
+    wrds_id=None,
+    dst_user=None,
+    dst_host=None,
+    dst_database=None,
+    dst_port=None,
+    dst_schema=None,
+    col_types=None,
+    obs=None,
+    alt_table_name=None,
+    keep=None,
+    drop=None,
+    tz="UTC",
+    create_roles=True,
+):
+    """Write a WRDS PostgreSQL table to another PostgreSQL database."""
+    from .postgres.wrds import resolve_wrds_id
+
+    wrds_id = resolve_wrds_id(wrds_id)
+
+    return db_to_pg(
+        table_name,
+        schema,
+        user=wrds_id,
+        host="wrds-pgdata.wharton.upenn.edu",
+        database="wrds",
+        port=9737,
+        dst_user=dst_user,
+        dst_host=dst_host,
+        dst_database=dst_database,
+        dst_port=dst_port,
+        dst_schema=dst_schema,
+        col_types=col_types,
+        obs=obs,
+        alt_table_name=alt_table_name,
+        keep=keep,
+        drop=drop,
+        tz=tz,
+        create_roles=create_roles,
     )
 
     
