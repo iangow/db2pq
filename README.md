@@ -43,6 +43,13 @@ Install optional Ibis export support (needed for `ibis_to_pq(...)`):
 pip install --upgrade "db2pq[ibis]"
 ```
 
+Install optional ADBC export support (needed for `engine="adbc"` in
+PostgreSQL-to-Parquet helpers):
+
+```bash
+pip install --upgrade "db2pq[adbc]"
+```
+
 Install both optional SAS and pandas support:
 
 ```bash
@@ -98,6 +105,8 @@ pq_file = db_to_pq(
     schema="public",
     host="localhost",
     database="mydb",
+    engine="adbc",
+    numeric_mode="float64",
 )
 
 print(pq_file)
@@ -112,6 +121,8 @@ wrds_pg_to_pq(
     table_name="dsi",
     schema="crsp",
     wrds_id="your_wrds_id",  # or set WRDS_ID in the environment
+    engine="adbc",
+    numeric_mode="float64",
 )
 ```
 
@@ -165,6 +176,48 @@ When `archive=True`, replaced files are moved under:
 <DATA_DIR>/<schema>/<archive_dir>/<table>_<timestamp>.parquet
 ```
 
+## How it works
+
+At a high level, the core PostgreSQL-to-Parquet flow has three stages:
+
+1. Query planning
+   `db2pq` inspects PostgreSQL metadata, applies `keep` / `drop`,
+   normalizes user-supplied `col_types`, handles timestamp conversion rules,
+   and builds a SQL `SELECT`.
+
+2. Query execution
+   The planned query is executed through either:
+   - `engine="duckdb"`: DuckDB reads PostgreSQL and produces Arrow output
+   - `engine="adbc"`: the PostgreSQL ADBC driver streams Arrow record batches directly
+
+3. Parquet writing
+   PyArrow writes the resulting Arrow batches/tables to Parquet, normalizing
+   timestamps, repairing eligible decimal columns on the ADBC path, and
+   buffering row groups with both row-count and byte-size limits.
+
+This means the main export helpers now share the same SQL-planning logic even
+when they use different execution engines.
+
+### Engine defaults
+
+`"duckdb"` remains the default engine. You can override it per call:
+
+```python
+db_to_pq("dsi", "crsp", engine="adbc")
+```
+
+or set a process-wide default:
+
+```python
+from db2pq import set_default_engine
+
+set_default_engine("adbc")
+```
+
+You can inspect the current setting with `get_default_engine()`, and the
+environment variable `DB2PQ_ENGINE` provides the same kind of session-level
+default when you prefer configuration outside Python.
+
 ## Public API
 
 From `db2pq`:
@@ -182,6 +235,9 @@ From `db2pq`:
 - `pq_remove(table_name=None, schema=None, data_dir=None, file_name=None, archive=False, archive_dir="archive")`
 - `db_schema_tables(schema, ...)`
 - `wrds_update_pg(table_name, schema, ...)`
+- `set_default_engine(engine)`
+- `get_default_engine()`
+- `close_adbc_cached()`
 
 `wrds_update_pq()` supports SQL-style filtering via `where`, for example:
 
@@ -191,6 +247,14 @@ From `db2pq`:
 
 - WRDS PostgreSQL access uses host `wrds-pgdata.wharton.upenn.edu` and port `9737`.
 - `batched=True` (default) lowers memory usage for large tables.
+- `engine="adbc"` streams Arrow record batches directly from PostgreSQL into
+  Parquet and may reduce RAM use versus the default DuckDB path.
+- On the ADBC path, `numeric_mode="text"` casts PostgreSQL `NUMERIC` columns
+  to `TEXT`, and `numeric_mode="float64"` casts them to `DOUBLE PRECISION`.
+  `numeric_mode="decimal"` transports them as `TEXT` and converts eligible
+  columns back to Arrow decimals using PostgreSQL precision/scale metadata.
+  Columns without usable metadata remain strings. `col_types` still takes
+  precedence over the mode.
 - `col_types` can be used to cast selected columns before writing Parquet.
 - `keep`/`drop` accept regex pattern(s) in both `wrds_update_pq()` and
   `wrds_update_pg()`. If both are supplied, `drop` is applied before `keep`.
