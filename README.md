@@ -257,7 +257,10 @@ From `db2pq`:
 - `pq_restore(file_basename, schema, data_dir=None, archive=True, archive_dir=None)`
 - `pq_remove(table_name=None, schema=None, data_dir=None, file_name=None, archive=False, archive_dir="archive")`
 - `db_schema_tables(schema, ...)`
+- `wrds_get_tables(schema, wrds_id=None)`
 - `wrds_update_pg(table_name, schema, ...)`
+- `process_sql(sql, ...)`
+- `set_table_comment(schema=..., table_name=..., comment=..., ...)`
 - `get_wrds_username(wrds_id=None)`
 - `get_wrds_conninfo(username=None)`
 - `find_pgpass_entry(conninfo, **kwargs)`
@@ -291,6 +294,11 @@ From `db2pq`:
   `wrds_update_pq()` uses it to interpret source naive timestamps before writing
   timezone-aware UTC parquet timestamps; `wrds_update_pg()` converts source
   `timestamp without time zone` columns using `AT TIME ZONE '<tz>'`.
+- `process_sql()` executes SQL against the PostgreSQL destination resolved from
+  the same `PGUSER`/`PGHOST`/`PGDATABASE`/`PGPORT` defaults used by
+  `wrds_update_pg()`.
+- `set_table_comment()` can be used the same way for destination PostgreSQL
+  table comments without passing an engine argument.
 
 ## Development
 

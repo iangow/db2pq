@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ._defaults import resolve_uri
 from .wrds import resolve_wrds_id, get_wrds_uri
 
 def get_pg_comment_conn(conn, *, schema: str, table_name: str) -> str | None:
@@ -31,9 +32,22 @@ def get_table_comment(conn, *,  schema: str, table_name: str) -> str:
 
     return conn.execute(sql, {"schema": schema, "table": table_name}).scalar() or ""
 
-def set_table_comment(conn, *, schema: str, table_name: str, comment: str | None) -> None:
+def set_table_comment(
+    conn=None,
+    *,
+    schema: str,
+    table_name: str,
+    comment: str | None,
+    user: str | None = None,
+    host: str | None = None,
+    dbname: str | None = None,
+    port: int | None = None,
+) -> None:
     """
     Set (or clear) a PostgreSQL table comment using psycopg.
+
+    If ``conn`` is omitted, connect to the same destination PostgreSQL
+    database resolved by ``wrds_update_pg()``.
     """
     from psycopg import sql as psql
 
@@ -42,6 +56,13 @@ def set_table_comment(conn, *, schema: str, table_name: str, comment: str | None
         psql.Identifier(table_name),
         psql.Literal(comment),
     )
+
+    if conn is None:
+        uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
+        with get_pg_conn(uri) as managed_conn, managed_conn.cursor() as cur:
+            cur.execute(stmt)
+            managed_conn.commit()
+        return
 
     with conn.cursor() as cur:
         cur.execute(stmt)

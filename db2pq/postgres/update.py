@@ -15,6 +15,44 @@ from ..sync.modified import modified_info, update_available
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
+
+def process_sql(
+    sql,
+    *,
+    user=None,
+    host=None,
+    dbname=None,
+    port=None,
+    params=None,
+):
+    """
+    Execute SQL against the destination PostgreSQL database used by
+    ``wrds_update_pg()`` by default.
+
+    Parameters
+    ----------
+    sql : str
+        SQL statement to execute.
+    user, host, dbname, port : optional
+        PostgreSQL connection settings. If omitted, resolve from the same
+        environment/default chain used by ``wrds_update_pg()``.
+    params : sequence or mapping, optional
+        Parameters passed to ``cursor.execute()``.
+
+    Returns
+    -------
+    str
+        Psycopg ``statusmessage`` for the executed statement.
+    """
+    uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
+
+    with get_pg_conn(uri) as conn, conn.cursor() as cur:
+        cur.execute(sql, params)
+        status = cur.statusmessage
+        conn.commit()
+
+    return status
+
 def _schema_exists(conn, schema: str) -> bool:
     with conn.cursor() as cur:
         cur.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s LIMIT 1", (schema,))

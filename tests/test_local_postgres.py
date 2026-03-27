@@ -10,7 +10,8 @@ import pyarrow.parquet as pq
 import pyarrow.types as pat
 import pytest
 
-from db2pq import db_to_pg, db_to_pq
+from db2pq import db_to_pg, db_to_pq, process_sql, set_table_comment
+from db2pq.postgres.comments import get_pg_comment
 from db2pq.postgres.update import postgres_write_pg
 from db2pq.postgres.update import wrds_update_pg
 
@@ -240,6 +241,78 @@ def test_db_to_pg_local_small_table(pg_test_config, dst_pg_conn, require_source_
             assert cur.fetchone()[0] == 500
     finally:
         _drop_table(dst_pg_conn, "crsp", alt_table_name)
+
+
+def test_process_sql_creates_index(pg_test_config, dst_pg_conn):
+    schema = "public"
+    table = f"process_sql_test_{uuid.uuid4().hex[:8]}"
+    index = f"{table}_id_idx"
+
+    try:
+        with dst_pg_conn.cursor() as cur:
+            cur.execute(f'CREATE TABLE "{schema}"."{table}" (id integer)')
+        dst_pg_conn.commit()
+
+        status = process_sql(
+            f'CREATE INDEX "{index}" ON "{schema}"."{table}" (id)',
+            user=pg_test_config["dst_user"],
+            host=pg_test_config["dst_host"],
+            dbname=pg_test_config["dst_db"],
+            port=pg_test_config["dst_port"],
+        )
+
+        assert status == "CREATE INDEX"
+
+        with dst_pg_conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT 1
+                FROM pg_indexes
+                WHERE schemaname = %s
+                  AND tablename = %s
+                  AND indexname = %s
+                """,
+                (schema, table, index),
+            )
+            assert cur.fetchone() == (1,)
+    finally:
+        with dst_pg_conn.cursor() as cur:
+            cur.execute(f'DROP TABLE IF EXISTS "{schema}"."{table}"')
+        dst_pg_conn.commit()
+
+
+def test_set_table_comment_uses_destination_defaults(pg_test_config, dst_pg_conn):
+    schema = "public"
+    table = f"set_comment_test_{uuid.uuid4().hex[:8]}"
+    comment = "comment set by db2pq"
+
+    try:
+        with dst_pg_conn.cursor() as cur:
+            cur.execute(f'CREATE TABLE "{schema}"."{table}" (id integer)')
+        dst_pg_conn.commit()
+
+        set_table_comment(
+            schema=schema,
+            table_name=table,
+            comment=comment,
+            user=pg_test_config["dst_user"],
+            host=pg_test_config["dst_host"],
+            dbname=pg_test_config["dst_db"],
+            port=pg_test_config["dst_port"],
+        )
+
+        assert get_pg_comment(
+            table_name=table,
+            schema=schema,
+            user=pg_test_config["dst_user"],
+            host=pg_test_config["dst_host"],
+            dbname=pg_test_config["dst_db"],
+            port=pg_test_config["dst_port"],
+        ) == comment
+    finally:
+        with dst_pg_conn.cursor() as cur:
+            cur.execute(f'DROP TABLE IF EXISTS "{schema}"."{table}"')
+        dst_pg_conn.commit()
 
 
 @pytest.mark.skipif(
