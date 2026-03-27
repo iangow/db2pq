@@ -7,15 +7,16 @@ import psycopg
 import pyarrow.parquet as pq
 
 from db2pq import close_adbc_cached, db_to_pq
+from db2pq.postgres._defaults import resolve_pg_connection
 
 
 MiB = 1024 * 1024
 DATA_DIR = Path("/tmp/db2pq_local_bench")
-DATABASE = "iangow"
 HOST = "localhost"
 PORT = 5432
 USER = None
 ROW_GROUP_SIZE = 250_000
+_, _, DATABASE, _ = resolve_pg_connection(user=USER, host=HOST, dbname=None, port=PORT)
 
 TABLE_CASES = [
     {"schema": "comp", "table_name": "company", "obs": 50_000, "adbc_reps": 2},
