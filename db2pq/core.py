@@ -331,9 +331,9 @@ def wrds_pg_to_pq(
     >>> wrds_pg_to_pq("dsi", "crsp")
     >>> wrds_pg_to_pq("feed21_bankruptcy_notification", "audit")
     """
-    from .postgres.wrds import resolve_wrds_id
+    from .credentials import ensure_wrds_access
 
-    wrds_id = resolve_wrds_id(wrds_id)
+    wrds_id = ensure_wrds_access(wrds_id)
     
     return db_to_pq(
         table_name,
@@ -619,10 +619,10 @@ def wrds_update_pq(
     from .files.parquet import get_modified_pq
     from .files.paths import get_pq_file
     from .postgres.comments import get_wrds_comment
-    from .postgres.wrds import resolve_wrds_id
+    from .credentials import ensure_wrds_access
     from .sync.modified import modified_info, update_available
 
-    wrds_id = resolve_wrds_id(wrds_id)
+    wrds_id = ensure_wrds_access(wrds_id)
         
     if not sas_schema:
         sas_schema = schema

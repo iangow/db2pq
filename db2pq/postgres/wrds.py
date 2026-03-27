@@ -16,8 +16,10 @@ def resolve_wrds_id(wrds_id: str | None = None) -> str:
     wrds_id = wrds_id or os.getenv("WRDS_ID")
     if not wrds_id:
         raise ValueError(
-            "wrds_id must be provided either as an argument or "
-            "via the WRDS_ID environment variable"
+            "WRDS username not found.\n"
+            "Provide `wrds_id=...` or set `WRDS_ID` in your environment.\n"
+            "For example, add `WRDS_ID=your_wrds_id` to a local `.env` file "
+            "in the calling project."
         )
     return wrds_id
 

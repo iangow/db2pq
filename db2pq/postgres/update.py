@@ -117,7 +117,10 @@ def wrds_update_pg(
         table was already up to date.
     """
     
+    from ..credentials import ensure_wrds_access
+
     uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
+    wrds_id = ensure_wrds_access(wrds_id)
 
     alt_table_name = alt_table_name or table_name
     source_schema = wrds_schema or schema

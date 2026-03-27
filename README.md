@@ -80,6 +80,12 @@ export WRDS_ID="your_wrds_id"
 export DATA_DIR="$HOME/pq_data"
 ```
 
+If `WRDS_ID` is not set, WRDS helpers such as `wrds_update_pq()` and
+`wrds_pg_to_pq()` will prompt for it on first use and suggest adding it to a
+local `.env` file in the calling project. If your WRDS PostgreSQL password is
+not yet stored in `~/.pgpass` (or `PGPASSFILE`), `db2pq` will prompt for it
+securely and save it for future connections.
+
 ## WRDS SSH setup (for SAS-based metadata)
 
 `wrds_update_pq(..., use_sas=True)` uses SSH to execute SAS remotely. Configure
@@ -125,6 +131,19 @@ wrds_pg_to_pq(
     numeric_mode="float64",
 )
 ```
+
+First WRDS run for a beginner can be as simple as:
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq("dsi", "crsp")
+```
+
+If `WRDS_ID` is missing, `db2pq` will ask for it and suggest adding
+`WRDS_ID=...` to your project's `.env` file. If no matching WRDS password is
+found in `.pgpass`, `db2pq` will prompt for your WRDS PostgreSQL password and
+store it for next time.
 
 ### 3) Export an Ibis table to Parquet
 
@@ -235,6 +254,12 @@ From `db2pq`:
 - `pq_remove(table_name=None, schema=None, data_dir=None, file_name=None, archive=False, archive_dir="archive")`
 - `db_schema_tables(schema, ...)`
 - `wrds_update_pg(table_name, schema, ...)`
+- `get_wrds_username(wrds_id=None)`
+- `get_wrds_conninfo(username=None)`
+- `find_pgpass_entry(conninfo, **kwargs)`
+- `has_pgpass_password(conninfo, **kwargs)`
+- `save_password(conninfo, password=None, **kwargs)`
+- `ensure_wrds_credentials(wrds_id=None, interactive=True)`
 - `set_default_engine(engine)`
 - `get_default_engine()`
 - `close_adbc_cached()`

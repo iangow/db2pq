@@ -5,13 +5,19 @@
 ```bash
 git clone git@github.com:iangow/db2pq.git
 cd db2pq
-pip install -e .
+uv sync --extra dev
 ```
 
 Optional SAS support:
 
 ```bash
-pip install -e ".[sas]"
+uv sync --extra dev --extra sas
+```
+
+If you prefer `uv pip`, this is equivalent:
+
+```bash
+uv pip install -e ".[dev]"
 ```
 
 ## Local workflow
@@ -20,6 +26,12 @@ pip install -e ".[sas]"
 2. Make code and documentation updates together.
 3. Commit with a clear message.
 4. Open a pull request (or merge directly if you are maintaining solo).
+
+Run tests with:
+
+```bash
+uv run pytest
+```
 
 ## Versioning
 

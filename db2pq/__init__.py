@@ -32,6 +32,14 @@ wrds_update_pg = _lazy_export(".postgres.update", "wrds_update_pg")
 close_adbc_cached = _lazy_export(".postgres.adbc", "close_adbc_cached")
 set_default_engine = _lazy_export(".config", "set_default_engine")
 get_default_engine = _lazy_export(".config", "get_default_engine")
+get_wrds_username = _lazy_export(".credentials", "get_wrds_username")
+get_wrds_conninfo = _lazy_export(".credentials", "get_wrds_conninfo")
+ensure_wrds_id = _lazy_export(".credentials", "ensure_wrds_id")
+ensure_wrds_access = _lazy_export(".credentials", "ensure_wrds_access")
+find_pgpass_entry = _lazy_export(".credentials", "find_pgpass_entry")
+has_pgpass_password = _lazy_export(".credentials", "has_pgpass_password")
+save_password = _lazy_export(".credentials", "save_password")
+ensure_wrds_credentials = _lazy_export(".credentials", "ensure_wrds_credentials")
 
 __all__ = [
     "__version__",
@@ -40,5 +48,9 @@ __all__ = [
     "wrds_update_pq", "pq_list_files", "wrds_update_schema",
     "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",
     "wrds_update_pg", "close_adbc_cached",
-    "set_default_engine", "get_default_engine"
+    "set_default_engine", "get_default_engine",
+    "get_wrds_username", "get_wrds_conninfo",
+    "ensure_wrds_id", "ensure_wrds_access",
+    "find_pgpass_entry", "has_pgpass_password",
+    "save_password", "ensure_wrds_credentials"
 ]
