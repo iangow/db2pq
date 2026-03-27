@@ -71,6 +71,8 @@ Connection defaults:
 WRDS + output defaults:
 
 - `WRDS_ID`: WRDS username (required for WRDS helpers unless passed directly)
+- `WRDS_USER`: accepted as a synonym for `WRDS_ID` for compatibility with Tidy Finance-style setups
+- `WRDS_PASSWORD`: if present and no WRDS `.pgpass` entry exists, `db2pq` can offer to save it to `.pgpass`
 - `DATA_DIR`: base directory where Parquet files are written
 
 Example shell setup:
@@ -84,7 +86,9 @@ If `WRDS_ID` is not set, WRDS helpers such as `wrds_update_pq()` and
 `wrds_pg_to_pq()` will prompt for it on first use and suggest adding it to a
 local `.env` file in the calling project. If your WRDS PostgreSQL password is
 not yet stored in `~/.pgpass` (or `PGPASSFILE`), `db2pq` will prompt for it
-securely and save it for future connections.
+securely and save it for future connections. For compatibility with the Tidy
+Finance Python setup, `db2pq` also recognizes `WRDS_USER` and can offer to
+copy `WRDS_PASSWORD` into `.pgpass`.
 
 ## WRDS SSH setup (for SAS-based metadata)
 

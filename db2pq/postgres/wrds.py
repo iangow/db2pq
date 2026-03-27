@@ -13,11 +13,12 @@ def _load_dotenv() -> None:
 
 def resolve_wrds_id(wrds_id: str | None = None) -> str:
     _load_dotenv()
-    wrds_id = wrds_id or os.getenv("WRDS_ID")
+    wrds_id = wrds_id or os.getenv("WRDS_ID") or os.getenv("WRDS_USER")
     if not wrds_id:
         raise ValueError(
             "WRDS username not found.\n"
             "Provide `wrds_id=...` or set `WRDS_ID` in your environment.\n"
+            "For compatibility with Tidy Finance-style setups, `WRDS_USER` is also recognized.\n"
             "For example, add `WRDS_ID=your_wrds_id` to a local `.env` file "
             "in the calling project."
         )

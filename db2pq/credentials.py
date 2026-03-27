@@ -144,6 +144,11 @@ def get_wrds_conninfo(username: str | None = None) -> str:
     return get_wrds_uri(username)
 
 
+def get_wrds_password() -> str | None:
+    _load_dotenv()
+    return os.getenv("WRDS_PASSWORD")
+
+
 def find_pgpass_entry(conninfo: str = "", **kwargs: str | None) -> PgPassLookup:
     target = resolve_connection_target(conninfo, **kwargs)
     if not target.passfile.exists():
@@ -171,6 +176,18 @@ def prompt_for_wrds_username(prompt: str | None = None) -> str:
     if not username:
         raise ValueError("WRDS username is required to connect to WRDS.")
     return username
+
+
+def prompt_yes_no(prompt: str, *, default: bool = True) -> bool:
+    suffix = "[Y/n]" if default else "[y/N]"
+    response = input(f"{prompt} {suffix} ").strip().lower()
+    if not response:
+        return default
+    if response in {"y", "yes"}:
+        return True
+    if response in {"n", "no"}:
+        return False
+    raise ValueError("Please answer yes or no.")
 
 
 def ensure_wrds_id(
@@ -202,6 +219,19 @@ def ensure_wrds_access(
     username = ensure_wrds_id(wrds_id, interactive=interactive)
     conninfo = get_wrds_conninfo(username)
     if not has_pgpass_password(conninfo):
+        env_password = get_wrds_password()
+        if env_password and interactive:
+            passfile = resolve_connection_target(conninfo).passfile
+            if prompt_yes_no(
+                f"Found `WRDS_PASSWORD` in the environment. Save it to {passfile} now?",
+                default=True,
+            ):
+                save_password(conninfo, password=env_password)
+                print(
+                    f"Saved WRDS PostgreSQL credentials to {passfile}. "
+                    "You can remove `WRDS_PASSWORD` from your environment once this is working."
+                )
+                return username
         if not interactive:
             raise ValueError(
                 "No WRDS password found in .pgpass for the resolved WRDS connection."
@@ -276,10 +306,12 @@ __all__ = [
     "ensure_wrds_id",
     "find_pgpass_entry",
     "get_wrds_conninfo",
+    "get_wrds_password",
     "get_wrds_username",
     "has_pgpass_password",
     "prompt_for_password",
     "prompt_for_wrds_username",
+    "prompt_yes_no",
     "resolve_connection_target",
     "save_password",
 ]

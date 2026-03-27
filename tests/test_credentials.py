@@ -17,6 +17,12 @@ from db2pq.credentials import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _disable_dotenv(monkeypatch):
+    monkeypatch.setattr("db2pq.credentials._load_dotenv", lambda: None)
+    monkeypatch.setattr("db2pq.postgres.wrds._load_dotenv", lambda: None)
+
+
 def _install_fake_pgtoolkit(monkeypatch):
     import db2pq.credentials as credentials
 
@@ -115,6 +121,15 @@ def test_resolve_connection_target_uses_env_defaults(monkeypatch, tmp_path):
     assert target.passfile == tmp_path / ".pgpass"
 
 
+def test_get_wrds_username_falls_back_to_wrds_user(monkeypatch):
+    from db2pq.credentials import get_wrds_username
+
+    monkeypatch.delenv("WRDS_ID", raising=False)
+    monkeypatch.setenv("WRDS_USER", "alice")
+
+    assert get_wrds_username() == "alice"
+
+
 def test_find_pgpass_entry_honors_first_match(monkeypatch, tmp_path):
     _install_fake_pgtoolkit(monkeypatch)
     pgpass = tmp_path / ".pgpass"
@@ -186,8 +201,23 @@ def test_ensure_wrds_access_prompts_for_username_and_password(monkeypatch, tmp_p
     assert has_pgpass_password("postgresql://alice@wrds-pgdata.wharton.upenn.edu:9737/wrds")
 
 
+def test_ensure_wrds_access_can_save_wrds_password_from_env(monkeypatch, tmp_path):
+    _install_fake_pgtoolkit(monkeypatch)
+    monkeypatch.delenv("WRDS_ID", raising=False)
+    monkeypatch.setenv("WRDS_USER", "alice")
+    monkeypatch.setenv("WRDS_PASSWORD", "secret")
+    monkeypatch.setenv("PGPASSFILE", str(tmp_path / ".pgpass"))
+    monkeypatch.setattr("db2pq.credentials.prompt_yes_no", lambda prompt, default=True: True)
+
+    username = ensure_wrds_access()
+
+    assert username == "alice"
+    assert has_pgpass_password("postgresql://alice@wrds-pgdata.wharton.upenn.edu:9737/wrds")
+
+
 def test_ensure_wrds_credentials_missing_wrds_id_has_friendly_error(monkeypatch):
     monkeypatch.delenv("WRDS_ID", raising=False)
+    monkeypatch.delenv("WRDS_USER", raising=False)
 
     monkeypatch.setattr("db2pq.credentials.prompt_for_wrds_username", lambda prompt=None: (_ for _ in ()).throw(ValueError("WRDS username not found.")))
 
