@@ -2,18 +2,36 @@ def _backend_to_uri(backend):
     from urllib.parse import quote_plus
 
     info = backend.con.info
-    return (
-        f"postgresql://{quote_plus(info.user)}:{quote_plus(info.password)}"
-        f"@{info.host}:{info.port}/{info.dbname}"
-    )
+    auth = ""
+    user = getattr(info, "user", None)
+    password = getattr(info, "password", None)
+    if user:
+        auth = quote_plus(str(user))
+        if password is not None:
+            auth = f"{auth}:{quote_plus(str(password))}"
+        auth = f"{auth}@"
+
+    return f"postgresql://{auth}{info.host}:{info.port}/{info.dbname}"
 
 
-def ibis_to_pq(table, out_file, **writer_kwargs):
+def ibis_to_pq(
+    table,
+    out_file,
+    *,
+    engine=None,
+    row_group_size=1024 * 1024,
+    threads=None,
+    tz="UTC",
+    adbc_batch_size_hint_bytes=None,
+    adbc_use_copy=None,
+    **writer_kwargs,
+):
     """Write an Ibis PostgreSQL table expression to a parquet file.
 
-    This helper executes the compiled SQL for an Ibis table expression
-    through the ADBC PostgreSQL driver and streams the result directly
-    into ``pyarrow.parquet.ParquetWriter``.
+    This helper compiles an Ibis PostgreSQL expression to SQL and runs it
+    through the same PostgreSQL export engines used elsewhere in ``db2pq``.
+    The resulting Arrow stream is written directly to the destination
+    Parquet file.
 
     ``ibis_to_pq()`` currently supports Ibis expressions backed by a
     PostgreSQL connection. To use it, install the optional dependency:
@@ -30,6 +48,28 @@ def ibis_to_pq(table, out_file, **writer_kwargs):
     out_file : str or path-like
         Destination parquet file path.
 
+    engine : {"duckdb", "adbc"} [Optional]
+        Query execution engine used to run the compiled PostgreSQL SQL.
+        If omitted, uses the configured default engine from
+        ``set_default_engine()`` / ``DB2PQ_ENGINE``.
+
+    row_group_size : int [Optional]
+        Maximum number of rows in each written Parquet row group.
+
+    threads : int [Optional]
+        Maximum DuckDB worker threads to use when ``engine="duckdb"``.
+
+    tz : str [Optional]
+        Time zone assumption for naive PostgreSQL timestamps before
+        normalizing Parquet output to UTC.
+
+    adbc_batch_size_hint_bytes : int [Optional]
+        ADBC batch size hint in bytes when ``engine="adbc"``.
+
+    adbc_use_copy : bool [Optional]
+        Explicitly enable or disable the PostgreSQL ADBC driver's ``COPY``
+        optimization when ``engine="adbc"``.
+
     **writer_kwargs
         Additional keyword arguments passed to ``pyarrow.parquet.ParquetWriter``.
         This can be used to set options such as ``compression="zstd"``.
@@ -41,9 +81,6 @@ def ibis_to_pq(table, out_file, **writer_kwargs):
 
     Raises
     ------
-    ImportError
-        If ``adbc-driver-postgresql`` is not installed.
-
     TypeError
         If the supplied Ibis expression is not backed by PostgreSQL, or
         if PostgreSQL connection information cannot be determined from
@@ -60,15 +97,10 @@ def ibis_to_pq(table, out_file, **writer_kwargs):
     >>> ibis_to_pq(expr, "my_table.parquet", compression="zstd")
     'my_table.parquet'
     """
-    try:
-        import adbc_driver_postgresql.dbapi
-    except ImportError as exc:
-        raise ImportError(
-            "ibis_to_pq() requires adbc-driver-postgresql. "
-            'Install it with: pip install "db2pq[ibis]"'
-        ) from exc
-
-    import pyarrow.parquet as pq
+    from .config import get_default_engine
+    from .files.parquet import write_record_batch_reader_to_parquet
+    from .postgres.adbc import export_postgres_query_via_adbc
+    from .postgres.duckdb_pg import read_postgres_query
 
     backend = table.get_backend()
     backend_name = getattr(backend, "name", None)
@@ -80,14 +112,35 @@ def ibis_to_pq(table, out_file, **writer_kwargs):
 
     uri = _backend_to_uri(backend)
     sql = str(table.compile())
+    if engine is None:
+        engine = get_default_engine()
+    engine = engine.lower()
 
-    with adbc_driver_postgresql.dbapi.connect(uri) as adbc_conn:
-        with adbc_conn.cursor() as cur:
-            cur.execute(sql)
-            reader = cur.fetch_record_batch()
+    if engine == "adbc":
+        return export_postgres_query_via_adbc(
+            uri=uri,
+            sql=sql,
+            out_file=out_file,
+            row_group_size=row_group_size,
+            tz=tz,
+            adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
+            adbc_use_copy=adbc_use_copy,
+            parquet_writer_kwargs=writer_kwargs,
+        )
 
-            with pq.ParquetWriter(out_file, reader.schema, **writer_kwargs) as writer:
-                for batch in reader:
-                    writer.write_batch(batch)
+    if engine != "duckdb":
+        raise ValueError("engine must be either 'duckdb' or 'adbc'")
 
-    return str(out_file)
+    query = read_postgres_query(
+        uri=uri,
+        sql=sql,
+        threads=threads,
+    )
+    wrote_rows = write_record_batch_reader_to_parquet(
+        query.fetch_arrow_reader(),
+        out_file,
+        row_group_size=row_group_size,
+        tz=tz,
+        parquet_writer_kwargs=writer_kwargs,
+    )
+    return str(out_file) if wrote_rows else None

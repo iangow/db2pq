@@ -424,9 +424,11 @@ def write_record_batch_reader_to_parquet(
     max_buffer_bytes: int = DEFAULT_MAX_BUFFER_BYTES,
     tz: str = "UTC",
     decimal_columns: dict[str, tuple[int, int]] | None = None,
+    parquet_writer_kwargs: dict | None = None,
 ):
     """Write a RecordBatch reader to Parquet, normalizing timestamps to UTC."""
     _, _, pq = _pyarrow()
+    parquet_writer_kwargs = parquet_writer_kwargs or {}
 
     try:
         first_batch = reader.read_next_batch()
@@ -444,6 +446,7 @@ def write_record_batch_reader_to_parquet(
     with pq.ParquetWriter(
         out_file,
         pq_schema,
+        **parquet_writer_kwargs,
     ) as writer:
         def normalized_batches():
             yield first_batch

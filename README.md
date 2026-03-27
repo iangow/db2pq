@@ -155,7 +155,7 @@ store it for next time.
 from db2pq import ibis_to_pq
 
 expr = con.table("my_table").filter(lambda t: t.id > 100)
-ibis_to_pq(expr, "my_table.parquet", compression="zstd")
+ibis_to_pq(expr, "my_table.parquet", engine="duckdb", compression="zstd")
 ```
 
 ### 4) Update only when WRDS data changed
@@ -246,7 +246,7 @@ default when you prefer configuration outside Python.
 From `db2pq`:
 
 - `db_to_pq(table_name, schema, ...)`
-- `ibis_to_pq(table, out_file, **writer_kwargs)`
+- `ibis_to_pq(table, out_file, engine=None, **writer_kwargs)`
 - `wrds_pg_to_pq(table_name, schema, ...)`
 - `db_schema_to_pq(schema, ...)`
 - `wrds_update_pq(table_name, schema, ...)`

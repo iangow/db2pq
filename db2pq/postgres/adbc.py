@@ -183,3 +183,59 @@ def export_postgres_table_via_adbc(
             )
 
     return str(out_path) if wrote_rows else None
+
+
+def export_postgres_query_via_adbc(
+    *,
+    uri: str,
+    sql: str,
+    out_file,
+    modified: str | None = None,
+    row_group_size: int = 1024 * 1024,
+    tz: str = "UTC",
+    adbc_batch_size_hint_bytes: int | None = None,
+    adbc_use_copy: bool | None = None,
+    parquet_writer_kwargs: dict | None = None,
+):
+    from ..files.parquet import write_record_batch_reader_to_parquet
+
+    _require_adbc_driver()
+    out_path = Path(out_file).expanduser()
+
+    import adbc_driver_manager
+
+    shared_adbc_db = _get_cached_adbc_database(uri)
+    adbc_conn = adbc_driver_manager.dbapi.Connection(
+        shared_adbc_db,
+        adbc_driver_manager.AdbcConnection(shared_adbc_db._db),
+        autocommit=False,
+    )
+    with adbc_conn:
+        with adbc_conn.cursor() as cur:
+            stmt_options = {}
+            if adbc_batch_size_hint_bytes is not None:
+                import adbc_driver_postgresql
+
+                stmt_options[
+                    adbc_driver_postgresql.StatementOptions.BATCH_SIZE_HINT_BYTES.value
+                ] = int(adbc_batch_size_hint_bytes)
+            if adbc_use_copy is not None:
+                import adbc_driver_postgresql
+
+                stmt_options[adbc_driver_postgresql.StatementOptions.USE_COPY.value] = (
+                    "true" if adbc_use_copy else "false"
+                )
+            if stmt_options:
+                cur._stmt.set_options(**stmt_options)
+            cur.execute(sql)
+            reader = cur.fetch_record_batch()
+            wrote_rows = write_record_batch_reader_to_parquet(
+                reader,
+                out_path,
+                modified=modified,
+                row_group_size=row_group_size,
+                tz=tz,
+                parquet_writer_kwargs=parquet_writer_kwargs,
+            )
+
+    return str(out_path) if wrote_rows else None

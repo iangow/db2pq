@@ -16,6 +16,10 @@ class DuckDBArrowQuery:
     def fetch_arrow_table(self):
         return self.relation.fetch_arrow_table()
 
+
+def _duckdb_sql_string_literal(value: str) -> str:
+    return value.replace("'", "''")
+
 def read_postgres_table(
     *,
     user,
@@ -64,4 +68,26 @@ def read_postgres_table(
         f"ATTACH '{uri}' AS wrds (TYPE postgres, SCHEMA '{schema}')"
     )
     relation = con.sql(plan.qualified_sql)
+    return DuckDBArrowQuery(connection=con, relation=relation)
+
+
+def read_postgres_query(
+    *,
+    uri: str,
+    sql: str,
+    threads=None,
+):
+    import duckdb
+
+    con = duckdb.connect()
+    con.execute("SET arrow_large_buffer_size=true;")
+    if threads:
+        con.execute(f"SET threads TO {int(threads)};")
+
+    attach_uri = _duckdb_sql_string_literal(uri)
+    query_sql = _duckdb_sql_string_literal(sql)
+    con.execute(f"ATTACH '{attach_uri}' AS pgdb (TYPE postgres)")
+    relation = con.sql(
+        f"SELECT * FROM postgres_query('pgdb', '{query_sql}')"
+    )
     return DuckDBArrowQuery(connection=con, relation=relation)
