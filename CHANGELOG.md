@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-03-27
+
 ### Added
 
 - Process-wide engine defaults via `set_default_engine()`,
@@ -25,11 +27,16 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Removed Ibis from the core DuckDB PostgreSQL-to-Parquet export flow.
 - Improved ADBC Parquet writing by buffering with both row-count and byte-size
   limits, reducing wide-table memory blowups while preserving streamed writes.
+- Refactored `ibis_to_pq()` to use the shared `engine="duckdb"` and
+  `engine="adbc"` PostgreSQL export paths instead of its previous
+  ADBC-only implementation.
 - `wrds_update_pg()` now normalizes Arrow-style `col_types` such as `int32`
   into PostgreSQL casts such as `integer`.
 - `wrds_update_pq()` update checks now respect `alt_table_name` correctly.
 - Updated README documentation with a high-level architecture overview and
   engine-default behavior.
+- Updated the local benchmark script to derive its default PostgreSQL database
+  from the local connection defaults instead of a hard-coded username.
  
 ## [0.2.5] - 2026-03-23
 
@@ -89,7 +96,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added WRDS SSH setup documentation for SAS-based metadata workflows.
 - Improved API and output layout documentation.
 
-[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.5...HEAD
+[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.7...HEAD
+[0.2.7]: https://github.com/iangow/db2pq/releases/tag/0.2.7
 [0.2.5]: https://github.com/iangow/db2pq/releases/tag/0.2.5
 [0.2.4]: https://github.com/iangow/db2pq/releases/tag/0.2.4
 [0.2.3]: https://github.com/iangow/db2pq/releases/tag/0.2.3
