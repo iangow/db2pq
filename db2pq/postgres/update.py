@@ -1,10 +1,17 @@
+from pathlib import Path
 from time import gmtime, strftime
 
 from .introspect import get_table_columns, get_table_column_types
 from .select_sql import plan_wrds_query
 from .duckdb_ddl import create_table_from_select_duckdb
 from .copy import copy_wrds_select_to_pg_table
-from .comments import get_pg_comment_conn, get_pg_conn, get_wrds_conn, set_table_comment
+from .comments import (
+    get_pg_comment_conn,
+    get_pg_conn,
+    get_wrds_comment,
+    get_wrds_conn,
+    set_table_comment,
+)
 from .wrds import get_wrds_uri
 from ._defaults import resolve_uri
 from ..types import normalize_col_types
@@ -58,6 +65,11 @@ def _schema_exists(conn, schema: str) -> bool:
         cur.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s LIMIT 1", (schema,))
         return cur.fetchone() is not None
 
+def _table_exists(conn, schema: str, table_name: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("SELECT to_regclass(%s)", (f"{schema}.{table_name}",))
+        return cur.fetchone()[0] is not None
+
 def _role_exists(conn, role: str) -> bool:
     with conn.cursor() as cur:
         cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s LIMIT 1", (role,))
@@ -109,6 +121,110 @@ def _apply_table_roles(conn, schema: str, table_name: str) -> None:
     _execute_ident_sql(conn, "ALTER TABLE {}.{} OWNER TO {}", schema, table_name, schema)
     _execute_ident_sql(conn, "GRANT SELECT ON {}.{} TO {}", schema, table_name, access_role)
 
+
+def _duckdb_ident(name: str) -> str:
+    return '"' + name.replace('"', '""') + '"'
+
+
+def _parquet_reader(pq_file: Path):
+    import pyarrow.dataset as ds
+
+    return ds.dataset(pq_file, format="parquet").scanner().to_reader()
+
+
+def _duckdb_load_parquet_to_pg(*, pq_file: Path, dst_uri: str, dst_schema: str, dst_table_name: str) -> None:
+    import duckdb
+
+    con = duckdb.connect()
+    try:
+        con.install_extension("postgres")
+        con.load_extension("postgres")
+        con.execute(
+            f"ATTACH '{dst_uri}' AS pg (TYPE postgres, SCHEMA '{dst_schema}')"
+        )
+        con.execute(
+            f"DROP TABLE IF EXISTS pg.{_duckdb_ident(dst_schema)}.{_duckdb_ident(dst_table_name)}"
+        )
+        # Materialize schema first, then load rows. This is faster than CTAS
+        # from read_parquet() on the local benchmark path we tested.
+        con.execute(
+            (
+                f"CREATE TABLE pg.{_duckdb_ident(dst_schema)}.{_duckdb_ident(dst_table_name)} "
+                "AS SELECT * FROM read_parquet(?) LIMIT 0"
+            ),
+            [str(pq_file)],
+        )
+        con.execute(
+            (
+                f"INSERT INTO pg.{_duckdb_ident(dst_schema)}.{_duckdb_ident(dst_table_name)} "
+                "SELECT * FROM read_parquet(?)"
+            ),
+            [str(pq_file)],
+        )
+    finally:
+        con.close()
+
+
+def parquet_write_pg(
+    *,
+    pq_file,
+    dst_uri: str,
+    dst_schema: str,
+    dst_table_name: str,
+    engine: str = "duckdb",
+    create_roles: bool = True,
+    source_comment: str | None = None,
+):
+    """
+    Write a parquet file into PostgreSQL, replacing the destination table.
+    """
+    pq_file = Path(pq_file).expanduser()
+    if not pq_file.exists():
+        raise FileNotFoundError(f"Parquet file not found: {pq_file}")
+
+    engine = engine.lower()
+    if engine not in {"duckdb", "adbc"}:
+        raise ValueError("engine must be either 'duckdb' or 'adbc'")
+
+    with get_pg_conn(dst_uri) as pg_conn:
+        print(f"Beginning file import at {get_now()} UTC.")
+        print(f"Importing data into {dst_schema}.{dst_table_name}.")
+
+        _ensure_schema_and_roles(pg_conn, dst_schema, create_roles=create_roles)
+
+        if engine == "duckdb":
+            _duckdb_load_parquet_to_pg(
+                pq_file=pq_file,
+                dst_uri=dst_uri,
+                dst_schema=dst_schema,
+                dst_table_name=dst_table_name,
+            )
+        else:
+            import adbc_driver_postgresql.dbapi as adbc_dbapi
+
+            reader = _parquet_reader(pq_file)
+            with adbc_dbapi.connect(dst_uri) as adbc_conn, adbc_conn.cursor() as cur:
+                cur.adbc_ingest(
+                    dst_table_name,
+                    reader,
+                    mode="replace",
+                    db_schema_name=dst_schema,
+                )
+                adbc_conn.commit()
+
+        set_table_comment(
+            pg_conn,
+            schema=dst_schema,
+            table_name=dst_table_name,
+            comment=source_comment,
+        )
+
+        if create_roles:
+            _apply_table_roles(pg_conn, dst_schema, dst_table_name)
+
+        print(f"Completed file import at {get_now()} UTC.\n")
+        return True
+
 def _write_pg_table_from_source(
     *,
     source_conn,
@@ -124,6 +240,7 @@ def _write_pg_table_from_source(
     keep=None,
     drop=None,
     create_roles=True,
+    source_comment=None,
     tz="UTC",
 ):
     col_types = normalize_col_types(col_types, engine="postgres") or {}
@@ -155,11 +272,12 @@ def _write_pg_table_from_source(
                 "timestamp with time zone column(s)."
             )
 
-    source_comment = get_pg_comment_conn(
-        source_conn,
-        schema=source_schema,
-        table_name=source_table_name,
-    )
+    if source_comment is None:
+        source_comment = get_pg_comment_conn(
+            source_conn,
+            schema=source_schema,
+            table_name=source_table_name,
+        )
     print(f"Beginning file import at {get_now()} UTC.")
     print(f"Importing data into {dst_schema}.{dst_table_name}.")
 
@@ -209,6 +327,7 @@ def postgres_write_pg(
     keep=None,
     drop=None,
     create_roles=True,
+    source_comment=None,
     tz="UTC",
 ):
     """
@@ -234,6 +353,7 @@ def postgres_write_pg(
             keep=keep,
             drop=drop,
             create_roles=create_roles,
+            source_comment=source_comment,
             tz=tz,
         )
 
@@ -254,6 +374,8 @@ def wrds_update_pg(
     force=False,
     create_roles=True,
     wrds_schema=None,
+    use_sas=False,
+    encoding="utf-8",
     tz="UTC",
 ):
     """
@@ -273,6 +395,8 @@ def wrds_update_pg(
       and read-only role (``<schema>_access``) exist, then applies grants.
     - If ``wrds_schema`` is provided, it is used as the source WRDS schema while
       data are still written to destination ``schema``.
+    - If ``use_sas`` is True, freshness and destination comment metadata are
+      derived from SAS metadata instead of WRDS PostgreSQL comments.
     - ``tz`` (default ``"UTC"``) is used to convert source
       ``timestamp without time zone`` columns via ``AT TIME ZONE``.
 
@@ -291,20 +415,28 @@ def wrds_update_pg(
     source_uri = get_wrds_uri(wrds_id)
 
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
-        wrds_comment = get_pg_comment_conn(
-            wrds,
-            schema=source_schema,
+        wrds_comment = get_wrds_comment(
             table_name=table_name,
+            schema=source_schema,
+            wrds_id=wrds_id,
+            use_sas=use_sas,
+            sas_schema=source_schema,
+            encoding=encoding,
         )
         if not force:
-            pg_comment = get_pg_comment_conn(pg, schema=schema, table_name=alt_table_name)
-            wrds_mod = modified_info("wrds_pg", wrds_comment)
-            pg_mod = modified_info("pg", pg_comment)
+            if not _table_exists(pg, schema, alt_table_name):
+                print(f"{schema}.{alt_table_name} does not exist in destination.")
+                print("Getting from WRDS.")
+            else:
+                pg_comment = get_pg_comment_conn(pg, schema=schema, table_name=alt_table_name)
+                wrds_kind = "wrds_sas" if use_sas else "wrds_pg"
+                wrds_mod = modified_info(wrds_kind, wrds_comment)
+                pg_mod = modified_info("pg", pg_comment)
 
-            if not update_available(src=wrds_mod, dst=pg_mod):
-                print(f"{schema}.{alt_table_name} already up to date.")
-                return False
-            print(f"Updated {schema}.{alt_table_name} is available.")
+                if not update_available(src=wrds_mod, dst=pg_mod):
+                    print(f"{schema}.{alt_table_name} already up to date.")
+                    return False
+                print(f"Updated {schema}.{alt_table_name} is available.")
         else:
             print("Forcing update based on user request.")
 
@@ -320,5 +452,116 @@ def wrds_update_pg(
         keep=keep,
         drop=drop,
         create_roles=create_roles,
+        source_comment=wrds_comment,
         tz=tz,
+    )
+
+
+def pq_to_pg(
+    table_name,
+    schema,
+    *,
+    data_dir=None,
+    user=None,
+    host=None,
+    dbname=None,
+    database=None,
+    port=None,
+    dst_schema=None,
+    alt_table_name=None,
+    engine="duckdb",
+    create_roles=True,
+    source_comment=None,
+):
+    """
+    Write a parquet file from the local repository into PostgreSQL.
+    """
+    from ..files.parquet import get_modified_pq
+    from ..files.paths import get_pq_file
+
+    uri = resolve_uri(user=user, host=host, dbname=dbname or database, port=port)
+    pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
+    dst_schema = dst_schema or schema
+    alt_table_name = alt_table_name or table_name
+    source_comment = get_modified_pq(pq_file) if source_comment is None else source_comment
+
+    return parquet_write_pg(
+        pq_file=pq_file,
+        dst_uri=uri,
+        dst_schema=dst_schema,
+        dst_table_name=alt_table_name,
+        engine=engine,
+        create_roles=create_roles,
+        source_comment=source_comment,
+    )
+
+
+def pq_update_pg(
+    table_name,
+    schema,
+    *,
+    data_dir=None,
+    user=None,
+    host=None,
+    dbname=None,
+    database=None,
+    port=None,
+    dst_schema=None,
+    alt_table_name=None,
+    engine="duckdb",
+    force=False,
+    create_roles=True,
+):
+    """
+    Materialize a parquet file into PostgreSQL when the parquet source is newer.
+    """
+    from ..files.parquet import get_modified_pq
+    from ..files.paths import get_pq_file
+
+    uri = resolve_uri(user=user, host=host, dbname=dbname or database, port=port)
+    pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
+    dst_schema = dst_schema or schema
+    alt_table_name = alt_table_name or table_name
+
+    if not pq_file.exists():
+        raise FileNotFoundError(f"Parquet file not found: {pq_file}")
+
+    pq_comment = get_modified_pq(pq_file)
+    pq_mod = modified_info("pq", pq_comment)
+
+    with get_pg_conn(uri) as pg:
+        if force:
+            print("Forcing update based on user request.")
+        elif pq_mod.dt is None:
+            print(
+                f"Could not determine whether {dst_schema}.{alt_table_name} needs an update "
+                "because the source parquet file has no parseable last_modified metadata."
+            )
+            print("Set `force=True` to import the parquet file anyway.")
+            return False
+        elif not _table_exists(pg, dst_schema, alt_table_name):
+            print(f"{dst_schema}.{alt_table_name} does not exist in destination.")
+            print("Importing from parquet.")
+        else:
+            pg_comment = get_pg_comment_conn(pg, schema=dst_schema, table_name=alt_table_name)
+            pg_mod = modified_info("pg", pg_comment)
+            if not update_available(src=pq_mod, dst=pg_mod):
+                print(f"{dst_schema}.{alt_table_name} already up to date.")
+                return False
+            print(f"Updated {dst_schema}.{alt_table_name} is available.")
+
+    return pq_to_pg(
+        table_name=table_name,
+        schema=schema,
+        data_dir=data_dir,
+        user=user,
+        host=host,
+        dbname=dbname,
+        database=database,
+        port=port,
+        dst_schema=dst_schema,
+        alt_table_name=alt_table_name,
+        engine=engine,
+        create_roles=create_roles,
+        source_comment=pq_comment,
     )

@@ -10,7 +10,8 @@ import pyarrow.parquet as pq
 import pyarrow.types as pat
 import pytest
 
-from db2pq import db_to_pg, db_to_pq, process_sql, set_table_comment
+from db2pq import db_to_pg, db_to_pq, pg_update_pq, process_sql, pq_update_pg, set_table_comment
+from db2pq.files.parquet import get_modified_pq
 from db2pq.postgres.comments import get_pg_comment
 from db2pq.postgres.update import postgres_write_pg
 from db2pq.postgres.update import wrds_update_pg
@@ -37,6 +38,339 @@ def _current_rss_mb() -> float:
         return int(output) / 1024.0
 
     return psutil.Process().memory_info().rss / (1024 * 1024)
+
+
+def test_wrds_update_pg_imports_when_destination_table_missing(monkeypatch, capsys):
+    import db2pq.credentials as credentials_mod
+    import db2pq.postgres.update as update_mod
+
+    class DummyConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    calls = []
+
+    monkeypatch.setattr(update_mod, "resolve_uri", lambda **kwargs: "postgresql://dst")
+    monkeypatch.setattr(update_mod, "get_wrds_uri", lambda wrds_id=None: "postgresql://src")
+    monkeypatch.setattr(update_mod, "get_wrds_conn", lambda wrds_id=None: DummyConn())
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyConn())
+    monkeypatch.setattr(update_mod, "get_wrds_comment", lambda **kwargs: None)
+    monkeypatch.setattr(update_mod, "_table_exists", lambda conn, schema, table_name: False)
+    monkeypatch.setattr(credentials_mod, "ensure_wrds_access", lambda wrds_id=None: "user")
+    monkeypatch.setattr(
+        update_mod,
+        "postgres_write_pg",
+        lambda **kwargs: calls.append(kwargs) or True,
+    )
+
+    assert wrds_update_pg("some_view", "boardex") is True
+    assert len(calls) == 1
+    assert calls[0]["table_name"] == "some_view"
+    assert calls[0]["dst_schema"] == "boardex"
+
+    out = capsys.readouterr().out
+    assert "does not exist in destination" in out
+    assert "Getting from WRDS." in out
+
+
+def test_wrds_update_pg_use_sas_passes_sas_comment_to_writer(monkeypatch):
+    import db2pq.credentials as credentials_mod
+    import db2pq.postgres.update as update_mod
+
+    class DummyConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    calls = []
+
+    monkeypatch.setattr(update_mod, "resolve_uri", lambda **kwargs: "postgresql://dst")
+    monkeypatch.setattr(update_mod, "get_wrds_uri", lambda wrds_id=None: "postgresql://src")
+    monkeypatch.setattr(update_mod, "get_wrds_conn", lambda wrds_id=None: DummyConn())
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyConn())
+    monkeypatch.setattr(update_mod, "_table_exists", lambda conn, schema, table_name: False)
+    monkeypatch.setattr(credentials_mod, "ensure_wrds_access", lambda wrds_id=None: "user")
+
+    seen = {}
+
+    def fake_get_wrds_comment(**kwargs):
+        seen.update(kwargs)
+        return "Last modified: 2026-03-27"
+
+    monkeypatch.setattr(update_mod, "get_wrds_comment", fake_get_wrds_comment)
+    monkeypatch.setattr(
+        update_mod,
+        "postgres_write_pg",
+        lambda **kwargs: calls.append(kwargs) or True,
+    )
+
+    assert wrds_update_pg("some_view", "boardex", use_sas=True) is True
+    assert seen["use_sas"] is True
+    assert seen["schema"] == "boardex"
+    assert calls[0]["source_comment"] == "Last modified: 2026-03-27"
+
+
+def test_pg_update_pq_passes_local_comment_to_db_to_pq(monkeypatch, tmp_path):
+    import db2pq.core as core_mod
+
+    seen = {}
+
+    monkeypatch.setattr(
+        "db2pq.postgres.comments.get_pg_comment",
+        lambda **kwargs: "local table (Updated 2026-03-28)",
+    )
+    monkeypatch.setattr(
+        core_mod,
+        "db_to_pq",
+        lambda **kwargs: seen.update(kwargs) or str(tmp_path / "public" / "example.parquet"),
+    )
+
+    result = core_mod.pg_update_pq(
+        table_name="example",
+        schema="public",
+        user="alice",
+        host="localhost",
+        database="research",
+        port=5432,
+        data_dir=tmp_path,
+        engine="duckdb",
+        where="id > 10",
+    )
+
+    assert result == str(tmp_path / "public" / "example.parquet")
+    assert seen["table_name"] == "example"
+    assert seen["schema"] == "public"
+    assert seen["modified"] == "local table (Updated 2026-03-28)"
+    assert seen["database"] == "research"
+    assert seen["where"] == "id > 10"
+
+
+def test_pg_update_pq_messages_when_comment_missing(monkeypatch, tmp_path, capsys):
+    import db2pq.core as core_mod
+
+    called = False
+
+    monkeypatch.setattr("db2pq.postgres.comments.get_pg_comment", lambda **kwargs: None)
+
+    def fake_db_to_pq(**kwargs):
+        nonlocal called
+        called = True
+        return str(tmp_path / "public" / "example.parquet")
+
+    monkeypatch.setattr(core_mod, "db_to_pq", fake_db_to_pq)
+
+    result = core_mod.pg_update_pq(
+        table_name="example",
+        schema="public",
+        user="alice",
+        host="localhost",
+        database="research",
+        port=5432,
+        data_dir=tmp_path,
+    )
+
+    assert result is None
+    assert called is False
+    out = capsys.readouterr().out
+    assert "has no parseable last-modified comment" in out
+    assert "force=True" in out
+
+
+def test_pq_update_pg_passes_parquet_comment_to_writer(monkeypatch, tmp_path):
+    import db2pq.postgres.update as update_mod
+
+    class DummyConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    pq_file = tmp_path / "public" / "example.parquet"
+    pq_file.parent.mkdir(parents=True, exist_ok=True)
+    pq_file.touch()
+
+    calls = []
+
+    monkeypatch.setattr(update_mod, "resolve_uri", lambda **kwargs: "postgresql://dst")
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyConn())
+    monkeypatch.setattr(update_mod, "_table_exists", lambda conn, schema, table_name: False)
+    monkeypatch.setattr("db2pq.files.paths.get_pq_file", lambda **kwargs: pq_file)
+    monkeypatch.setattr("db2pq.files.parquet.get_modified_pq", lambda file_name: "local table (Updated 2026-03-28)")
+    monkeypatch.setattr(update_mod, "pq_to_pg", lambda **kwargs: calls.append(kwargs) or True)
+
+    assert pq_update_pg("example", "public", dbname="research") is True
+    assert calls[0]["table_name"] == "example"
+    assert calls[0]["schema"] == "public"
+    assert calls[0]["source_comment"] == "local table (Updated 2026-03-28)"
+    assert calls[0]["dbname"] == "research"
+
+
+def test_pq_update_pg_messages_when_metadata_missing(monkeypatch, tmp_path, capsys):
+    import db2pq.postgres.update as update_mod
+
+    class DummyConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    pq_file = tmp_path / "public" / "example.parquet"
+    pq_file.parent.mkdir(parents=True, exist_ok=True)
+    pq_file.touch()
+
+    called = False
+
+    monkeypatch.setattr(update_mod, "resolve_uri", lambda **kwargs: "postgresql://dst")
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyConn())
+    monkeypatch.setattr("db2pq.files.paths.get_pq_file", lambda **kwargs: pq_file)
+    monkeypatch.setattr("db2pq.files.parquet.get_modified_pq", lambda file_name: "")
+
+    def fake_pq_to_pg(**kwargs):
+        nonlocal called
+        called = True
+        return True
+
+    monkeypatch.setattr(update_mod, "pq_to_pg", fake_pq_to_pg)
+
+    assert pq_update_pg("example", "public", dbname="research") is False
+    assert called is False
+    out = capsys.readouterr().out
+    assert "source parquet file has no parseable last_modified metadata" in out
+    assert "force=True" in out
+
+
+def test_pq_to_pg_adbc_uses_ingest(monkeypatch, tmp_path):
+    import db2pq.postgres.update as update_mod
+
+    class DummyPgConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    class DummyCursor:
+        def __init__(self, calls):
+            self.calls = calls
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def adbc_ingest(self, table_name, data, mode="create", db_schema_name=None):
+            self.calls.append(
+                {
+                    "table_name": table_name,
+                    "data": data,
+                    "mode": mode,
+                    "db_schema_name": db_schema_name,
+                }
+            )
+            return 2
+
+    class DummyAdbcConn:
+        def __init__(self, calls):
+            self.calls = calls
+            self.committed = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def cursor(self):
+            return DummyCursor(self.calls)
+
+        def commit(self):
+            self.committed = True
+
+    pq_file = tmp_path / "public" / "example.parquet"
+    pq_file.parent.mkdir(parents=True, exist_ok=True)
+    pq_file.touch()
+
+    ingest_calls = []
+    adbc_conn = DummyAdbcConn(ingest_calls)
+
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyPgConn())
+    monkeypatch.setattr(update_mod, "_ensure_schema_and_roles", lambda conn, schema, create_roles=True: None)
+    monkeypatch.setattr(update_mod, "set_table_comment", lambda *args, **kwargs: None)
+    monkeypatch.setattr(update_mod, "_apply_table_roles", lambda conn, schema, table_name: None)
+    monkeypatch.setattr(update_mod, "_parquet_reader", lambda path: "reader")
+    monkeypatch.setattr("adbc_driver_postgresql.dbapi.connect", lambda uri: adbc_conn)
+
+    result = update_mod.parquet_write_pg(
+        pq_file=pq_file,
+        dst_uri="postgresql://dst",
+        dst_schema="public",
+        dst_table_name="example",
+        engine="adbc",
+        create_roles=False,
+    )
+
+    assert result is True
+    assert ingest_calls == [
+        {
+            "table_name": "example",
+            "data": "reader",
+            "mode": "replace",
+            "db_schema_name": "public",
+        }
+    ]
+    assert adbc_conn.committed is True
+
+
+def test_duckdb_load_parquet_to_pg_uses_precreate_and_insert(monkeypatch, tmp_path):
+    import db2pq.postgres.update as update_mod
+
+    pq_file = tmp_path / "public" / "example.parquet"
+    pq_file.parent.mkdir(parents=True, exist_ok=True)
+    pq_file.touch()
+
+    statements = []
+
+    class DummyDuckDBConn:
+        def install_extension(self, name):
+            statements.append(("install_extension", name, None))
+
+        def load_extension(self, name):
+            statements.append(("load_extension", name, None))
+
+        def execute(self, sql, params=None):
+            statements.append(("execute", sql, params))
+
+        def close(self):
+            statements.append(("close", None, None))
+
+    monkeypatch.setattr("duckdb.connect", lambda: DummyDuckDBConn())
+
+    update_mod._duckdb_load_parquet_to_pg(
+        pq_file=pq_file,
+        dst_uri="postgresql://dst",
+        dst_schema="public",
+        dst_table_name="example",
+    )
+
+    sqls = [entry[1] for entry in statements if entry[0] == "execute"]
+    assert any("ATTACH 'postgresql://dst' AS pg" in sql for sql in sqls)
+    assert any('DROP TABLE IF EXISTS pg."public"."example"' in sql for sql in sqls)
+    assert any(
+        'CREATE TABLE pg."public"."example" AS SELECT * FROM read_parquet(?) LIMIT 0' in sql
+        for sql in sqls
+    )
+    assert any(
+        'INSERT INTO pg."public"."example" SELECT * FROM read_parquet(?)' in sql
+        for sql in sqls
+    )
 
 
 def test_db_to_pq_duckdb_local_small_table(pg_test_config, data_dir, require_source_table):
@@ -112,6 +446,49 @@ def test_db_to_pq_adbc_preserves_timestamp_column(
     assert pat.is_timestamp(ts_field.type)
     assert ts_field.type.tz is not None
     assert table.num_rows == 71
+
+
+def test_pg_update_pq_writes_local_table_to_parquet(pg_test_config, src_pg_conn, data_dir):
+    schema = "public"
+    table = f"pg_update_pq_test_{uuid.uuid4().hex[:8]}"
+    comment = "local table (Updated 2026-03-28)"
+
+    try:
+        with src_pg_conn.cursor() as cur:
+            cur.execute(f'CREATE TABLE "{schema}"."{table}" (id integer, name text)')
+            cur.execute(f'INSERT INTO "{schema}"."{table}" VALUES (1, %s), (2, %s)', ("a", "b"))
+            cur.execute(f'COMMENT ON TABLE "{schema}"."{table}" IS %s', (comment,))
+        src_pg_conn.commit()
+
+        pq_file = pg_update_pq(
+            table_name=table,
+            schema=schema,
+            user=pg_test_config["src_user"],
+            host=pg_test_config["src_host"],
+            database=pg_test_config["src_db"],
+            port=pg_test_config["src_port"],
+            data_dir=data_dir,
+            engine="duckdb",
+        )
+
+        assert pq_file is not None
+        assert pq.read_metadata(pq_file).num_rows == 2
+        assert get_modified_pq(pq_file) == comment
+
+        assert pg_update_pq(
+            table_name=table,
+            schema=schema,
+            user=pg_test_config["src_user"],
+            host=pg_test_config["src_host"],
+            database=pg_test_config["src_db"],
+            port=pg_test_config["src_port"],
+            data_dir=data_dir,
+            engine="duckdb",
+        ) is None
+    finally:
+        with src_pg_conn.cursor() as cur:
+            cur.execute(f'DROP TABLE IF EXISTS "{schema}"."{table}"')
+        src_pg_conn.commit()
 
 
 def test_wrds_update_pg_normalizes_arrow_style_col_types(

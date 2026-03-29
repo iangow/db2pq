@@ -5,23 +5,36 @@ from ._defaults import resolve_pg_connection
 from .comments import get_pg_conn, get_wrds_conn
 
 
-def _list_base_tables(conn, schema: str) -> list[str]:
+def _list_relations(conn, schema: str, *, views: bool = False) -> list[str]:
     with conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = %s
-              AND table_type = 'BASE TABLE'
-            ORDER BY table_name
-            """,
-            (schema,),
-        )
+        if views:
+            cur.execute(
+                """
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = %s
+                  AND table_type IN ('BASE TABLE', 'VIEW')
+                ORDER BY table_name
+                """,
+                (schema,),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = %s
+                  AND table_type = 'BASE TABLE'
+                ORDER BY table_name
+                """,
+                (schema,),
+            )
         return [row[0] for row in cur.fetchall()]
 
 def db_schema_tables(
     schema: str,
     *,
+    views: bool = False,
     user: str | None = None,
     host: str | None = None,
     database: str | None = None,
@@ -38,10 +51,12 @@ def db_schema_tables(
 
     uri = f"postgresql://{user}@{host}:{port}/{dbname}"
     with get_pg_conn(uri) as conn:
-        return _list_base_tables(conn, schema)
+        return _list_relations(conn, schema, views=views)
 
 
-def wrds_get_tables(schema: str, *, wrds_id: str | None = None) -> list[str]:
-    """Get list of all WRDS tables in a schema."""
+def wrds_get_tables(
+    schema: str, *, wrds_id: str | None = None, views: bool = False
+) -> list[str]:
+    """Get list of WRDS tables in a schema, optionally including views."""
     with get_wrds_conn(wrds_id) as conn:
-        return _list_base_tables(conn, schema)
+        return _list_relations(conn, schema, views=views)

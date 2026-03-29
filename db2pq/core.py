@@ -592,6 +592,132 @@ def db_schema_to_pq(
 
     return results
 
+
+def _update_pq(
+    *,
+    table_name,
+    schema,
+    source_kind,
+    source_comment,
+    update_callable,
+    data_dir=None,
+    force=False,
+    alt_table_name=None,
+    **update_kwargs,
+):
+    from .files.parquet import get_modified_pq
+    from .files.paths import get_pq_file
+    from .sync.modified import modified_info, update_available
+
+    if not alt_table_name:
+        alt_table_name = table_name
+
+    pq_file = get_pq_file(table_name=alt_table_name, schema=schema, data_dir=data_dir)
+    pq_comment = get_modified_pq(pq_file)
+    src_mod = modified_info(source_kind, source_comment)
+    pq_mod = modified_info("pq", pq_comment)
+
+    if force:
+        print("Forcing update based on user request.")
+    elif src_mod.dt is None:
+        print(
+            f"Could not determine whether {schema}.{alt_table_name} needs an update "
+            "because the source table has no parseable last-modified comment."
+        )
+        print("Set `force=True` to export the table anyway.")
+        return
+    elif not update_available(src=src_mod, dst=pq_mod):
+        print(f"{schema}.{alt_table_name} already up to date.")
+        return
+    else:
+        print(f"Updated {schema}.{alt_table_name} is available.")
+        print(f"Beginning file download at {get_now()} UTC.")
+
+    pq_file = update_callable(
+        table_name=table_name,
+        schema=schema,
+        data_dir=data_dir,
+        modified=source_comment,
+        alt_table_name=alt_table_name,
+        **update_kwargs,
+    )
+    if pq_file is None:
+        print(f"No file download completed at {get_now()} UTC (no rows returned).")
+    else:
+        print(f"Completed file download at {get_now()} UTC.")
+
+    return pq_file
+
+
+def pg_update_pq(
+    table_name,
+    schema,
+    *,
+    user=None,
+    host=None,
+    database=None,
+    port=None,
+    data_dir=None,
+    force=False,
+    col_types=None,
+    row_group_size=1048576,
+    obs=None,
+    alt_table_name=None,
+    keep=None,
+    drop=None,
+    where=None,
+    batched=True,
+    threads=3,
+    tz="UTC",
+    engine=None,
+    numeric_mode="text",
+    adbc_batch_size_hint_bytes=None,
+    adbc_use_copy=None,
+    archive=False,
+    archive_dir=None,
+):
+    """Export a local PostgreSQL table to Parquet when the source is newer."""
+    from .postgres.comments import get_pg_comment
+
+    pg_comment = get_pg_comment(
+        table_name=table_name,
+        schema=schema,
+        user=user,
+        host=host,
+        dbname=database,
+        port=port,
+    )
+
+    return _update_pq(
+        table_name=table_name,
+        schema=schema,
+        source_kind="pg",
+        source_comment=pg_comment,
+        update_callable=db_to_pq,
+        data_dir=data_dir,
+        force=force,
+        alt_table_name=alt_table_name,
+        user=user,
+        host=host,
+        database=database,
+        port=port,
+        col_types=col_types,
+        row_group_size=row_group_size,
+        obs=obs,
+        keep=keep,
+        drop=drop,
+        where=where,
+        batched=batched,
+        threads=threads,
+        tz=tz,
+        engine=engine,
+        numeric_mode=numeric_mode,
+        adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
+        adbc_use_copy=adbc_use_copy,
+        archive=archive,
+        archive_dir=archive_dir,
+    )
+
 def wrds_update_pq(
     table_name,
     schema,
@@ -714,11 +840,8 @@ def wrds_update_pq(
     >>> wrds_update_pq("dsi", "crsp")
     >>> wrds_update_pq("feed21_bankruptcy_notification", "audit")
     """                       
-    from .files.parquet import get_modified_pq
-    from .files.paths import get_pq_file
     from .postgres.comments import get_wrds_comment
     from .credentials import ensure_wrds_access
-    from .sync.modified import modified_info, update_available
 
     wrds_id = ensure_wrds_access(wrds_id)
         
@@ -737,46 +860,33 @@ def wrds_update_pq(
         encoding=encoding,
     )
            
-    pq_file = get_pq_file(table_name=alt_table_name, schema=schema, data_dir=data_dir)
-    pq_comment = get_modified_pq(pq_file)
     wrds_kind = "wrds_sas" if use_sas else "wrds_pg"
-    wrds_mod = modified_info(wrds_kind, wrds_comment)
-    pq_mod   = modified_info("pq", pq_comment)
-    
-    if force:
-        print("Forcing update based on user request.")
-    elif not update_available(src=wrds_mod, dst=pq_mod):
-        print(f"{schema}.{alt_table_name} already up to date.")
-        return
-    else:
-        print(f"Updated {schema}.{alt_table_name} is available.")
-        print(f"Beginning file download at {get_now()} UTC.")
-
-    pq_file = wrds_pg_to_pq(table_name=table_name,
-                            schema=schema,
-                            data_dir=data_dir,
-                            wrds_id=wrds_id,
-                            col_types=col_types,
-                            row_group_size=row_group_size,
-                            obs=obs,
-                            modified=wrds_comment,
-                            alt_table_name=alt_table_name,
-                            keep=keep,
-                            drop=drop,
-                            where=where,
-                            batched=batched,
-                            threads=threads,
-                            tz=tz,
-                            engine=engine,
-                            numeric_mode=numeric_mode,
-                            adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
-                            adbc_use_copy=adbc_use_copy,
-                            archive=archive,
-                            archive_dir=archive_dir)
-    if pq_file is None:
-        print(f"No file download completed at {get_now()} UTC (no rows returned).")
-    else:
-        print(f"Completed file download at {get_now()} UTC.")
+    return _update_pq(
+        table_name=table_name,
+        schema=schema,
+        source_kind=wrds_kind,
+        source_comment=wrds_comment,
+        update_callable=wrds_pg_to_pq,
+        data_dir=data_dir,
+        force=force,
+        alt_table_name=alt_table_name,
+        wrds_id=wrds_id,
+        col_types=col_types,
+        row_group_size=row_group_size,
+        obs=obs,
+        keep=keep,
+        drop=drop,
+        where=where,
+        batched=batched,
+        threads=threads,
+        tz=tz,
+        engine=engine,
+        numeric_mode=numeric_mode,
+        adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
+        adbc_use_copy=adbc_use_copy,
+        archive=archive,
+        archive_dir=archive_dir,
+    )
     
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
