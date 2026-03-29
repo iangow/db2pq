@@ -7,6 +7,38 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-03-28
+
+### Added
+
+- Public destination-PostgreSQL helpers `process_sql()` and
+  `set_table_comment()`.
+- `wrds_get_tables()` for listing WRDS tables in a schema.
+- `pg_update_pq()` as the local PostgreSQL analogue of `wrds_update_pq()`.
+- `pq_to_pg()` and `pq_update_pg()` for loading Parquet repository tables into
+  PostgreSQL, with DuckDB and experimental ADBC engine paths.
+
+### Changed
+
+- `set_table_comment()` now works as both an internal connection-based helper
+  and a public wrapper that resolves the same destination PostgreSQL defaults
+  used by `wrds_update_pg()`.
+- `wrds_update_pg()` now handles missing destination tables explicitly and can
+  use SAS-derived metadata for freshness and comment propagation.
+- `README.md` is now organized around the main workflow paths: WRDS to Parquet,
+  WRDS to PostgreSQL, local PostgreSQL to Parquet, and Parquet to PostgreSQL.
+- Documented DuckDB as the stable default engine and ADBC as experimental.
+- Improved DuckDB Parquet-to-PostgreSQL loading by creating the destination
+  table schema first and then inserting rows, which benchmarked faster than the
+  previous CTAS path on local tests.
+
+### Fixed
+
+- `pg_update_pq()` now explains when source table comments do not contain
+  parseable last-modified metadata and suggests `force=True`.
+- `pq_update_pg()` now explains when source Parquet files do not contain
+  parseable `last_modified` metadata and suggests `force=True`.
+
 ## [0.2.7] - 2026-03-27
 
 ### Added
@@ -96,7 +128,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added WRDS SSH setup documentation for SAS-based metadata workflows.
 - Improved API and output layout documentation.
 
-[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.7...HEAD
+[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.8...HEAD
+[0.2.8]: https://github.com/iangow/db2pq/releases/tag/0.2.8
 [0.2.7]: https://github.com/iangow/db2pq/releases/tag/0.2.7
 [0.2.5]: https://github.com/iangow/db2pq/releases/tag/0.2.5
 [0.2.4]: https://github.com/iangow/db2pq/releases/tag/0.2.4
