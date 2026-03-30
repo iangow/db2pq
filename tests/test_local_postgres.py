@@ -447,6 +447,23 @@ def test_db_to_pq_duckdb_passes_total_rows_to_writer(monkeypatch, tmp_path):
     assert seen["progress_label"] == "crsp.dsi"
 
 
+def test_duckdb_arrow_query_uses_smaller_reader_batches():
+    from db2pq.postgres.duckdb_pg import DuckDBArrowQuery
+
+    seen = {}
+
+    class DummyRelation:
+        def fetch_arrow_reader(self, batch_size=1000000):
+            seen["batch_size"] = batch_size
+            return "reader"
+
+    query = DuckDBArrowQuery(connection=object(), relation=DummyRelation())
+    result = query.fetch_arrow_reader()
+
+    assert result == "reader"
+    assert seen["batch_size"] == 100_000
+
+
 def test_db_to_pq_duckdb_local_small_table(pg_test_config, data_dir, require_source_table):
     require_source_table("comp", "company")
 

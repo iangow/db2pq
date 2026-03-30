@@ -72,6 +72,9 @@ class _RowProgress:
         self.last_render_at = now
         self.last_rendered_rows = self.rows_written
 
+    def start(self) -> None:
+        self.started_at = time.monotonic()
+
 
 def _format_seconds(seconds: float) -> str:
     if seconds < 1:
@@ -509,6 +512,8 @@ def write_record_batch_reader_to_parquet(
     """Write a RecordBatch reader to Parquet, normalizing timestamps to UTC."""
     _, _, pq = _pyarrow()
     parquet_writer_kwargs = parquet_writer_kwargs or {}
+    progress = _RowProgress(total_rows=total_rows, label=progress_label)
+    progress.start()
 
     try:
         first_batch = reader.read_next_batch()
@@ -522,8 +527,6 @@ def write_record_batch_reader_to_parquet(
         md = dict(pq_schema.metadata or {})
         md[b"last_modified"] = modified.encode()
         pq_schema = pq_schema.with_metadata(md)
-
-    progress = _RowProgress(total_rows=total_rows, label=progress_label)
 
     with pq.ParquetWriter(
         out_file,

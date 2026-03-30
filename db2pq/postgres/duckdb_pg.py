@@ -11,9 +11,10 @@ class DuckDBArrowQuery:
     relation: object
     total_rows: int | None = None
     progress_label: str | None = None
+    arrow_batch_size: int = 100_000
 
     def fetch_arrow_reader(self):
-        return self.relation.fetch_arrow_reader()
+        return self.relation.fetch_arrow_reader(batch_size=self.arrow_batch_size)
 
     def fetch_arrow_table(self):
         return self.relation.fetch_arrow_table()
