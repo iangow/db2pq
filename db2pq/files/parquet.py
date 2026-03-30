@@ -59,14 +59,11 @@ class _RowProgress:
         if self.total_rows is not None:
             pct = min(100.0, 100.0 * self.rows_written / self.total_rows)
             eta = max(self.total_rows - self.rows_written, 0) / rate if rate > 0 else 0.0
-            message = (
-                f"\rWriting {self.label}: {self.rows_written:,}/{self.total_rows:,} rows "
-                f"({pct:5.1f}%) at {rate:,.0f} rows/s"
-            )
+            message = f"\rWriting {self.label}: {_format_progress_bar(pct)}"
             if self.rows_written < self.total_rows or force:
-                message += f", ETA {_format_seconds(eta)}"
+                message += f" ETA {_format_seconds(eta)}"
         else:
-            message = f"\rWriting {self.label}: {self.rows_written:,} rows at {rate:,.0f} rows/s"
+            message = f"\rWriting {self.label}: {_format_spinner(now)}"
 
         print(message, end="", flush=True)
         self.last_render_at = now
@@ -86,6 +83,22 @@ def _format_seconds(seconds: float) -> str:
         return f"{minutes}m {secs:02d}s"
     hours, minutes = divmod(minutes, 60)
     return f"{hours}h {minutes:02d}m"
+
+
+def _format_progress_bar(pct: float, *, width: int = 38) -> str:
+    pct = max(0.0, min(100.0, pct))
+    filled = int(width * pct / 100.0)
+    if filled >= width:
+        bar = "█" * width
+    else:
+        bar = ("█" * filled) + (" " * (width - filled))
+    return f"{pct:5.1f}% ▕{bar}▏"
+
+
+def _format_spinner(now: float) -> str:
+    frames = "|/-\\"
+    idx = int(now * 8) % len(frames)
+    return frames[idx]
 
 
 def _pyarrow():

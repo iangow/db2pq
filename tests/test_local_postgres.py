@@ -464,6 +464,33 @@ def test_duckdb_arrow_query_uses_smaller_reader_batches():
     assert seen["batch_size"] == 100_000
 
 
+def test_estimate_arrow_batch_size_shrinks_for_wide_tables():
+    from db2pq.postgres.duckdb_pg import _estimate_arrow_batch_size
+
+    columns = [f"col_{i}" for i in range(40)]
+    source_col_types = {column: "text" for column in columns}
+
+    batch_size = _estimate_arrow_batch_size(columns, source_col_types)
+
+    assert batch_size < 100_000
+    assert batch_size == 5_000
+
+
+def test_estimate_arrow_batch_size_keeps_narrow_tables_large():
+    from db2pq.postgres.duckdb_pg import _estimate_arrow_batch_size
+
+    columns = ["permno", "date", "ret"]
+    source_col_types = {
+        "permno": "integer",
+        "date": "date",
+        "ret": "double precision",
+    }
+
+    batch_size = _estimate_arrow_batch_size(columns, source_col_types)
+
+    assert batch_size == 100_000
+
+
 def test_db_to_pq_duckdb_local_small_table(pg_test_config, data_dir, require_source_table):
     require_source_table("comp", "company")
 
