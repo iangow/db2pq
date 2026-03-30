@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import getpass
 
+from .wrds import _load_dotenv
+
 def resolve_pg_connection(
     *,
     user: str | None = None,
@@ -10,6 +12,7 @@ def resolve_pg_connection(
     dbname: str | None = None,
     port: int | None = None,
 ) -> tuple[str, str, str, int]:
+    _load_dotenv()
     user = user or os.getenv("PGUSER") or getpass.getuser()
     host = host or os.getenv("PGHOST", "localhost")
     dbname = dbname or os.getenv("PGDATABASE") or user

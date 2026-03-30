@@ -6,10 +6,11 @@ WRDS_DB   = "wrds"
 
 def _load_dotenv() -> None:
     try:
-        from dotenv import load_dotenv
+        from dotenv import find_dotenv, load_dotenv
     except ImportError:
         return
-    load_dotenv()
+    dotenv_path = find_dotenv(usecwd=True)
+    load_dotenv(dotenv_path or None)
 
 def resolve_wrds_id(wrds_id: str | None = None) -> str:
     _load_dotenv()
