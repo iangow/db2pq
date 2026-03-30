@@ -373,6 +373,80 @@ def test_duckdb_load_parquet_to_pg_uses_precreate_and_insert(monkeypatch, tmp_pa
     )
 
 
+def test_count_wrds_rows_honors_where_and_obs(monkeypatch):
+    import db2pq.postgres.select_sql as select_sql_mod
+
+    seen = {}
+
+    class DummyCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, sql):
+            seen["sql"] = sql
+
+        def fetchone(self):
+            return (25,)
+
+    class DummyConn:
+        def cursor(self):
+            return DummyCursor()
+
+    monkeypatch.setattr(select_sql_mod, "qident", lambda conn, name: f'"{name}"')
+
+    result = select_sql_mod.count_wrds_rows(
+        DummyConn(),
+        schema="crsp",
+        table="dsi",
+        where="permno > 10000",
+        obs=10,
+    )
+
+    assert result == 10
+    assert seen["sql"] == 'SELECT COUNT(*) FROM "crsp"."dsi" WHERE permno > 10000'
+
+
+def test_db_to_pq_duckdb_passes_total_rows_to_writer(monkeypatch, tmp_path):
+    import db2pq.core as core_mod
+
+    class DummyArrowQuery:
+        total_rows = 1234
+        progress_label = "crsp.dsi"
+
+    seen = {}
+
+    monkeypatch.setattr(
+        "db2pq.postgres._defaults.resolve_pg_connection",
+        lambda **kwargs: ("alice", "localhost", "research", 5432),
+    )
+    monkeypatch.setattr(
+        "db2pq.postgres.duckdb_pg.read_postgres_table",
+        lambda **kwargs: DummyArrowQuery(),
+    )
+    monkeypatch.setattr(
+        "db2pq.files.parquet.write_parquet",
+        lambda df, **kwargs: seen.update({"df": df, **kwargs}) or (tmp_path / "crsp" / "dsi.parquet"),
+    )
+
+    result = core_mod.db_to_pq(
+        table_name="dsi",
+        schema="crsp",
+        user="alice",
+        host="localhost",
+        database="research",
+        port=5432,
+        data_dir=tmp_path,
+        engine="duckdb",
+    )
+
+    assert result == str(tmp_path / "crsp" / "dsi.parquet")
+    assert seen["total_rows"] == 1234
+    assert seen["progress_label"] == "crsp.dsi"
+
+
 def test_db_to_pq_duckdb_local_small_table(pg_test_config, data_dir, require_source_table):
     require_source_table("comp", "company")
 

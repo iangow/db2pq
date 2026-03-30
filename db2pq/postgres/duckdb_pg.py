@@ -2,13 +2,15 @@ from dataclasses import dataclass
 
 from .comments import get_pg_conn
 from .introspect import get_table_column_types, get_table_columns
-from .select_sql import plan_wrds_query
+from .select_sql import count_wrds_rows, plan_wrds_query
 
 
 @dataclass
 class DuckDBArrowQuery:
     connection: object
     relation: object
+    total_rows: int | None = None
+    progress_label: str | None = None
 
     def fetch_arrow_reader(self):
         return self.relation.fetch_arrow_reader()
@@ -39,6 +41,8 @@ def read_postgres_table(
     import duckdb
 
     con = duckdb.connect()
+    con.execute("PRAGMA disable_progress_bar;")
+    con.execute("SET enable_progress_bar_print=false;")
     # Required for very large text columns/aggregates that exceed Arrow's
     # regular 2 GiB string buffer limit.
     con.execute("SET arrow_large_buffer_size=true;")
@@ -49,6 +53,13 @@ def read_postgres_table(
     with get_pg_conn(uri) as pg_conn:
         all_cols = get_table_columns(pg_conn, schema, table_name)
         source_col_types = get_table_column_types(pg_conn, schema, table_name)
+        total_rows = count_wrds_rows(
+            pg_conn,
+            schema=schema,
+            table=table_name,
+            where=where,
+            obs=obs,
+        )
         plan = plan_wrds_query(
             conn=pg_conn,
             schema=schema,
@@ -68,7 +79,12 @@ def read_postgres_table(
         f"ATTACH '{uri}' AS wrds (TYPE postgres, SCHEMA '{schema}')"
     )
     relation = con.sql(plan.qualified_sql)
-    return DuckDBArrowQuery(connection=con, relation=relation)
+    return DuckDBArrowQuery(
+        connection=con,
+        relation=relation,
+        total_rows=total_rows,
+        progress_label=f"{schema}.{table_name}",
+    )
 
 
 def read_postgres_query(
@@ -80,6 +96,8 @@ def read_postgres_query(
     import duckdb
 
     con = duckdb.connect()
+    con.execute("PRAGMA disable_progress_bar;")
+    con.execute("SET enable_progress_bar_print=false;")
     con.execute("SET arrow_large_buffer_size=true;")
     if threads:
         con.execute(f"SET threads TO {int(threads)};")

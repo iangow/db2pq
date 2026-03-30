@@ -22,6 +22,31 @@ def qident(conn, name: str) -> str:
 def qliteral(conn, value: str) -> str:
     return sql.Literal(value).as_string(conn)
 
+
+def count_wrds_rows(
+    conn,
+    *,
+    schema: str,
+    table: str,
+    where: str | None = None,
+    obs: int | None = None,
+) -> int:
+    qs = qident(conn, schema)
+    qt = qident(conn, table)
+
+    count_sql = f"SELECT COUNT(*) FROM {qs}.{qt}"
+    if where:
+        count_sql += f" WHERE {where}"
+
+    with conn.cursor() as cur:
+        cur.execute(count_sql)
+        total_rows = int(cur.fetchone()[0])
+
+    if obs is not None:
+        total_rows = min(total_rows, int(obs))
+
+    return total_rows
+
 def _is_boolean_type(pg_type: str) -> bool:
     t = pg_type.strip().lower()
     return t in {"bool", "boolean"}

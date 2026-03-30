@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 import re
+import sys
+import time
 from pathlib import Path
 
 from .paths import (
@@ -13,6 +15,74 @@ from .paths import (
 )
 
 DEFAULT_MAX_BUFFER_BYTES = 256 * 1024 * 1024
+
+
+class _RowProgress:
+    def __init__(self, *, total_rows: int | None = None, label: str | None = None):
+        self.total_rows = total_rows if total_rows and total_rows > 0 else None
+        self.label = label or "table"
+        self.rows_written = 0
+        self.started_at = time.monotonic()
+        self.last_render_at = 0.0
+        self.last_rendered_rows = 0
+        self.enabled = sys.stdout.isatty()
+
+    def update(self, rows: int) -> None:
+        if not self.enabled:
+            return
+
+        self.rows_written += int(rows)
+        now = time.monotonic()
+        if (
+            self.rows_written
+            and self.total_rows is not None
+            and self.rows_written >= self.total_rows
+            and self.last_rendered_rows != self.rows_written
+        ):
+            self._render(now, force=True)
+            return
+        if now - self.last_render_at < 0.25:
+            return
+        self._render(now, force=False)
+
+    def finish(self) -> None:
+        if not self.enabled:
+            return
+        now = time.monotonic()
+        if self.last_rendered_rows != self.rows_written:
+            self._render(now, force=True)
+        print()
+
+    def _render(self, now: float, *, force: bool) -> None:
+        elapsed = max(now - self.started_at, 1e-9)
+        rate = self.rows_written / elapsed
+        if self.total_rows is not None:
+            pct = min(100.0, 100.0 * self.rows_written / self.total_rows)
+            eta = max(self.total_rows - self.rows_written, 0) / rate if rate > 0 else 0.0
+            message = (
+                f"\rWriting {self.label}: {self.rows_written:,}/{self.total_rows:,} rows "
+                f"({pct:5.1f}%) at {rate:,.0f} rows/s"
+            )
+            if self.rows_written < self.total_rows or force:
+                message += f", ETA {_format_seconds(eta)}"
+        else:
+            message = f"\rWriting {self.label}: {self.rows_written:,} rows at {rate:,.0f} rows/s"
+
+        print(message, end="", flush=True)
+        self.last_render_at = now
+        self.last_rendered_rows = self.rows_written
+
+
+def _format_seconds(seconds: float) -> str:
+    if seconds < 1:
+        return "<1s"
+    if seconds < 60:
+        return f"{int(round(seconds))}s"
+    minutes, secs = divmod(int(round(seconds)), 60)
+    if minutes < 60:
+        return f"{minutes}m {secs:02d}s"
+    hours, minutes = divmod(minutes, 60)
+    return f"{hours}h {minutes:02d}m"
 
 
 def _pyarrow():
@@ -359,6 +429,8 @@ def _write_tmp_parquet(
     row_group_size=1024 * 1024,
     max_buffer_bytes: int = DEFAULT_MAX_BUFFER_BYTES,
     tz: str = "UTC",
+    total_rows: int | None = None,
+    progress_label: str | None = None,
 ):
     """Write df to tmp_pq_file (no archiving, no promotion).
 
@@ -383,14 +455,19 @@ def _write_tmp_parquet(
             md[b"last_modified"] = modified.encode()
             pq_schema = pq_schema.with_metadata(md)
 
+        progress = _RowProgress(total_rows=total_rows, label=progress_label)
+
         with pq.ParquetWriter(tmp_pq_file, pq_schema) as writer:
             def normalized_batches():
+                progress.update(first_batch.num_rows)
                 yield first_batch
                 for batch in batches:
-                    yield _normalize_timestamp_batch(
+                    normalized_batch = _normalize_timestamp_batch(
                         batch,
                         default_tz=tz,
                     )
+                    progress.update(normalized_batch.num_rows)
+                    yield normalized_batch
 
             _write_batches_with_target_row_groups(
                 writer,
@@ -398,6 +475,7 @@ def _write_tmp_parquet(
                 row_group_size=row_group_size,
                 max_buffer_bytes=max_buffer_bytes,
             )
+        progress.finish()
         return True
     else:
         df_arrow = df_to_arrow(df, col_types=col_types, obs=obs)
@@ -425,6 +503,8 @@ def write_record_batch_reader_to_parquet(
     tz: str = "UTC",
     decimal_columns: dict[str, tuple[int, int]] | None = None,
     parquet_writer_kwargs: dict | None = None,
+    total_rows: int | None = None,
+    progress_label: str | None = None,
 ):
     """Write a RecordBatch reader to Parquet, normalizing timestamps to UTC."""
     _, _, pq = _pyarrow()
@@ -443,12 +523,15 @@ def write_record_batch_reader_to_parquet(
         md[b"last_modified"] = modified.encode()
         pq_schema = pq_schema.with_metadata(md)
 
+    progress = _RowProgress(total_rows=total_rows, label=progress_label)
+
     with pq.ParquetWriter(
         out_file,
         pq_schema,
         **parquet_writer_kwargs,
     ) as writer:
         def normalized_batches():
+            progress.update(first_batch.num_rows)
             yield first_batch
             while True:
                 try:
@@ -456,7 +539,9 @@ def write_record_batch_reader_to_parquet(
                 except StopIteration:
                     break
                 batch = _convert_decimal_batch(batch, decimal_columns=decimal_columns)
-                yield _normalize_timestamp_batch(batch, default_tz=tz)
+                normalized_batch = _normalize_timestamp_batch(batch, default_tz=tz)
+                progress.update(normalized_batch.num_rows)
+                yield normalized_batch
 
         _write_batches_with_target_row_groups(
             writer,
@@ -465,6 +550,7 @@ def write_record_batch_reader_to_parquet(
             max_buffer_bytes=max_buffer_bytes,
         )
 
+    progress.finish()
     return True
 
 def write_parquet(
@@ -482,6 +568,8 @@ def write_parquet(
     tz: str = "UTC",
     archive: bool = False,
     archive_dir: str | None = None,
+    total_rows: int | None = None,
+    progress_label: str | None = None,
 ):
     """
     End-to-end Parquet write:
@@ -504,6 +592,8 @@ def write_parquet(
         row_group_size=row_group_size,
         max_buffer_bytes=max_buffer_bytes,
         tz=tz,
+        total_rows=total_rows,
+        progress_label=progress_label,
     )
     if not wrote_rows:
         print(f"No rows returned for {schema}.{table_name}; no parquet file created.")

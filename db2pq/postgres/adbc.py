@@ -9,7 +9,7 @@ from .introspect import (
     get_table_columns,
     get_table_numeric_bounds,
 )
-from .select_sql import plan_wrds_query
+from .select_sql import count_wrds_rows, plan_wrds_query
 from ..types import normalize_col_types
 
 
@@ -121,6 +121,13 @@ def export_postgres_table_via_adbc(
         all_cols = get_table_columns(conn, schema, table_name)
         source_col_types = get_table_column_types(conn, schema, table_name)
         numeric_bounds = get_table_numeric_bounds(conn, schema, table_name)
+        total_rows = count_wrds_rows(
+            conn,
+            schema=schema,
+            table=table_name,
+            where=where,
+            obs=obs,
+        )
         decimal_columns = _decimal_columns_to_repair(
             numeric_bounds,
             col_types,
@@ -180,6 +187,8 @@ def export_postgres_table_via_adbc(
                 row_group_size=row_group_size,
                 tz=tz,
                 decimal_columns=decimal_columns,
+                total_rows=total_rows,
+                progress_label=f"{schema}.{table_name}",
             )
 
     return str(out_path) if wrote_rows else None

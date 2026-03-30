@@ -215,6 +215,8 @@ def db_to_pq(
         tz=tz,
         archive=archive,
         archive_dir=archive_dir,
+        total_rows=getattr(df, "total_rows", None),
+        progress_label=getattr(df, "progress_label", f"{schema}.{alt_table_name}"),
     )
     
     return str(pq_file) if pq_file is not None else None
