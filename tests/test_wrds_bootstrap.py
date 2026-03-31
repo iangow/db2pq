@@ -4,10 +4,19 @@ from __future__ import annotations
 def test_wrds_pg_to_pq_bootstraps_wrds_access(monkeypatch):
     import db2pq.core as core
 
+    class DummyConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
     captured = {}
 
     monkeypatch.setattr(core, "db_to_pq", lambda *args, **kwargs: kwargs)
     monkeypatch.setattr("db2pq.credentials.ensure_wrds_access", lambda wrds_id=None: "alice")
+    monkeypatch.setattr("db2pq.postgres.comments.get_pg_conn", lambda uri: DummyConn())
+    monkeypatch.setattr("db2pq.postgres.introspect.table_exists", lambda conn, schema, table: True)
 
     result = core.wrds_pg_to_pq("dsi", "crsp")
 

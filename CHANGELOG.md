@@ -7,6 +7,27 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-03-31
+
+### Added
+
+- Added tests covering local PostgreSQL export progress reporting, default
+  PostgreSQL environment loading from `.env`, and missing WRDS source tables.
+
+### Changed
+
+- Improved progress output for PostgreSQL-to-Parquet exports with table-level
+  updates and better transfer sizing during Arrow batch processing.
+- Refined DuckDB and ADBC export paths to use the shared progress reporting and
+  batch handling improvements.
+- PostgreSQL default connection resolution now loads `.env` values for local
+  connection settings.
+
+### Fixed
+
+- `wrds_update_pq()` now handles missing WRDS source tables gracefully instead
+  of failing deep in the export path.
+
 ## [0.2.8] - 2026-03-28
 
 ### Added
@@ -128,7 +149,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Added WRDS SSH setup documentation for SAS-based metadata workflows.
 - Improved API and output layout documentation.
 
-[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.8...HEAD
+[Unreleased]: https://github.com/iangow/db2pq/compare/0.2.9...HEAD
+[0.2.9]: https://github.com/iangow/db2pq/releases/tag/0.2.9
 [0.2.8]: https://github.com/iangow/db2pq/releases/tag/0.2.8
 [0.2.7]: https://github.com/iangow/db2pq/releases/tag/0.2.7
 [0.2.5]: https://github.com/iangow/db2pq/releases/tag/0.2.5

@@ -46,6 +46,9 @@ def test_wrds_update_pg_imports_when_destination_table_missing(monkeypatch, caps
     import db2pq.postgres.update as update_mod
 
     class DummyConn:
+        def __init__(self, name):
+            self.name = name
+
         def __enter__(self):
             return self
 
@@ -53,13 +56,19 @@ def test_wrds_update_pg_imports_when_destination_table_missing(monkeypatch, caps
             return False
 
     calls = []
+    wrds_conn = DummyConn("wrds")
+    pg_conn = DummyConn("pg")
 
     monkeypatch.setattr(update_mod, "resolve_uri", lambda **kwargs: "postgresql://dst")
     monkeypatch.setattr(update_mod, "get_wrds_uri", lambda wrds_id=None: "postgresql://src")
-    monkeypatch.setattr(update_mod, "get_wrds_conn", lambda wrds_id=None: DummyConn())
-    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyConn())
+    monkeypatch.setattr(update_mod, "get_wrds_conn", lambda wrds_id=None: wrds_conn)
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: pg_conn)
     monkeypatch.setattr(update_mod, "get_wrds_comment", lambda **kwargs: None)
-    monkeypatch.setattr(update_mod, "_table_exists", lambda conn, schema, table_name: False)
+    monkeypatch.setattr(
+        update_mod,
+        "_table_exists",
+        lambda conn, schema, table_name: conn is wrds_conn,
+    )
     monkeypatch.setattr(credentials_mod, "ensure_wrds_access", lambda wrds_id=None: "user")
     monkeypatch.setattr(
         update_mod,
@@ -140,6 +149,9 @@ def test_wrds_update_pg_use_sas_passes_sas_comment_to_writer(monkeypatch):
     import db2pq.postgres.update as update_mod
 
     class DummyConn:
+        def __init__(self, name):
+            self.name = name
+
         def __enter__(self):
             return self
 
@@ -147,12 +159,18 @@ def test_wrds_update_pg_use_sas_passes_sas_comment_to_writer(monkeypatch):
             return False
 
     calls = []
+    wrds_conn = DummyConn("wrds")
+    pg_conn = DummyConn("pg")
 
     monkeypatch.setattr(update_mod, "resolve_uri", lambda **kwargs: "postgresql://dst")
     monkeypatch.setattr(update_mod, "get_wrds_uri", lambda wrds_id=None: "postgresql://src")
-    monkeypatch.setattr(update_mod, "get_wrds_conn", lambda wrds_id=None: DummyConn())
-    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyConn())
-    monkeypatch.setattr(update_mod, "_table_exists", lambda conn, schema, table_name: False)
+    monkeypatch.setattr(update_mod, "get_wrds_conn", lambda wrds_id=None: wrds_conn)
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: pg_conn)
+    monkeypatch.setattr(
+        update_mod,
+        "_table_exists",
+        lambda conn, schema, table_name: conn is wrds_conn,
+    )
     monkeypatch.setattr(credentials_mod, "ensure_wrds_access", lambda wrds_id=None: "user")
 
     seen = {}
