@@ -426,6 +426,150 @@ def wrds_pg_to_pq(
         archive_dir=archive_dir,
     )
 
+
+def wrds_sql_to_pq(
+    sql,
+    table_name,
+    schema,
+    *,
+    wrds_id=None,
+    data_dir=None,
+    row_group_size=1048576,
+    modified=None,
+    alt_table_name=None,
+    threads=3,
+    tz="UTC",
+    engine=None,
+    adbc_batch_size_hint_bytes=None,
+    adbc_use_copy=None,
+    archive=False,
+    archive_dir=None,
+):
+    """Run a SQL query against WRDS PostgreSQL and write the result to Parquet.
+
+    Parameters
+    ----------
+    sql :
+        SQL query to execute against the WRDS PostgreSQL database.
+
+    table_name :
+        Logical source table name used for the output parquet basename unless
+        ``alt_table_name`` is supplied.
+
+    schema :
+        Schema name used for the output parquet directory layout.
+
+    wrds_id : string [Optional]
+        WRDS user ID used to access WRDS services. This parameter is required
+        and must be provided either explicitly or via the ``WRDS_ID``
+        environment variable.
+
+    data_dir : string [Optional]
+        Root directory of parquet data repository.
+
+    row_group_size : int [Optional]
+        Maximum number of rows in each written row group.
+
+    modified : string [Optional]
+        Last modified string to embed in parquet metadata.
+
+    alt_table_name : string [Optional]
+        Basename of parquet file. Used when the file should have a different
+        name than ``table_name``.
+
+    threads : int [Optional]
+        Maximum DuckDB worker threads to use when ``engine="duckdb"``.
+
+    tz : string [Optional]
+        Time zone assumption for naive PostgreSQL timestamps before normalizing
+        parquet output to UTC.
+
+    engine : {"duckdb", "adbc"} [Optional]
+        Query execution engine used to run the WRDS PostgreSQL SQL.
+
+    adbc_batch_size_hint_bytes : int [Optional]
+        ADBC batch size hint in bytes when ``engine="adbc"``.
+
+    adbc_use_copy : bool [Optional]
+        Explicitly enable or disable the PostgreSQL ADBC driver's ``COPY``
+        optimization when ``engine="adbc"``.
+
+    Returns
+    -------
+    pq_file : string
+        Name of parquet file created.
+    """
+    from pathlib import Path
+
+    from .config import get_default_engine
+    from .credentials import ensure_wrds_access
+    from .files.parquet import pq_archive, write_record_batch_reader_to_parquet
+    from .files.paths import parquet_paths, promote_temp_parquet
+    from .postgres.adbc import export_postgres_query_via_adbc
+    from .postgres.duckdb_pg import read_postgres_query
+
+    wrds_id = ensure_wrds_access(wrds_id)
+    uri = f"postgresql://{wrds_id}@wrds-pgdata.wharton.upenn.edu:9737/wrds"
+
+    if not alt_table_name:
+        alt_table_name = table_name
+
+    if engine is None:
+        engine = get_default_engine()
+
+    engine = engine.lower()
+    if engine not in {"duckdb", "adbc"}:
+        raise ValueError("engine must be either 'duckdb' or 'adbc'")
+
+    _, pq_file, tmp_pq_file = parquet_paths(data_dir, schema, alt_table_name)
+    pq_file = Path(pq_file)
+    tmp_pq_file = Path(tmp_pq_file)
+
+    if engine == "adbc":
+        result = export_postgres_query_via_adbc(
+            uri=uri,
+            sql=sql,
+            out_file=tmp_pq_file,
+            modified=modified,
+            row_group_size=row_group_size,
+            tz=tz,
+            adbc_batch_size_hint_bytes=adbc_batch_size_hint_bytes,
+            adbc_use_copy=adbc_use_copy,
+        )
+        if result is None:
+            print(f"No rows returned for {schema}.{alt_table_name}; no parquet file created.")
+            return None
+
+        if archive and pq_file.exists():
+            pq_archive(file_name=pq_file, archive_dir=archive_dir)
+
+        promote_temp_parquet(tmp_pq_file, pq_file)
+        return str(pq_file)
+
+    query = read_postgres_query(
+        uri=uri,
+        sql=sql,
+        threads=threads,
+    )
+    wrote_rows = write_record_batch_reader_to_parquet(
+        query.fetch_arrow_reader(),
+        tmp_pq_file,
+        modified=modified,
+        row_group_size=row_group_size,
+        tz=tz,
+        total_rows=getattr(query, "total_rows", None),
+        progress_label=f"{schema}.{alt_table_name}",
+    )
+    if not wrote_rows:
+        print(f"No rows returned for {schema}.{alt_table_name}; no parquet file created.")
+        return None
+
+    if archive and pq_file.exists():
+        pq_archive(file_name=pq_file, archive_dir=archive_dir)
+
+    promote_temp_parquet(tmp_pq_file, pq_file)
+    return str(pq_file)
+
 def wrds_pg_to_pg(
     table_name,
     schema,

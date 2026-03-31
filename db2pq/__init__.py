@@ -1,5 +1,5 @@
 name = "db2pq"
-__version__ = "0.2.9"
+__version__ = "0.2.10"
 
 from importlib import import_module
 
@@ -20,6 +20,7 @@ pg_update_pq = _lazy_export(".core", "pg_update_pq")
 db_to_pg = _lazy_export(".core", "db_to_pg")
 ibis_to_pq = _lazy_export(".ibis", "ibis_to_pq")
 wrds_pg_to_pq = _lazy_export(".core", "wrds_pg_to_pq")
+wrds_sql_to_pq = _lazy_export(".core", "wrds_sql_to_pq")
 wrds_pg_to_pg = _lazy_export(".core", "wrds_pg_to_pg")
 db_schema_to_pq = _lazy_export(".core", "db_schema_to_pq")
 wrds_update_pq = _lazy_export(".core", "wrds_update_pq")
@@ -52,7 +53,7 @@ ensure_wrds_credentials = _lazy_export(".credentials", "ensure_wrds_credentials"
 
 __all__ = [
     "__version__",
-    "db_to_pq", "pg_update_pq", "db_to_pg", "ibis_to_pq", "wrds_pg_to_pq", "wrds_pg_to_pg",
+    "db_to_pq", "pg_update_pq", "db_to_pg", "ibis_to_pq", "wrds_pg_to_pq", "wrds_sql_to_pq", "wrds_pg_to_pg",
     "db_schema_to_pq", "db_schema_tables", "wrds_get_tables",
     "wrds_update_pq", "pq_list_files", "wrds_update_schema",
     "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",

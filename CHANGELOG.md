@@ -7,6 +7,21 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.10] - 2026-03-31
+
+### Added
+
+- Added `wrds_sql_to_pq()` as a public API for running arbitrary SQL against
+  WRDS PostgreSQL and writing the result into the standard Parquet repository
+  layout.
+- Added unit tests covering the DuckDB and ADBC execution paths for
+  `wrds_sql_to_pq()`.
+
+### Changed
+
+- Updated the README with a documented example of query-based WRDS-to-Parquet
+  export.
+
 ## [0.2.9] - 2026-03-31
 
 ### Added

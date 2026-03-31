@@ -133,6 +133,28 @@ wrds_pg_to_pq(
 )
 ```
 
+Use `wrds_sql_to_pq()` when you want to run a custom SQL query against WRDS
+and save the result into the standard Parquet repository layout:
+
+```python
+from db2pq import wrds_sql_to_pq
+
+wrds_sql_to_pq(
+    sql="""
+        SELECT gvkey, datadate, fyear, at
+        FROM comp.funda
+        WHERE indfmt = 'INDL'
+          AND datafmt = 'STD'
+          AND consol = 'C'
+          AND popsrc = 'D'
+          AND fyear BETWEEN 1991 AND 2008
+    """,
+    table_name="funda",
+    schema="comp",
+    alt_table_name="funda_filtered",
+)
+```
+
 Common options on this path:
 
 - `where` to filter rows before export
