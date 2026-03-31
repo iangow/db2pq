@@ -1,7 +1,7 @@
 from pathlib import Path
 from time import gmtime, strftime
 
-from .introspect import get_table_columns, get_table_column_types
+from .introspect import get_table_columns, get_table_column_types, table_exists
 from .select_sql import plan_wrds_query
 from .duckdb_ddl import create_table_from_select_duckdb
 from .copy import copy_wrds_select_to_pg_table
@@ -66,9 +66,7 @@ def _schema_exists(conn, schema: str) -> bool:
         return cur.fetchone() is not None
 
 def _table_exists(conn, schema: str, table_name: str) -> bool:
-    with conn.cursor() as cur:
-        cur.execute("SELECT to_regclass(%s)", (f"{schema}.{table_name}",))
-        return cur.fetchone()[0] is not None
+    return table_exists(conn, schema, table_name)
 
 def _role_exists(conn, role: str) -> bool:
     with conn.cursor() as cur:
@@ -415,6 +413,10 @@ def wrds_update_pg(
     source_uri = get_wrds_uri(wrds_id)
 
     with get_wrds_conn(wrds_id) as wrds, get_pg_conn(uri) as pg:
+        if not _table_exists(wrds, source_schema, table_name):
+            print(f"Table with name {table_name} does not exist.")
+            return False
+
         wrds_comment = get_wrds_comment(
             table_name=table_name,
             schema=source_schema,

@@ -1,3 +1,9 @@
+def table_exists(conn, schema: str, table: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("SELECT to_regclass(%s)", (f"{schema}.{table}",))
+        return cur.fetchone()[0] is not None
+
+
 def get_table_columns(conn, schema: str, table: str) -> list[str]:
     sql = """
     SELECT column_name

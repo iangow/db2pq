@@ -11,6 +11,7 @@ import pyarrow.types as pat
 import pytest
 
 from db2pq import db_to_pg, db_to_pq, pg_update_pq, process_sql, pq_update_pg, set_table_comment
+from db2pq import wrds_update_pq
 from db2pq.files.parquet import get_modified_pq
 from db2pq.postgres.comments import get_pg_comment
 from db2pq.postgres.update import postgres_write_pg
@@ -74,6 +75,64 @@ def test_wrds_update_pg_imports_when_destination_table_missing(monkeypatch, caps
     out = capsys.readouterr().out
     assert "does not exist in destination" in out
     assert "Getting from WRDS." in out
+
+
+def test_wrds_update_pg_returns_false_when_source_table_missing(monkeypatch, capsys):
+    import db2pq.credentials as credentials_mod
+    import db2pq.postgres.update as update_mod
+
+    class DummyConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    calls = []
+
+    monkeypatch.setattr(update_mod, "resolve_uri", lambda **kwargs: "postgresql://dst")
+    monkeypatch.setattr(update_mod, "get_wrds_uri", lambda wrds_id=None: "postgresql://src")
+    monkeypatch.setattr(update_mod, "get_wrds_conn", lambda wrds_id=None: DummyConn())
+    monkeypatch.setattr(update_mod, "get_pg_conn", lambda uri: DummyConn())
+    monkeypatch.setattr(credentials_mod, "ensure_wrds_access", lambda wrds_id=None: "user")
+    monkeypatch.setattr(update_mod, "_table_exists", lambda conn, schema, table_name: False)
+    monkeypatch.setattr(
+        update_mod,
+        "postgres_write_pg",
+        lambda **kwargs: calls.append(kwargs) or True,
+    )
+
+    assert wrds_update_pg("mcti_corr", "crsp") is False
+    assert calls == []
+
+    out = capsys.readouterr().out
+    assert "Table with name mcti_corr does not exist." in out
+
+
+def test_wrds_update_pq_returns_none_when_source_table_missing(monkeypatch, capsys):
+    import db2pq.core as core_mod
+    import db2pq.credentials as credentials_mod
+
+    class DummyConn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    monkeypatch.setattr(credentials_mod, "ensure_wrds_access", lambda wrds_id=None: "user")
+    monkeypatch.setattr("db2pq.postgres.comments.get_wrds_conn", lambda wrds_id=None: DummyConn())
+    monkeypatch.setattr("db2pq.postgres.introspect.table_exists", lambda conn, schema, table: False)
+    monkeypatch.setattr(
+        core_mod,
+        "wrds_pg_to_pq",
+        lambda *args, **kwargs: "unexpected",
+    )
+
+    assert wrds_update_pq("mcti_corr", "crsp") is None
+
+    out = capsys.readouterr().out
+    assert "Table with name mcti_corr does not exist." in out
 
 
 def test_wrds_update_pg_use_sas_passes_sas_comment_to_writer(monkeypatch):

@@ -388,8 +388,16 @@ def wrds_pg_to_pq(
     >>> wrds_pg_to_pq("feed21_bankruptcy_notification", "audit")
     """
     from .credentials import ensure_wrds_access
+    from .postgres.comments import get_pg_conn
+    from .postgres.introspect import table_exists
 
     wrds_id = ensure_wrds_access(wrds_id)
+    uri = f"postgresql://{wrds_id}@wrds-pgdata.wharton.upenn.edu:9737/wrds"
+
+    with get_pg_conn(uri) as conn:
+        if not table_exists(conn, schema, table_name):
+            print(f"Table with name {table_name} does not exist.")
+            return None
     
     return db_to_pq(
         table_name,
@@ -843,6 +851,8 @@ def wrds_update_pq(
     >>> wrds_update_pq("feed21_bankruptcy_notification", "audit")
     """                       
     from .postgres.comments import get_wrds_comment
+    from .postgres.comments import get_wrds_conn
+    from .postgres.introspect import table_exists
     from .credentials import ensure_wrds_access
 
     wrds_id = ensure_wrds_access(wrds_id)
@@ -852,6 +862,11 @@ def wrds_update_pq(
 
     if not alt_table_name:
         alt_table_name = table_name
+
+    with get_wrds_conn(wrds_id) as conn:
+        if not table_exists(conn, schema, table_name):
+            print(f"Table with name {table_name} does not exist.")
+            return None
                 
     wrds_comment = get_wrds_comment(
         table_name=table_name,
