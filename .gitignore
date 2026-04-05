@@ -1,0 +1,33 @@
+# R / RStudio
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Jupyter
+.ipynb_checkpoints/
+Untitled*.ipynb
+db2pq/Untitled*.ipynb
+db2pq/wrds_to_pq.ipynb
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Build artifacts
+build/
+dist/
+.positai
+.cache/
+.docs-venv/
+.uv-cache/
+docs/.quarto/
+docs/.gitignore
+docs/_site/
+docs/objects.json
+docs/reference/
+
+# Local env / scratch outputs
+.env
+*.out
