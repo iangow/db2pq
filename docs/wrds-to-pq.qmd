@@ -1,0 +1,50 @@
+---
+title: WRDS to PQ
+---
+
+# WRDS to Parquet
+
+Use this path when the source data live in WRDS PostgreSQL and the destination
+is a local Parquet file repository.
+
+## Main helpers
+
+- `wrds_pg_to_pq(table_name, schema, ...)` exports one WRDS table to Parquet.
+- `wrds_update_pq(table_name, schema, ...)` only rewrites a Parquet file when
+  the WRDS source is newer.
+- `wrds_update_schema(schema, ...)` updates a full WRDS schema into Parquet.
+
+## Typical first run
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq("dsi", "crsp")
+```
+
+If `WRDS_ID` is not configured yet, `db2pq` can prompt for it and suggest
+adding it to a local `.env` file. If the WRDS PostgreSQL password is not yet in
+`.pgpass`, `db2pq` can prompt for it and save it for later use.
+
+## Common options
+
+- `engine="duckdb"` uses DuckDB to read from PostgreSQL.
+- `engine="adbc"` streams Arrow batches directly from PostgreSQL.
+- `keep=` and `drop=` filter source columns with regex patterns.
+- `obs=` limits rows for testing.
+- `archive=True` moves replaced Parquet files into an archive directory.
+
+## Output layout
+
+Files are written as:
+
+```text
+<DATA_DIR>/<schema>/<table>.parquet
+```
+
+## Related reference pages
+
+- [wrds_pg_to_pq](reference/core.wrds_pg_to_pq.qmd)
+- [wrds_update_pq](reference/core.wrds_update_pq.qmd)
+- [wrds_update_schema](reference/core.wrds_update_schema.qmd)
+- [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)

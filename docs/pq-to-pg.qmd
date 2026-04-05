@@ -1,0 +1,36 @@
+---
+title: PQ to PG
+---
+
+# Parquet to PostgreSQL
+
+`db2pq` does not currently expose a first-class `pq_to_pg()` helper.
+
+Today, the package is strongest in these directions:
+
+- WRDS to Parquet
+- PostgreSQL to Parquet
+- WRDS to PostgreSQL
+
+## Current adjacent helpers
+
+- `pq_list_files()` lists Parquet outputs by schema.
+- `pq_last_modified()` reads modification metadata embedded in Parquet files.
+- `pq_archive()`, `pq_restore()`, and `pq_remove()` manage Parquet files in the
+  local repository.
+
+## Why this page exists
+
+This page keeps the site organized by workflow, while being explicit that the
+Parquet-to-PostgreSQL path is not yet a dedicated public API in `db2pq`.
+
+If a `pq_to_pg()` workflow is added later, this page is the natural place to
+document it.
+
+## Related reference pages
+
+- [pq_list_files](reference/files.paths.pq_list_files.qmd)
+- [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)
+- [pq_archive](reference/files.parquet.pq_archive.qmd)
+- [pq_restore](reference/files.parquet.pq_restore.qmd)
+- [pq_remove](reference/files.parquet.pq_remove.qmd)

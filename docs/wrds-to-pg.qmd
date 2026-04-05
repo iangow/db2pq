@@ -1,0 +1,47 @@
+---
+title: WRDS to PG
+---
+
+# WRDS to PostgreSQL
+
+Use this path when you want to materialize WRDS data into a PostgreSQL database
+instead of writing Parquet files.
+
+## Main helper
+
+- `wrds_update_pg(table_name, schema, ...)` creates or refreshes a PostgreSQL
+  table from a WRDS source table.
+
+## What it does
+
+`wrds_update_pg()` plans a `SELECT` against WRDS, creates the destination table
+from that query shape, copies rows into PostgreSQL, and stores WRDS table
+metadata in the destination comment for update checks.
+
+## Typical example
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    table_name="dsi",
+    schema="crsp",
+    user="postgres",
+    host="localhost",
+    dbname="analytics",
+)
+```
+
+## Common options
+
+- `force=True` refreshes even when the destination already looks current.
+- `keep=` and `drop=` trim source columns.
+- `obs=` limits rows for testing.
+- `alt_table_name=` writes to a different destination table name.
+- `create_roles=True` ensures schema roles and grants are created.
+- `wrds_schema=` lets the WRDS source schema differ from the destination schema.
+
+## Related reference pages
+
+- [wrds_update_pg](reference/postgres.update.wrds_update_pg.qmd)
+- [db_schema_tables](reference/postgres.schema.db_schema_tables.qmd)

@@ -28,6 +28,7 @@ pandas = ["pandas"]
 adbc = ["adbc-driver-postgresql"]
 ibis = ["adbc-driver-postgresql"]
 dev = ["pytest>=8.0"]
+docs = ["quartodoc>=0.11,<0.12", "griffe<2"]
 release = [
   "build>=1.1.1",
   "twine>=6.2.0",

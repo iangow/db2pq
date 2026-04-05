@@ -3,6 +3,8 @@ __version__ = "0.2.10"
 
 from importlib import import_module
 
+_LAZY_MODULES = {"config", "core", "credentials", "files", "ibis", "postgres"}
+
 def _lazy_export(module_name, attr_name):
     def wrapper(*args, **kwargs):
         module = import_module(module_name, __name__)
@@ -13,6 +15,12 @@ def _lazy_export(module_name, attr_name):
     wrapper.__module__ = __name__
     wrapper.__doc__ = f"Lazy proxy for `{module_name}.{attr_name}`."
     return wrapper
+
+
+def __getattr__(name):
+    if name in _LAZY_MODULES:
+        return import_module(f".{name}", __name__)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 db_to_pq = _lazy_export(".core", "db_to_pq")

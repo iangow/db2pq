@@ -1,0 +1,148 @@
+---
+title: Data Management Ideas
+---
+
+# Data management ideas for `db2pq`
+
+This page adapts the package-relevant parts of the longer note
+["Data management ideas for researchers"](https://iangow.github.io/notes/published/data_mgt.html).
+The goal here is to connect those ideas directly to the `db2pq` workflows
+documented in this site.
+
+## Why this matters
+
+`db2pq` is not just an export utility. It is most useful when you treat it as
+part of a repeatable data-management workflow:
+
+- maintain a general-purpose local Parquet library for commonly used datasets
+- create project-level snapshots when a specific analysis needs a frozen input
+- archive replaced files when upstream data change
+- record enough metadata to understand when local data were last refreshed
+
+For many researchers, especially WRDS users, these are the practical problems
+that come before analysis.
+
+## Three useful scopes
+
+The note distinguishes three kinds of datasets:
+
+- Project-specific data: useful for one project only.
+- General-purpose data: useful across many projects.
+- Project-level data: a frozen version of a broader dataset used for one
+  project or paper.
+
+`db2pq` is especially helpful for the last two.
+
+## General-purpose vs project-level Parquet data
+
+If you keep `DATA_DIR` pointed at a shared or long-lived Parquet repository,
+calls like `wrds_update_pq("dsi", "crsp")` update the general-purpose copy of a
+dataset.
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq("dsi", "crsp")
+```
+
+If instead you want a project-level copy, write to a separate data directory.
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq("dsi", "crsp", data_dir="data")
+```
+
+That pattern lets you keep a durable shared library while still freezing a
+project’s inputs in a local folder.
+
+## Archiving old versions
+
+One recurring problem with vendor datasets is that old versions disappear.
+`db2pq` addresses part of that problem by letting you archive replaced Parquet
+files when updates occur.
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq("company", "comp", archive=True)
+```
+
+When `archive=True`, an older active file is moved into the schema archive
+directory before the new version is promoted.
+
+Related helpers:
+
+- `pq_last_modified()` inspects embedded update metadata
+- `pq_archive()` archives the current active file
+- `pq_restore()` restores an archived file as the active one
+- `pq_remove()` removes active or archived files
+
+## Inspecting and restoring vintages
+
+`pq_last_modified()` is the easiest way to see what vintage you currently have.
+
+```python
+from db2pq import pq_last_modified
+
+pq_last_modified(table_name="company", schema="comp")
+```
+
+To inspect archived vintages instead:
+
+```python
+pq_last_modified(table_name="company", schema="comp", archive=True)
+```
+
+To restore an archived file:
+
+```python
+from db2pq import pq_restore
+
+pq_restore("company_20240614T062835Z", "comp")
+```
+
+This is the core mechanism that supports project-level reproducibility when a
+data provider has since changed the source data.
+
+## When WRDS metadata are incomplete
+
+Many WRDS PostgreSQL tables expose enough update metadata for
+`wrds_update_pq()` to decide whether a new local export is needed. Some do not.
+
+When the PostgreSQL path lacks usable modification metadata, `db2pq` can fall
+back to SAS metadata for some workflows:
+
+```python
+wrds_update_pq(
+    "rpa_entity_mappings",
+    "ravenpack_common",
+    obs=100,
+    data_dir="data",
+    use_sas=True,
+    sas_schema="rpa",
+)
+```
+
+That is mainly useful when you want update detection to reflect the source
+vintage rather than simply forcing refreshes manually.
+
+## Suggested practice
+
+- Use your default `DATA_DIR` for your long-lived shared Parquet library.
+- Use `data_dir="data"` or another project folder when freezing inputs for a
+  paper or replication package.
+- Turn on `archive=True` for datasets where historical vintages matter.
+- Use `pq_last_modified()` to confirm what you actually have before analysis.
+- Restore archived files explicitly when you need to reproduce earlier results.
+
+## Related pages
+
+- [WRDS to PQ](wrds-to-pq.qmd)
+- [Other PG to PQ](pg-to-pq.qmd)
+- [API Reference](reference/index.qmd)
+
+## Original note
+
+The fuller essay, with more context and examples, is available at
+["Data management ideas for researchers"](https://iangow.github.io/notes/published/data_mgt.html).

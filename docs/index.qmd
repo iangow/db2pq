@@ -1,0 +1,49 @@
+---
+title: db2pq
+---
+
+# Export PostgreSQL and WRDS data to Parquet
+
+`db2pq` is a Python package for moving data between WRDS, PostgreSQL, and
+Parquet-centered local workflows.
+
+The documentation site is organized around the main paths people take through
+the package:
+
+- [Data management ideas](data-management.qmd): package-focused guidance adapted
+  from a longer note on managing research datasets.
+- [WRDS to PQ](wrds-to-pq.qmd): export WRDS tables into Parquet files and keep
+  them up to date.
+- [WRDS to PG](wrds-to-pg.qmd): mirror WRDS tables into a PostgreSQL database.
+- [Other PG to PQ](pg-to-pq.qmd): export tables from non-WRDS PostgreSQL
+  databases to Parquet.
+- [PQ to PG](pq-to-pg.qmd): current status of Parquet-to-PostgreSQL support.
+- [API Reference](reference/index.qmd): generated function reference from
+  docstrings.
+
+## Install
+
+```bash
+pip install --upgrade db2pq
+```
+
+Optional extras:
+
+```bash
+pip install --upgrade "db2pq[sas]"
+pip install --upgrade "db2pq[pandas]"
+pip install --upgrade "db2pq[ibis]"
+pip install --upgrade "db2pq[adbc]"
+```
+
+## Quick example
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq("dsi", "crsp")
+```
+
+## Reference generation
+
+This site uses `quartodoc` for API pages and Quarto for rendering.

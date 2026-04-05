@@ -1,0 +1,75 @@
+project:
+  type: website
+
+metadata-files:
+  - reference/_sidebar.yml
+
+website:
+  title: db2pq
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    css:
+      - reference/_styles-quartodoc.css
+
+quartodoc:
+  style: pkgdown
+  dir: reference
+  title: API Reference
+  package: db2pq
+  dynamic: true
+  sidebar:
+    file: reference/_sidebar.yml
+    collapse-level: 1
+    contents:
+      - text: Home
+        href: index.qmd
+      - section: Workflows
+        contents:
+          - data-management.qmd
+          - wrds-to-pq.qmd
+          - wrds-to-pg.qmd
+          - pg-to-pq.qmd
+          - pq-to-pg.qmd
+      - section: Reference
+        contents:
+          - "{{ contents }}"
+  css: reference/_styles-quartodoc.css
+  sections:
+    - title: Parquet Export
+      desc: Helpers for exporting PostgreSQL and WRDS data into Parquet files.
+      contents:
+        - core.db_to_pq
+        - core.wrds_pg_to_pq
+        - core.db_schema_to_pq
+        - core.wrds_update_pq
+        - core.wrds_update_schema
+        - ibis.ibis_to_pq
+    - title: PostgreSQL Sync
+      desc: Helpers for materializing WRDS tables into PostgreSQL.
+      contents:
+        - postgres.update.wrds_update_pg
+        - postgres.schema.db_schema_tables
+    - title: Parquet Utilities
+      desc: Helpers for managing and inspecting parquet files produced by db2pq.
+      contents:
+        - files.paths.pq_list_files
+        - files.parquet.pq_last_modified
+        - files.parquet.pq_archive
+        - files.parquet.pq_restore
+        - files.parquet.pq_remove
+    - title: Configuration and Credentials
+      desc: Helpers for engine defaults and WRDS credential management.
+      contents:
+        - config.set_default_engine
+        - config.get_default_engine
+        - credentials.get_wrds_username
+        - credentials.get_wrds_conninfo
+        - credentials.ensure_wrds_id
+        - credentials.ensure_wrds_access
+        - credentials.find_pgpass_entry
+        - credentials.has_pgpass_password
+        - credentials.save_password
+        - credentials.ensure_wrds_credentials

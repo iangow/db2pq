@@ -19,6 +19,14 @@ __pycache__/
 build/
 dist/
 .positai
+.cache/
+.docs-venv/
+.uv-cache/
+docs/.quarto/
+docs/.gitignore
+docs/_site/
+docs/objects.json
+docs/reference/
 
 # Local env / scratch outputs
 .env

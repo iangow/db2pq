@@ -1,0 +1,42 @@
+---
+title: Other PG to PQ
+---
+
+# PostgreSQL to Parquet
+
+Use this path when the source is a PostgreSQL database that is not WRDS, and
+the destination is a Parquet file or directory tree.
+
+## Main helpers
+
+- `db_to_pq(table_name, schema, ...)` exports one PostgreSQL table to Parquet.
+- `db_schema_to_pq(schema, ...)` exports all tables in a PostgreSQL schema.
+- `ibis_to_pq(table, out_file, ...)` writes a PostgreSQL-backed Ibis expression
+  to Parquet.
+
+## Typical example
+
+```python
+from db2pq import db_to_pq
+
+db_to_pq(
+    table_name="my_table",
+    schema="public",
+    host="localhost",
+    database="mydb",
+    engine="adbc",
+)
+```
+
+## When to use each helper
+
+- Use `db_to_pq()` for one source table.
+- Use `db_schema_to_pq()` when you want a whole schema exported.
+- Use `ibis_to_pq()` when you already have an Ibis expression and want that
+  query result written directly to Parquet.
+
+## Related reference pages
+
+- [db_to_pq](reference/core.db_to_pq.qmd)
+- [db_schema_to_pq](reference/core.db_schema_to_pq.qmd)
+- [ibis_to_pq](reference/ibis.ibis_to_pq.qmd)
