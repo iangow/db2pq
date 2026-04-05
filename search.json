@@ -1,0 +1,1366 @@
+[
+  {
+    "objectID": "reference/files.paths.pq_list_files.html",
+    "href": "reference/files.paths.pq_list_files.html",
+    "title": "files.paths.pq_list_files",
+    "section": "",
+    "text": "files.paths.pq_list_files(\n    schema,\n    *,\n    data_dir=None,\n    archive=False,\n    archive_dir=None,\n)\nGet a list of parquet files in a schema or its archive directory.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nschema\n\nName of database schema.\nrequired\n\n\ndata_dir\n\nRoot directory of parquet data repository. The default is to use the environment value DATA_DIR or (if not set) the current directory.\nNone\n\n\narchive\n\nIf True, list files in the archive directory under the schema. Default is False.\nFalse\n\n\narchive_dir\n\nName of archive directory under the schema directory. Default is “archive”.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\npq_files\n[string]\nNames of parquet files found.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.paths.pq_list_files"
+    ]
+  },
+  {
+    "objectID": "reference/files.paths.pq_list_files.html#parameters",
+    "href": "reference/files.paths.pq_list_files.html#parameters",
+    "title": "files.paths.pq_list_files",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nschema\n\nName of database schema.\nrequired\n\n\ndata_dir\n\nRoot directory of parquet data repository. The default is to use the environment value DATA_DIR or (if not set) the current directory.\nNone\n\n\narchive\n\nIf True, list files in the archive directory under the schema. Default is False.\nFalse\n\n\narchive_dir\n\nName of archive directory under the schema directory. Default is “archive”.\nNone",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.paths.pq_list_files"
+    ]
+  },
+  {
+    "objectID": "reference/files.paths.pq_list_files.html#returns",
+    "href": "reference/files.paths.pq_list_files.html#returns",
+    "title": "files.paths.pq_list_files",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\npq_files\n[string]\nNames of parquet files found.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.paths.pq_list_files"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_schema_to_pq.html",
+    "href": "reference/core.db_schema_to_pq.html",
+    "title": "core.db_schema_to_pq",
+    "section": "",
+    "text": "core.db_schema_to_pq(\n    schema,\n    *,\n    user=None,\n    host=None,\n    dbname=None,\n    port=None,\n    data_dir=None,\n    row_group_size=1024 * 1024,\n    batched=True,\n    threads=None,\n    engine=None,\n    numeric_mode='text',\n    archive=False,\n    archive_dir=None,\n)\nExport all tables in a PostgreSQL schema to Parquet files.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of the PostgreSQL database schema.\nrequired\n\n\nuser\nstr\nPostgreSQL user role. If not provided, defaults to the value of the PGUSER environment variable, or (if unset) the current system user.\nNone\n\n\nhost\nstr\nHost name for the PostgreSQL server. If not provided, defaults to the value of the PGHOST environment variable, or \"localhost\" if unset.\nNone\n\n\ndbname\nstr\nName of the PostgreSQL database. If not provided, defaults to the value of the PGDATABASE environment variable, or (if unset) the resolved user.\nNone\n\n\nport\nint\nPort for the PostgreSQL server. If not provided, defaults to the value of the PGPORT environment variable, or 5432 if unset.\nNone\n\n\ndata_dir\nstr\nRoot directory of the Parquet data repository. If not provided, defaults to the value of the DATA_DIR environment variable, or the current working directory.\nNone\n\n\nrow_group_size\nint\nMaximum number of rows in each written Parquet row group. Must be positive. Default is 1024 * 1024.\n1024 * 1024\n\n\nbatched\nbool\nWhether data are extracted in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches reduces memory usage for large tables at the cost of slightly lower performance.\nTrue\n\n\nthreads\nint\nNumber of threads DuckDB is allowed to use. If provided, must be positive.\nNone\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\narchive\nbool\nWhether an existing Parquet file should be archived before being replaced.\nFalse\n\n\narchive_dir\nstr\nName of the directory (relative to data_dir/schema) where archived Parquet files will be stored.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nresults\nlist[str]\nList of Parquet file paths returned by db_to_pq(), one for each table in the schema.\n\n\n\n\n\n\n&gt;&gt;&gt; db_schema_to_pq(\"crsp\")\n&gt;&gt;&gt; db_schema_to_pq(\"audit\", archive=True)",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_schema_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_schema_to_pq.html#parameters",
+    "href": "reference/core.db_schema_to_pq.html#parameters",
+    "title": "core.db_schema_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of the PostgreSQL database schema.\nrequired\n\n\nuser\nstr\nPostgreSQL user role. If not provided, defaults to the value of the PGUSER environment variable, or (if unset) the current system user.\nNone\n\n\nhost\nstr\nHost name for the PostgreSQL server. If not provided, defaults to the value of the PGHOST environment variable, or \"localhost\" if unset.\nNone\n\n\ndbname\nstr\nName of the PostgreSQL database. If not provided, defaults to the value of the PGDATABASE environment variable, or (if unset) the resolved user.\nNone\n\n\nport\nint\nPort for the PostgreSQL server. If not provided, defaults to the value of the PGPORT environment variable, or 5432 if unset.\nNone\n\n\ndata_dir\nstr\nRoot directory of the Parquet data repository. If not provided, defaults to the value of the DATA_DIR environment variable, or the current working directory.\nNone\n\n\nrow_group_size\nint\nMaximum number of rows in each written Parquet row group. Must be positive. Default is 1024 * 1024.\n1024 * 1024\n\n\nbatched\nbool\nWhether data are extracted in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches reduces memory usage for large tables at the cost of slightly lower performance.\nTrue\n\n\nthreads\nint\nNumber of threads DuckDB is allowed to use. If provided, must be positive.\nNone\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\narchive\nbool\nWhether an existing Parquet file should be archived before being replaced.\nFalse\n\n\narchive_dir\nstr\nName of the directory (relative to data_dir/schema) where archived Parquet files will be stored.\nNone",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_schema_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_schema_to_pq.html#returns",
+    "href": "reference/core.db_schema_to_pq.html#returns",
+    "title": "core.db_schema_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\nresults\nlist[str]\nList of Parquet file paths returned by db_to_pq(), one for each table in the schema.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_schema_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_schema_to_pq.html#examples",
+    "href": "reference/core.db_schema_to_pq.html#examples",
+    "title": "core.db_schema_to_pq",
+    "section": "",
+    "text": "&gt;&gt;&gt; db_schema_to_pq(\"crsp\")\n&gt;&gt;&gt; db_schema_to_pq(\"audit\", archive=True)",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_schema_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/config.get_default_engine.html",
+    "href": "reference/config.get_default_engine.html",
+    "title": "config.get_default_engine",
+    "section": "",
+    "text": "config.get_default_engine\nconfig.get_default_engine()",
+    "crumbs": [
+      "Reference",
+      "Configuration",
+      "config.get_default_engine"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_restore.html",
+    "href": "reference/files.parquet.pq_restore.html",
+    "title": "files.parquet.pq_restore",
+    "section": "",
+    "text": "files.parquet.pq_restore\nfiles.parquet.pq_restore(\n    file_basename,\n    schema,\n    data_dir=None,\n    archive=True,\n    archive_dir=None,\n)\nRestore an archived parquet file into the schema directory.\nfile_basename may include or omit .parquet and should refer to a file in: ///",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_restore"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_update_pq.html",
+    "href": "reference/core.wrds_update_pq.html",
+    "title": "core.wrds_update_pq",
+    "section": "",
+    "text": "core.wrds_update_pq(\n    table_name,\n    schema,\n    *,\n    wrds_id=None,\n    data_dir=None,\n    force=False,\n    col_types=None,\n    encoding='utf-8',\n    sas_schema=None,\n    row_group_size=1048576,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    where=None,\n    batched=True,\n    threads=3,\n    tz='UTC',\n    engine=None,\n    numeric_mode='text',\n    adbc_batch_size_hint_bytes=None,\n    adbc_use_copy=None,\n    use_sas=False,\n    archive=False,\n    archive_dir=None,\n)\nExport a table from the WRDS PostgreSQL database to a Parquet file.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\n\nName of the table in the WRDS PostgreSQL database.\nrequired\n\n\nschema\n\nName of the database schema.\nrequired\n\n\nwrds_id\nstring\nWRDS user ID used to access WRDS services. This parameter is required and must be provided either explicitly or via the WRDS_ID environment variable.\nNone\n\n\ndata_dir\nstring\nRoot directory of the Parquet data repository. If not provided, defaults to the value of the DATA_DIR environment variable, or the current working directory.\nNone\n\n\nforce\n\nWhether update should proceed regardless of date comparison results.\nFalse\n\n\ncol_types\n\nDictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, col_types = {'permno': 'int32', 'permco': 'int32'}.\nNone\n\n\nrow_group_size\n\nMaximum number of rows in each written row group. Default is 1024 * 1024.\n1048576\n\n\nobs\n\nNumber of observations to import from database table. Implemented using SQL LIMIT. Setting this to modest value (e.g., obs=1000) can be useful for testing wrds_update_pq() with large tables.\nNone\n\n\nalt_table_name\n\nBasename of parquet file. Used when file should have different name from table_name.\nNone\n\n\nkeep\n\nRegex pattern(s) indicating columns to keep.\nNone\n\n\ndrop\n\nRegex pattern(s) indicating columns to drop. If both drop and keep are provided, drop is applied first.\nNone\n\n\nbatched\n\nIndicates whether data will be extracting in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.\nTrue\n\n\nthreads\n\nThe number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.\n3\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nOn the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes.\nNone\n\n\nadbc_use_copy\nbool[Optional]\nOn the ADBC path, enable or disable the PostgreSQL driver’s COPY optimization explicitly.\nNone\n\n\nuse_sas\n\nShould update get table comments from SAS data file. If False, then updated string comes from WRDS PostgreSQL table comment.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.\n\n\n\n\n\n\n&gt;&gt;&gt; wrds_update_pq(\"dsi\", \"crsp\")\n&gt;&gt;&gt; wrds_update_pq(\"feed21_bankruptcy_notification\", \"audit\")",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_update_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_update_pq.html#parameters",
+    "href": "reference/core.wrds_update_pq.html#parameters",
+    "title": "core.wrds_update_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\n\nName of the table in the WRDS PostgreSQL database.\nrequired\n\n\nschema\n\nName of the database schema.\nrequired\n\n\nwrds_id\nstring\nWRDS user ID used to access WRDS services. This parameter is required and must be provided either explicitly or via the WRDS_ID environment variable.\nNone\n\n\ndata_dir\nstring\nRoot directory of the Parquet data repository. If not provided, defaults to the value of the DATA_DIR environment variable, or the current working directory.\nNone\n\n\nforce\n\nWhether update should proceed regardless of date comparison results.\nFalse\n\n\ncol_types\n\nDictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, col_types = {'permno': 'int32', 'permco': 'int32'}.\nNone\n\n\nrow_group_size\n\nMaximum number of rows in each written row group. Default is 1024 * 1024.\n1048576\n\n\nobs\n\nNumber of observations to import from database table. Implemented using SQL LIMIT. Setting this to modest value (e.g., obs=1000) can be useful for testing wrds_update_pq() with large tables.\nNone\n\n\nalt_table_name\n\nBasename of parquet file. Used when file should have different name from table_name.\nNone\n\n\nkeep\n\nRegex pattern(s) indicating columns to keep.\nNone\n\n\ndrop\n\nRegex pattern(s) indicating columns to drop. If both drop and keep are provided, drop is applied first.\nNone\n\n\nbatched\n\nIndicates whether data will be extracting in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.\nTrue\n\n\nthreads\n\nThe number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.\n3\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nOn the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes.\nNone\n\n\nadbc_use_copy\nbool[Optional]\nOn the ADBC path, enable or disable the PostgreSQL driver’s COPY optimization explicitly.\nNone\n\n\nuse_sas\n\nShould update get table comments from SAS data file. If False, then updated string comes from WRDS PostgreSQL table comment.\nFalse",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_update_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_update_pq.html#returns",
+    "href": "reference/core.wrds_update_pq.html#returns",
+    "title": "core.wrds_update_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_update_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_update_pq.html#examples",
+    "href": "reference/core.wrds_update_pq.html#examples",
+    "title": "core.wrds_update_pq",
+    "section": "",
+    "text": "&gt;&gt;&gt; wrds_update_pq(\"dsi\", \"crsp\")\n&gt;&gt;&gt; wrds_update_pq(\"feed21_bankruptcy_notification\", \"audit\")",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_update_pq"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_remove.html",
+    "href": "reference/files.parquet.pq_remove.html",
+    "title": "files.parquet.pq_remove",
+    "section": "",
+    "text": "files.parquet.pq_remove\nfiles.parquet.pq_remove(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive=False,\n    archive_dir='archive',\n)\nRemove a parquet file from active or archive storage.\nIf file_name is provided, remove that exact file path. Otherwise, resolve the parquet file from table_name/schema/data_dir. When archive=True, resolved files are looked up under archive_dir. Returns removed file path as a string, or None if nothing was removed.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_remove"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pg.html",
+    "href": "reference/core.db_to_pg.html",
+    "title": "core.db_to_pg",
+    "section": "",
+    "text": "core.db_to_pg\ncore.db_to_pg(\n    table_name,\n    schema,\n    *,\n    user=None,\n    host=None,\n    database=None,\n    port=None,\n    dst_user=None,\n    dst_host=None,\n    dst_database=None,\n    dst_port=None,\n    dst_schema=None,\n    col_types=None,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    tz='UTC',\n    create_roles=True,\n)\nWrite a PostgreSQL table to another PostgreSQL database.\nParameters mirror db_to_pq() for the source side, with additional dst_* parameters describing the destination PostgreSQL connection.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.db_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/index.html",
+    "href": "reference/index.html",
+    "title": "API Reference",
+    "section": "",
+    "text": "Helpers for exporting PostgreSQL and WRDS data into Parquet files.\n\n\n\ncore.db_to_pq\nExport a PostgreSQL table to a parquet file.\n\n\ncore.pg_update_pq\nExport a local PostgreSQL table to Parquet when the source is newer.\n\n\ncore.wrds_pg_to_pq\nExport a table from the WRDS PostgreSQL database to a parquet file.\n\n\ncore.wrds_sql_to_pq\nRun a SQL query against WRDS PostgreSQL and write the result to Parquet.\n\n\ncore.db_schema_to_pq\nExport all tables in a PostgreSQL schema to Parquet files.\n\n\ncore.wrds_update_pq\nExport a table from the WRDS PostgreSQL database to a Parquet file.\n\n\ncore.wrds_update_schema\nUpdate existing parquet files in a schema.\n\n\nibis.ibis_to_pq\nWrite an Ibis PostgreSQL table expression to a parquet file.\n\n\n\n\n\n\nHelpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.\n\n\n\ncore.db_to_pg\nWrite a PostgreSQL table to another PostgreSQL database.\n\n\ncore.wrds_pg_to_pg\nWrite a WRDS PostgreSQL table to another PostgreSQL database.\n\n\npostgres.update.wrds_update_pg\nMaterialize a WRDS PostgreSQL table into a local PostgreSQL database.\n\n\npostgres.update.pq_to_pg\nWrite a parquet file from the local repository into PostgreSQL.\n\n\npostgres.update.pq_update_pg\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.\n\n\npostgres.update.process_sql\nExecute SQL against the destination PostgreSQL database used by\n\n\npostgres.schema.db_schema_tables\nGet list of all tables in a PostgreSQL schema.\n\n\npostgres.schema.wrds_get_tables\nGet list of WRDS tables in a schema, optionally including views.\n\n\npostgres.comments.set_table_comment\nSet (or clear) a PostgreSQL table comment using psycopg.\n\n\n\n\n\n\nHelpers for managing and inspecting parquet files produced by db2pq.\n\n\n\nfiles.paths.pq_list_files\nGet a list of parquet files in a schema or its archive directory.\n\n\nfiles.parquet.pq_last_modified\nGet last-updated metadata for parquet data files.\n\n\nfiles.parquet.pq_archive\nArchive a parquet file by renaming it into an archive subdirectory.\n\n\nfiles.parquet.pq_restore\nRestore an archived parquet file into the schema directory.\n\n\nfiles.parquet.pq_remove\nRemove a parquet file from active or archive storage.\n\n\n\n\n\n\nHelpers for engine defaults and runtime behavior.\n\n\n\nconfig.set_default_engine\n\n\n\nconfig.get_default_engine",
+    "crumbs": [
+      "Reference",
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#parquet-export",
+    "href": "reference/index.html#parquet-export",
+    "title": "API Reference",
+    "section": "",
+    "text": "Helpers for exporting PostgreSQL and WRDS data into Parquet files.\n\n\n\ncore.db_to_pq\nExport a PostgreSQL table to a parquet file.\n\n\ncore.pg_update_pq\nExport a local PostgreSQL table to Parquet when the source is newer.\n\n\ncore.wrds_pg_to_pq\nExport a table from the WRDS PostgreSQL database to a parquet file.\n\n\ncore.wrds_sql_to_pq\nRun a SQL query against WRDS PostgreSQL and write the result to Parquet.\n\n\ncore.db_schema_to_pq\nExport all tables in a PostgreSQL schema to Parquet files.\n\n\ncore.wrds_update_pq\nExport a table from the WRDS PostgreSQL database to a Parquet file.\n\n\ncore.wrds_update_schema\nUpdate existing parquet files in a schema.\n\n\nibis.ibis_to_pq\nWrite an Ibis PostgreSQL table expression to a parquet file.",
+    "crumbs": [
+      "Reference",
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#postgresql-sync",
+    "href": "reference/index.html#postgresql-sync",
+    "title": "API Reference",
+    "section": "",
+    "text": "Helpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.\n\n\n\ncore.db_to_pg\nWrite a PostgreSQL table to another PostgreSQL database.\n\n\ncore.wrds_pg_to_pg\nWrite a WRDS PostgreSQL table to another PostgreSQL database.\n\n\npostgres.update.wrds_update_pg\nMaterialize a WRDS PostgreSQL table into a local PostgreSQL database.\n\n\npostgres.update.pq_to_pg\nWrite a parquet file from the local repository into PostgreSQL.\n\n\npostgres.update.pq_update_pg\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.\n\n\npostgres.update.process_sql\nExecute SQL against the destination PostgreSQL database used by\n\n\npostgres.schema.db_schema_tables\nGet list of all tables in a PostgreSQL schema.\n\n\npostgres.schema.wrds_get_tables\nGet list of WRDS tables in a schema, optionally including views.\n\n\npostgres.comments.set_table_comment\nSet (or clear) a PostgreSQL table comment using psycopg.",
+    "crumbs": [
+      "Reference",
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#parquet-utilities",
+    "href": "reference/index.html#parquet-utilities",
+    "title": "API Reference",
+    "section": "",
+    "text": "Helpers for managing and inspecting parquet files produced by db2pq.\n\n\n\nfiles.paths.pq_list_files\nGet a list of parquet files in a schema or its archive directory.\n\n\nfiles.parquet.pq_last_modified\nGet last-updated metadata for parquet data files.\n\n\nfiles.parquet.pq_archive\nArchive a parquet file by renaming it into an archive subdirectory.\n\n\nfiles.parquet.pq_restore\nRestore an archived parquet file into the schema directory.\n\n\nfiles.parquet.pq_remove\nRemove a parquet file from active or archive storage.",
+    "crumbs": [
+      "Reference",
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "reference/index.html#configuration",
+    "href": "reference/index.html#configuration",
+    "title": "API Reference",
+    "section": "",
+    "text": "Helpers for engine defaults and runtime behavior.\n\n\n\nconfig.set_default_engine\n\n\n\nconfig.get_default_engine",
+    "crumbs": [
+      "Reference",
+      "API Reference"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pg.html",
+    "href": "reference/core.wrds_pg_to_pg.html",
+    "title": "core.wrds_pg_to_pg",
+    "section": "",
+    "text": "core.wrds_pg_to_pg\ncore.wrds_pg_to_pg(\n    table_name,\n    schema,\n    *,\n    wrds_id=None,\n    dst_user=None,\n    dst_host=None,\n    dst_database=None,\n    dst_port=None,\n    dst_schema=None,\n    col_types=None,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    tz='UTC',\n    create_roles=True,\n)\nWrite a WRDS PostgreSQL table to another PostgreSQL database.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.wrds_pg_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_update_pg.html",
+    "href": "reference/postgres.update.pq_update_pg.html",
+    "title": "postgres.update.pq_update_pg",
+    "section": "",
+    "text": "postgres.update.pq_update_pg\npostgres.update.pq_update_pg(\n    table_name,\n    schema,\n    *,\n    data_dir=None,\n    user=None,\n    host=None,\n    dbname=None,\n    database=None,\n    port=None,\n    dst_schema=None,\n    alt_table_name=None,\n    engine='duckdb',\n    force=False,\n    create_roles=True,\n)\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_update_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.comments.set_table_comment.html",
+    "href": "reference/postgres.comments.set_table_comment.html",
+    "title": "postgres.comments.set_table_comment",
+    "section": "",
+    "text": "postgres.comments.set_table_comment\npostgres.comments.set_table_comment(\n    conn=None,\n    *,\n    schema,\n    table_name,\n    comment,\n    user=None,\n    host=None,\n    dbname=None,\n    port=None,\n)\nSet (or clear) a PostgreSQL table comment using psycopg.\nIf conn is omitted, connect to the same destination PostgreSQL database resolved by wrds_update_pg().",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.comments.set_table_comment"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_to_pg.html",
+    "href": "reference/postgres.update.pq_to_pg.html",
+    "title": "postgres.update.pq_to_pg",
+    "section": "",
+    "text": "postgres.update.pq_to_pg\npostgres.update.pq_to_pg(\n    table_name,\n    schema,\n    *,\n    data_dir=None,\n    user=None,\n    host=None,\n    dbname=None,\n    database=None,\n    port=None,\n    dst_schema=None,\n    alt_table_name=None,\n    engine='duckdb',\n    create_roles=True,\n    source_comment=None,\n)\nWrite a parquet file from the local repository into PostgreSQL.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_archive.html",
+    "href": "reference/files.parquet.pq_archive.html",
+    "title": "files.parquet.pq_archive",
+    "section": "",
+    "text": "files.parquet.pq_archive\nfiles.parquet.pq_archive(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive_dir=None,\n)\nArchive a parquet file by renaming it into an archive subdirectory.\nIf file_name is provided, archive that exact file path. Otherwise, resolve the parquet file from table_name/schema/data_dir. Returns archived file path as a string, or None if no file was archived.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_archive"
+    ]
+  },
+  {
+    "objectID": "data-management.html",
+    "href": "data-management.html",
+    "title": "Data Management Ideas",
+    "section": "",
+    "text": "This page adapts the package-relevant parts of the longer note “Data management ideas for researchers”. The goal here is to connect those ideas directly to the db2pq workflows documented in this site.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#why-this-matters",
+    "href": "data-management.html#why-this-matters",
+    "title": "Data Management Ideas",
+    "section": "Why this matters",
+    "text": "Why this matters\ndb2pq is not just an export utility. It is most useful when you treat it as part of a repeatable data-management workflow:\n\nmaintain a general-purpose local Parquet library for commonly used datasets\ncreate project-level snapshots when a specific analysis needs a frozen input\narchive replaced files when upstream data change\nrecord enough metadata to understand when local data were last refreshed\n\nFor many researchers, especially WRDS users, these are the practical problems that come before analysis.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#three-useful-scopes",
+    "href": "data-management.html#three-useful-scopes",
+    "title": "Data Management Ideas",
+    "section": "Three useful scopes",
+    "text": "Three useful scopes\nThe note distinguishes three kinds of datasets:\n\nProject-specific data: useful for one project only.\nGeneral-purpose data: useful across many projects.\nProject-level data: a frozen version of a broader dataset used for one project or paper.\n\ndb2pq is especially helpful for the last two.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#general-purpose-vs-project-level-parquet-data",
+    "href": "data-management.html#general-purpose-vs-project-level-parquet-data",
+    "title": "Data Management Ideas",
+    "section": "General-purpose vs project-level Parquet data",
+    "text": "General-purpose vs project-level Parquet data\nIf you keep DATA_DIR pointed at a shared or long-lived Parquet repository, calls like wrds_update_pq(\"dsi\", \"crsp\") update the general-purpose copy of a dataset.\nfrom db2pq import wrds_update_pq\n\nwrds_update_pq(\"dsi\", \"crsp\")\nIf instead you want a project-level copy, write to a separate data directory.\nfrom db2pq import wrds_update_pq\n\nwrds_update_pq(\"dsi\", \"crsp\", data_dir=\"data\")\nThat pattern lets you keep a durable shared library while still freezing a project’s inputs in a local folder.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#archiving-old-versions",
+    "href": "data-management.html#archiving-old-versions",
+    "title": "Data Management Ideas",
+    "section": "Archiving old versions",
+    "text": "Archiving old versions\nOne recurring problem with vendor datasets is that old versions disappear. db2pq addresses part of that problem by letting you archive replaced Parquet files when updates occur.\nfrom db2pq import wrds_update_pq\n\nwrds_update_pq(\"company\", \"comp\", archive=True)\nWhen archive=True, an older active file is moved into the schema archive directory before the new version is promoted.\nRelated helpers:\n\npq_last_modified() inspects embedded update metadata\npq_archive() archives the current active file\npq_restore() restores an archived file as the active one\npq_remove() removes active or archived files",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#inspecting-and-restoring-vintages",
+    "href": "data-management.html#inspecting-and-restoring-vintages",
+    "title": "Data Management Ideas",
+    "section": "Inspecting and restoring vintages",
+    "text": "Inspecting and restoring vintages\npq_last_modified() is the easiest way to see what vintage you currently have.\nfrom db2pq import pq_last_modified\n\npq_last_modified(table_name=\"company\", schema=\"comp\")\nTo inspect archived vintages instead:\npq_last_modified(table_name=\"company\", schema=\"comp\", archive=True)\nTo restore an archived file:\nfrom db2pq import pq_restore\n\npq_restore(\"company_20240614T062835Z\", \"comp\")\nThis is the core mechanism that supports project-level reproducibility when a data provider has since changed the source data.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#when-wrds-metadata-are-incomplete",
+    "href": "data-management.html#when-wrds-metadata-are-incomplete",
+    "title": "Data Management Ideas",
+    "section": "When WRDS metadata are incomplete",
+    "text": "When WRDS metadata are incomplete\nMany WRDS PostgreSQL tables expose enough update metadata for wrds_update_pq() to decide whether a new local export is needed. Some do not.\nWhen the PostgreSQL path lacks usable modification metadata, db2pq can fall back to SAS metadata for some workflows:\nwrds_update_pq(\n    \"rpa_entity_mappings\",\n    \"ravenpack_common\",\n    obs=100,\n    data_dir=\"data\",\n    use_sas=True,\n    sas_schema=\"rpa\",\n)\nThat is mainly useful when you want update detection to reflect the source vintage rather than simply forcing refreshes manually.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#suggested-practice",
+    "href": "data-management.html#suggested-practice",
+    "title": "Data Management Ideas",
+    "section": "Suggested practice",
+    "text": "Suggested practice\n\nUse your default DATA_DIR for your long-lived shared Parquet library.\nUse data_dir=\"data\" or another project folder when freezing inputs for a paper or replication package.\nTurn on archive=True for datasets where historical vintages matter.\nUse pq_last_modified() to confirm what you actually have before analysis.\nRestore archived files explicitly when you need to reproduce earlier results.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#related-pages",
+    "href": "data-management.html#related-pages",
+    "title": "Data Management Ideas",
+    "section": "Related pages",
+    "text": "Related pages\n\nWRDS to Parquet\nPostgreSQL to Parquet\nAPI Reference",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "data-management.html#original-note",
+    "href": "data-management.html#original-note",
+    "title": "Data Management Ideas",
+    "section": "Original note",
+    "text": "Original note\nThe fuller essay, with more context and examples, is available at “Data management ideas for researchers”.",
+    "crumbs": [
+      "Workflows",
+      "Data Management Ideas"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html",
+    "href": "wrds-to-pg.html",
+    "title": "WRDS to PostgreSQL",
+    "section": "",
+    "text": "Use this path when you want to materialize WRDS data into a PostgreSQL database instead of writing Parquet files.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html#main-helpers",
+    "href": "wrds-to-pg.html#main-helpers",
+    "title": "WRDS to PostgreSQL",
+    "section": "Main helpers",
+    "text": "Main helpers\n\nwrds_update_pg(table_name, schema, ...) creates or refreshes a PostgreSQL table from a WRDS source table.\nwrds_pg_to_pg(table_name, schema, ...) copies a WRDS PostgreSQL table into another PostgreSQL database without the update check.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html#what-it-does",
+    "href": "wrds-to-pg.html#what-it-does",
+    "title": "WRDS to PostgreSQL",
+    "section": "What it does",
+    "text": "What it does\nwrds_update_pg() plans a SELECT against WRDS, creates the destination table from that query shape, copies rows into PostgreSQL, and stores WRDS table metadata in the destination comment for update checks.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html#typical-example",
+    "href": "wrds-to-pg.html#typical-example",
+    "title": "WRDS to PostgreSQL",
+    "section": "Typical example",
+    "text": "Typical example\nfrom db2pq import wrds_update_pg\n\nwrds_update_pg(\n    table_name=\"dsi\",\n    schema=\"crsp\",\n    user=\"postgres\",\n    host=\"localhost\",\n    dbname=\"analytics\",\n)",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html#more-examples",
+    "href": "wrds-to-pg.html#more-examples",
+    "title": "WRDS to PostgreSQL",
+    "section": "More examples",
+    "text": "More examples\nA WRDS-to-PostgreSQL load with explicit integer coercions for common CRSP identifier columns:\nfrom db2pq import wrds_update_pg\n\nwrds_update_pg(\n    \"dsf\",\n    \"crsp\",\n    col_types={\"permno\": \"integer\", \"permco\": \"integer\"},\n)\nAn Audit Analytics-style example where you compute a drop list first and then materialize the cleaned table:\nfrom db2pq import wrds_update_pg\n\nwrds_update_pg(\n    table_name=\"feed55_auditor_ratification\",\n    schema=\"audit\",\n    drop=[\"match_score\", \"prior_match_flag\", \"closest_date\"],\n    col_types={\n        \"auditor_ratification_fkey\": \"integer\",\n        \"share_class_fkey\": \"integer\",\n        \"auditor_fkey\": \"integer\",\n        \"pcaob_registration_number\": \"integer\",\n    },\n)\nAfter loading a table, it is natural to add indexes or build derived tables in the destination PostgreSQL database:\nfrom db2pq import process_sql\n\nprocess_sql(\"CREATE INDEX ON crsp.dsf (permno, date)\")\nprocess_sql(\"CREATE INDEX ON crsp.dsf (permco)\")\nFor some workflows, you may also materialize a derived table after loading the source WRDS tables:\nfrom db2pq import process_sql\n\nprocess_sql(\"\"\"\nDROP TABLE IF EXISTS crsp.tfz_ft;\nCREATE TABLE crsp.tfz_ft AS\nSELECT\n    kytreasnox, tidxfam, ttermtype, ttermlbl, caldt, rdtreasno, rdcrspid\nFROM crsp.tfz_idx\nINNER JOIN crsp.tfz_dly_ft\nUSING (kytreasnox);\n\"\"\")",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html#common-options",
+    "href": "wrds-to-pg.html#common-options",
+    "title": "WRDS to PostgreSQL",
+    "section": "Common options",
+    "text": "Common options\n\nforce=True refreshes even when the destination already looks current.\nkeep= and drop= trim source columns.\nobs= limits rows for testing.\nalt_table_name= writes to a different destination table name.\ncreate_roles=True ensures schema roles and grants are created.\nwrds_schema= lets the WRDS source schema differ from the destination schema.\nuse_sas=True uses SAS metadata for freshness checks and destination comments.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html#operational-helpers",
+    "href": "wrds-to-pg.html#operational-helpers",
+    "title": "WRDS to PostgreSQL",
+    "section": "Operational helpers",
+    "text": "Operational helpers\n\nwrds_get_tables() lists WRDS tables in a schema.\nprocess_sql() executes SQL against the destination PostgreSQL database.\nset_table_comment() manages destination table comments directly.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pg.html#related-reference-pages",
+    "href": "wrds-to-pg.html#related-reference-pages",
+    "title": "WRDS to PostgreSQL",
+    "section": "Related reference pages",
+    "text": "Related reference pages\n\nwrds_update_pg\nwrds_pg_to_pg\ndb_schema_tables\nwrds_get_tables\nprocess_sql\nset_table_comment",
+    "crumbs": [
+      "Workflows",
+      "WRDS to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "authentication.html",
+    "href": "authentication.html",
+    "title": "Authentication",
+    "section": "",
+    "text": "db2pq supports a few different ways to resolve WRDS credentials. The goal is to keep the common path simple while still working with setups people already use for WRDS and PostgreSQL tools.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#the-short-version",
+    "href": "authentication.html#the-short-version",
+    "title": "Authentication",
+    "section": "The short version",
+    "text": "The short version\nFor most users, the easiest setup is:\n\nPut your WRDS username in a local .env file as WRDS_ID=... or WRDS_USER=....\nLet db2pq store your WRDS PostgreSQL password in ~/.pgpass.\n\nThat gives you a workflow where WRDS helpers can run without asking for your password each time.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#username-resolution",
+    "href": "authentication.html#username-resolution",
+    "title": "Authentication",
+    "section": "Username resolution",
+    "text": "Username resolution\nFor WRDS-related helpers, db2pq looks for a WRDS username in this order:\n\nan explicit wrds_id= function argument\nWRDS_ID\nWRDS_USER\n\nWRDS_USER is accepted mainly for compatibility with Tidy Finance-style project setups.\nExample .env file:\nWRDS_ID=your_wrds_id\nDATA_DIR=/path/to/parquet-repository",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#password-handling",
+    "href": "authentication.html#password-handling",
+    "title": "Authentication",
+    "section": "Password handling",
+    "text": "Password handling\nWRDS PostgreSQL connections ultimately use PostgreSQL password handling, so the most reliable long-term setup is to store the password in .pgpass.\nBy default, that file is:\n\n~/.pgpass on macOS and Linux\n%APPDATA%/postgresql/pgpass.conf on Windows\n\nIf PGPASSFILE is set, PostgreSQL and db2pq will use that file instead.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#what-happens-on-first-use",
+    "href": "authentication.html#what-happens-on-first-use",
+    "title": "Authentication",
+    "section": "What happens on first use",
+    "text": "What happens on first use\nIf you call a WRDS helper such as wrds_update_pq() or wrds_update_pg() and db2pq cannot find a WRDS password in .pgpass, it will try to help:\n\nif WRDS_PASSWORD is present in the environment and you are in an interactive session, db2pq can offer to copy it into .pgpass\notherwise, it can prompt you for your WRDS PostgreSQL password and save it to .pgpass\n\nThat means a Tidy Finance-style .env file like this can still work smoothly:\nWRDS_USER=your_wrds_id\nWRDS_PASSWORD=your_wrds_password\nOn first use, db2pq can move the password into .pgpass, after which you can remove WRDS_PASSWORD from the environment if you prefer.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#why-.pgpass-is-preferred",
+    "href": "authentication.html#why-.pgpass-is-preferred",
+    "title": "Authentication",
+    "section": "Why .pgpass is preferred",
+    "text": "Why .pgpass is preferred\n.pgpass is the native PostgreSQL mechanism, so it works consistently across:\n\ndb2pq\npsycopg\ncommand-line PostgreSQL tools\nother PostgreSQL-aware software on your machine\n\ndb2pq also checks that .pgpass has safe permissions, because PostgreSQL ignores files that are too widely readable.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#local-.env-support",
+    "href": "authentication.html#local-.env-support",
+    "title": "Authentication",
+    "section": "Local .env support",
+    "text": "Local .env support\ndb2pq automatically loads a local .env file when resolving defaults. That lets you keep project-local configuration such as:\n\nWRDS_ID\nWRDS_USER\nWRDS_PASSWORD\nPGUSER\nPGHOST\nPGDATABASE\nPGPORT\nDATA_DIR\n\nThis is especially useful when different projects point at different Parquet repositories or PostgreSQL destinations.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#sas-based-workflows",
+    "href": "authentication.html#sas-based-workflows",
+    "title": "Authentication",
+    "section": "SAS-based workflows",
+    "text": "SAS-based workflows\nSome db2pq workflows can use SAS metadata from WRDS when PostgreSQL comments are missing or incomplete. For those cases, password handling is still about WRDS PostgreSQL, but you may also need WRDS SSH access configured separately if you use use_sas=True.\nSee the SSH setup notes in the project README for that piece.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#practical-recommendation",
+    "href": "authentication.html#practical-recommendation",
+    "title": "Authentication",
+    "section": "Practical recommendation",
+    "text": "Practical recommendation\n\nPut WRDS_ID in a local .env file.\nUse .pgpass for the WRDS PostgreSQL password.\nUse WRDS_USER / WRDS_PASSWORD only when matching an existing Tidy Finance setup or bootstrapping the first .pgpass entry.\nKeep DATA_DIR in .env if you want the project to point at a specific Parquet repository by default.",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "authentication.html#related-pages",
+    "href": "authentication.html#related-pages",
+    "title": "Authentication",
+    "section": "Related pages",
+    "text": "Related pages\n\nWRDS to Parquet\nWRDS to PostgreSQL\nData management ideas",
+    "crumbs": [
+      "Workflows",
+      "Authentication"
+    ]
+  },
+  {
+    "objectID": "pq-to-pg.html",
+    "href": "pq-to-pg.html",
+    "title": "Parquet to PostgreSQL",
+    "section": "",
+    "text": "db2pq now exposes a first-class Parquet-to-PostgreSQL path.",
+    "crumbs": [
+      "Workflows",
+      "Parquet to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "pq-to-pg.html#main-helpers",
+    "href": "pq-to-pg.html#main-helpers",
+    "title": "Parquet to PostgreSQL",
+    "section": "Main helpers",
+    "text": "Main helpers\n\npq_to_pg(table_name, schema, ...) writes a Parquet file from the local repository into PostgreSQL.\npq_update_pg(table_name, schema, ...) writes only when the Parquet source is newer than the destination PostgreSQL table.",
+    "crumbs": [
+      "Workflows",
+      "Parquet to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "pq-to-pg.html#typical-example",
+    "href": "pq-to-pg.html#typical-example",
+    "title": "Parquet to PostgreSQL",
+    "section": "Typical example",
+    "text": "Typical example\nfrom db2pq import pq_update_pg\n\npq_update_pg(\n    table_name=\"company\",\n    schema=\"comp\",\n    dbname=\"research\",\n)",
+    "crumbs": [
+      "Workflows",
+      "Parquet to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "pq-to-pg.html#how-the-update-check-works",
+    "href": "pq-to-pg.html#how-the-update-check-works",
+    "title": "Parquet to PostgreSQL",
+    "section": "How the update check works",
+    "text": "How the update check works\npq_update_pg() reads the Parquet file’s embedded last_modified metadata and compares it with the destination PostgreSQL table comment.\nIf the Parquet file does not have parseable last_modified metadata, the function will ask you to use force=True instead of guessing.",
+    "crumbs": [
+      "Workflows",
+      "Parquet to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "pq-to-pg.html#supporting-helpers",
+    "href": "pq-to-pg.html#supporting-helpers",
+    "title": "Parquet to PostgreSQL",
+    "section": "Supporting helpers",
+    "text": "Supporting helpers\n\npq_list_files() lists available Parquet outputs by schema.\npq_last_modified() inspects the embedded Parquet modification metadata.\npq_archive(), pq_restore(), and pq_remove() manage active and archived Parquet files in the local repository.",
+    "crumbs": [
+      "Workflows",
+      "Parquet to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "pq-to-pg.html#related-postgresql-helpers",
+    "href": "pq-to-pg.html#related-postgresql-helpers",
+    "title": "Parquet to PostgreSQL",
+    "section": "Related PostgreSQL helpers",
+    "text": "Related PostgreSQL helpers\n\ndb_to_pg() copies a PostgreSQL table into another PostgreSQL database.\nwrds_pg_to_pg() copies a WRDS PostgreSQL table into PostgreSQL.\nprocess_sql() and set_table_comment() help manage the destination side.",
+    "crumbs": [
+      "Workflows",
+      "Parquet to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "pq-to-pg.html#related-reference-pages",
+    "href": "pq-to-pg.html#related-reference-pages",
+    "title": "Parquet to PostgreSQL",
+    "section": "Related reference pages",
+    "text": "Related reference pages\n\npq_to_pg\npq_update_pg\npq_list_files\npq_last_modified\npq_archive\npq_restore\npq_remove\ndb_to_pg\nwrds_pg_to_pg",
+    "crumbs": [
+      "Workflows",
+      "Parquet to PostgreSQL"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "db2pq",
+    "section": "",
+    "text": "db2pq is a Python package for building and using Parquet-centered workflows for WRDS and PostgreSQL data.\nIt is designed for a practical research workflow: move data out of WRDS or PostgreSQL, keep local Parquet copies current, and work with those files using tools like Polars.\n\nGet Started Authentication Use with Polars API Reference",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "db2pq",
+    "section": "Installation",
+    "text": "Installation\npip install --upgrade db2pq\nOptional extras:\npip install --upgrade \"db2pq[sas]\"\npip install --upgrade \"db2pq[pandas]\"\npip install --upgrade \"db2pq[ibis]\"\npip install --upgrade \"db2pq[adbc]\"",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#quick-example",
+    "href": "index.html#quick-example",
+    "title": "db2pq",
+    "section": "Quick example",
+    "text": "Quick example\nfrom db2pq import wrds_update_pq\n\nwrds_update_pq(\"dsi\", \"crsp\")\nThis example uses the standard update-aware WRDS-to-Parquet path.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#main-paths",
+    "href": "index.html#main-paths",
+    "title": "db2pq",
+    "section": "Main Paths",
+    "text": "Main Paths\n\n\nWRDS to Parquet\nExport WRDS tables to Parquet files and update them only when the WRDS source is newer.\nOpen guide\n\n\nWRDS to PostgreSQL\nMaterialize WRDS tables into a local PostgreSQL database and manage indexes or derived tables there.\nOpen guide\n\n\nPostgreSQL to Parquet\nExport local PostgreSQL tables or Ibis expressions into a Parquet repository.\nOpen guide\n\n\nParquet to PostgreSQL\nLoad Parquet repository tables back into PostgreSQL and refresh them when the Parquet source is newer.\nOpen guide",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#learn-more",
+    "href": "index.html#learn-more",
+    "title": "db2pq",
+    "section": "Learn More",
+    "text": "Learn More\n\nAuthentication: how db2pq finds WRDS credentials, uses .env, and works with .pgpass\nData management ideas: how to think about general-purpose versus project-level Parquet data\nUsing the Parquet repository with Polars: practical analysis patterns once the repository already exists\nAPI Reference: generated function reference from docstrings",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#docs-build",
+    "href": "index.html#docs-build",
+    "title": "db2pq",
+    "section": "Docs Build",
+    "text": "Docs Build\nThis site uses quartodoc for API pages and Quarto for rendering.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pq.html",
+    "href": "wrds-to-pq.html",
+    "title": "WRDS to Parquet",
+    "section": "",
+    "text": "Use this path when the source data live in WRDS PostgreSQL and the destination is a local Parquet file repository.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to Parquet"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pq.html#main-helpers",
+    "href": "wrds-to-pq.html#main-helpers",
+    "title": "WRDS to Parquet",
+    "section": "Main helpers",
+    "text": "Main helpers\n\nwrds_pg_to_pq(table_name, schema, ...) exports one WRDS table to Parquet.\nwrds_sql_to_pq(sql, table_name, schema, ...) exports a custom WRDS SQL query into the standard Parquet layout.\nwrds_update_pq(table_name, schema, ...) only rewrites a Parquet file when the WRDS source is newer.\nwrds_update_schema(schema, ...) updates a full WRDS schema into Parquet.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to Parquet"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pq.html#typical-first-run",
+    "href": "wrds-to-pq.html#typical-first-run",
+    "title": "WRDS to Parquet",
+    "section": "Typical first run",
+    "text": "Typical first run\nfrom db2pq import wrds_update_pq\n\nwrds_update_pq(\"dsi\", \"crsp\")\nIf WRDS_ID is not configured yet, db2pq can prompt for it and suggest adding it to a local .env file. If the WRDS PostgreSQL password is not yet in .pgpass, db2pq can prompt for it and save it for later use.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to Parquet"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pq.html#more-examples",
+    "href": "wrds-to-pq.html#more-examples",
+    "title": "WRDS to Parquet",
+    "section": "More examples",
+    "text": "More examples\nA CRSP-style export where identifier columns are normalized to integer types:\nfrom db2pq import wrds_update_pq\n\nwrds_update_pq(\n    \"dsf\",\n    \"crsp\",\n    col_types={\"permno\": \"int32\", \"permco\": \"int32\"},\n)\nA RavenPack-style example where the WRDS PostgreSQL schema and the SAS metadata schema do not line up:\nfrom db2pq import wrds_update_pq\n\nwrds_update_pq(\n    \"rpa_entity_mappings\",\n    \"ravenpack_common\",\n    sas_schema=\"rpa\",\n)\nYou can also use sas_schema=\"rpa\" with explicit timestamp coercions when exporting annual RavenPack tables:\nwrds_update_pq(\n    \"rpa_djpr_equities_2024\",\n    \"ravenpack_dj\",\n    sas_schema=\"rpa\",\n    batched=False,\n    col_types={\n        \"timestamp_utc\": \"timestamp\",\n        \"rpa_time_utc\": \"string\",\n        \"event_start_date_utc\": \"timestamp\",\n        \"event_end_date_utc\": \"timestamp\",\n    },\n)",
+    "crumbs": [
+      "Workflows",
+      "WRDS to Parquet"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pq.html#common-options",
+    "href": "wrds-to-pq.html#common-options",
+    "title": "WRDS to Parquet",
+    "section": "Common options",
+    "text": "Common options\n\nengine=\"duckdb\" uses DuckDB to read from PostgreSQL.\nengine=\"adbc\" streams Arrow batches directly from PostgreSQL.\nwhere= applies a SQL filter before export.\nkeep= and drop= filter source columns with regex patterns.\nobs= limits rows for testing.\narchive=True moves replaced Parquet files into an archive directory.\nuse_sas=True can use SAS metadata for update detection when PostgreSQL comments are missing or incomplete.",
+    "crumbs": [
+      "Workflows",
+      "WRDS to Parquet"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pq.html#output-layout",
+    "href": "wrds-to-pq.html#output-layout",
+    "title": "WRDS to Parquet",
+    "section": "Output layout",
+    "text": "Output layout\nFiles are written as:\n&lt;DATA_DIR&gt;/&lt;schema&gt;/&lt;table&gt;.parquet",
+    "crumbs": [
+      "Workflows",
+      "WRDS to Parquet"
+    ]
+  },
+  {
+    "objectID": "wrds-to-pq.html#related-reference-pages",
+    "href": "wrds-to-pq.html#related-reference-pages",
+    "title": "WRDS to Parquet",
+    "section": "Related reference pages",
+    "text": "Related reference pages\n\nwrds_pg_to_pq\nwrds_sql_to_pq\nwrds_update_pq\nwrds_update_schema\npq_last_modified",
+    "crumbs": [
+      "Workflows",
+      "WRDS to Parquet"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html",
+    "href": "using-parquet-with-polars.html",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "",
+    "text": "Once you have built a local Parquet repository with db2pq, the next step is usually analysis rather than more data movement. This page shows a practical Polars-based workflow for working with those files.\nThe examples here are adapted from the Python Polars Ball and Brown (1968) replication note: “Ball and Brown (1968): Replication using Python Polars”.",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#repository-layout",
+    "href": "using-parquet-with-polars.html#repository-layout",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Repository layout",
+    "text": "Repository layout\nBy default, db2pq writes files in this layout:\n&lt;DATA_DIR&gt;/&lt;schema&gt;/&lt;table&gt;.parquet\nThat means a CRSP monthly index file might live at:\n$DATA_DIR/crsp/msi.parquet",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#scanning-files-lazily",
+    "href": "using-parquet-with-polars.html#scanning-files-lazily",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Scanning files lazily",
+    "text": "Scanning files lazily\nPolars works especially well with a db2pq repository because you can scan the Parquet files lazily instead of reading them into memory all at once.\nfrom pathlib import Path\nimport os\nimport polars as pl\n\ndata_dir = Path(os.environ[\"DATA_DIR\"])\n\nmsi = pl.scan_parquet(data_dir / \"crsp\" / \"msi.parquet\")\nmsf = pl.scan_parquet(data_dir / \"crsp\" / \"msf.parquet\")\nstocknames = pl.scan_parquet(data_dir / \"crsp\" / \"stocknames.parquet\")\nccmxpf_lnkhist = pl.scan_parquet(data_dir / \"crsp\" / \"ccmxpf_lnkhist.parquet\")\n\nfunda = pl.scan_parquet(data_dir / \"comp\" / \"funda.parquet\")\nfundq = pl.scan_parquet(data_dir / \"comp\" / \"fundq.parquet\")\nThe important point is that these objects are pl.LazyFrame instances. Polars can push filters down into the Parquet scan, read only needed columns, and defer work until you call .collect().",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#loading-only-the-tables-you-need",
+    "href": "using-parquet-with-polars.html#loading-only-the-tables-you-need",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Loading only the tables you need",
+    "text": "Loading only the tables you need\nFor the Ball and Brown replication, you do not need a full WRDS mirror. A small set of tables is enough:\nfrom db2pq import wrds_update_pq\n\n# CRSP\nwrds_update_pq(\"msi\", \"crsp\")\nwrds_update_pq(\"msf\", \"crsp\")\nwrds_update_pq(\"stocknames\", \"crsp\")\nwrds_update_pq(\n    \"ccmxpf_lnkhist\",\n    \"crsp\",\n    col_types={\"lpermno\": \"int32\", \"lpermco\": \"int32\"},\n)\n\n# Compustat\nwrds_update_pq(\"funda\", \"comp\")\nwrds_update_pq(\"fundq\", \"comp\")\nThis is often a better pattern than bulk-downloading many tables you may never use in the analysis.",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#filtering-and-selecting-lazily",
+    "href": "using-parquet-with-polars.html#filtering-and-selecting-lazily",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Filtering and selecting lazily",
+    "text": "Filtering and selecting lazily\nOnce you have lazy scans, stay lazy for as long as possible.\nannc_events = (\n    fundq\n    .filter(\n        pl.col(\"indfmt\") == \"INDL\",\n        pl.col(\"datafmt\") == \"STD\",\n        pl.col(\"consol\") == \"C\",\n        pl.col(\"popsrc\") == \"D\",\n        pl.col(\"fqtr\") == 4,\n        pl.col(\"fyr\") == 12,\n        pl.col(\"rdq\").is_not_null(),\n    )\n    .select(\"gvkey\", \"datadate\", \"rdq\")\n    .with_columns(annc_month=pl.col(\"rdq\").dt.truncate(\"1mo\"))\n)\nThis style lets Polars prune both rows and columns before materialization.",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#building-helper-tables-from-smaller-inputs",
+    "href": "using-parquet-with-polars.html#building-helper-tables-from-smaller-inputs",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Building helper tables from smaller inputs",
+    "text": "Building helper tables from smaller inputs\nAnother useful pattern from the note is to derive small helper tables from compact source files before joining them to larger tables.\ncrsp_dates = (\n    msi\n    .select(\"date\")\n    .sort(\"date\")\n    .with_row_index(\"td\", offset=1)\n    .with_columns(\n        td=pl.col(\"td\").cast(pl.Int32),\n        month=pl.col(\"date\").dt.truncate(\"1mo\"),\n    )\n)\nUsing a small table like msi to define the monthly calendar is often cleaner and cheaper than deriving the same structure from a much larger table such as msf.",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#join-only-after-narrowing-the-data",
+    "href": "using-parquet-with-polars.html#join-only-after-narrowing-the-data",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Join only after narrowing the data",
+    "text": "Join only after narrowing the data\nWhen working with large WRDS-derived tables, a good default strategy is:\n\nstart with lazy scans\nfilter early\nselect only needed columns\nbuild compact helper tables\njoin later\n\nThat approach is visible throughout the Ball and Brown replication and tends to work well for Parquet-centered workflows generally.",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#when-to-collect",
+    "href": "using-parquet-with-polars.html#when-to-collect",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "When to collect",
+    "text": "When to collect\nStay in LazyFrame form until you actually need concrete results for:\n\nplotting\nexport\nsummary tables\ndebugging intermediate output\n\nAt that point, collect only the object you need:\npreview = annc_events.limit(10).collect()",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#project-level-versus-shared-repositories",
+    "href": "using-parquet-with-polars.html#project-level-versus-shared-repositories",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Project-level versus shared repositories",
+    "text": "Project-level versus shared repositories\nThe same Polars patterns work whether you are using:\n\na shared repository pointed to by DATA_DIR\na project-level repository created with data_dir=\"data\"\n\nFor replication-style work, a project-level repository can be attractive because it freezes the exact Parquet inputs used in the project.",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#related-pages",
+    "href": "using-parquet-with-polars.html#related-pages",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Related pages",
+    "text": "Related pages\n\nData management ideas\nWRDS to Parquet\nPostgreSQL to Parquet",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "using-parquet-with-polars.html#original-source",
+    "href": "using-parquet-with-polars.html#original-source",
+    "title": "Using the Parquet Repository with Polars",
+    "section": "Original source",
+    "text": "Original source\nFor a full research example built around these ideas, see “Ball and Brown (1968): Replication using Python Polars”.",
+    "crumbs": [
+      "Workflows",
+      "Using the Parquet Repository with Polars"
+    ]
+  },
+  {
+    "objectID": "pg-to-pq.html",
+    "href": "pg-to-pq.html",
+    "title": "PostgreSQL to Parquet",
+    "section": "",
+    "text": "Use this path when the source is a PostgreSQL database that is not WRDS, and the destination is a Parquet file or directory tree.",
+    "crumbs": [
+      "Workflows",
+      "PostgreSQL to Parquet"
+    ]
+  },
+  {
+    "objectID": "pg-to-pq.html#main-helpers",
+    "href": "pg-to-pq.html#main-helpers",
+    "title": "PostgreSQL to Parquet",
+    "section": "Main helpers",
+    "text": "Main helpers\n\ndb_to_pq(table_name, schema, ...) exports one PostgreSQL table to Parquet.\npg_update_pq(table_name, schema, ...) exports one PostgreSQL table to Parquet only when the source table is newer.\ndb_schema_to_pq(schema, ...) exports all tables in a PostgreSQL schema.\nibis_to_pq(table, out_file, ...) writes a PostgreSQL-backed Ibis expression to Parquet.",
+    "crumbs": [
+      "Workflows",
+      "PostgreSQL to Parquet"
+    ]
+  },
+  {
+    "objectID": "pg-to-pq.html#typical-example",
+    "href": "pg-to-pq.html#typical-example",
+    "title": "PostgreSQL to Parquet",
+    "section": "Typical example",
+    "text": "Typical example\nfrom db2pq import db_to_pq\n\ndb_to_pq(\n    table_name=\"my_table\",\n    schema=\"public\",\n    host=\"localhost\",\n    database=\"mydb\",\n)\nThis example uses the default DuckDB-backed path. Reach for engine=\"adbc\" only when you specifically want to try the ADBC export path.",
+    "crumbs": [
+      "Workflows",
+      "PostgreSQL to Parquet"
+    ]
+  },
+  {
+    "objectID": "pg-to-pq.html#when-to-use-each-helper",
+    "href": "pg-to-pq.html#when-to-use-each-helper",
+    "title": "PostgreSQL to Parquet",
+    "section": "When to use each helper",
+    "text": "When to use each helper\n\nUse db_to_pq() for one source table.\nUse pg_update_pq() when you want the same update-aware pattern as wrds_update_pq(), but for a local PostgreSQL source table.\nUse db_schema_to_pq() when you want a whole schema exported.\nUse ibis_to_pq() when you already have an Ibis expression and want that query result written directly to Parquet.\nPrefer the default DuckDB engine unless you are intentionally testing or benchmarking the ADBC path.",
+    "crumbs": [
+      "Workflows",
+      "PostgreSQL to Parquet"
+    ]
+  },
+  {
+    "objectID": "pg-to-pq.html#ibis-example",
+    "href": "pg-to-pq.html#ibis-example",
+    "title": "PostgreSQL to Parquet",
+    "section": "Ibis example",
+    "text": "Ibis example\nHere is a more realistic ibis_to_pq() pattern adapted from your WRDS/Ibis workflow note.\nfrom sqlalchemy import create_engine\nfrom dotenv import load_dotenv\nimport ibis\nfrom ibis import _\nfrom db2pq import ibis_to_pq\nimport os\n\nload_dotenv()\n\nconnection_string = (\n    \"postgresql+psycopg://\"\n    f\"{os.getenv('WRDS_USER')}:{os.getenv('WRDS_PASSWORD')}\"\n    \"@wrds-pgdata.wharton.upenn.edu:9737/wrds\"\n)\n\nwrds = create_engine(connection_string, pool_pre_ping=True)\n\ndb = ibis.postgres.from_connection(\n    wrds.connect().connection.driver_connection\n)\n\nfactors_daily = db.table(\"factors_daily\", database=\"ff\")\n\nexpr = (\n    factors_daily\n    .filter(_.date &gt;= \"2010-01-01\")\n    .select(\"date\", \"mktrf\", \"smb\", \"hml\", \"rf\")\n)\n\nibis_to_pq(expr, \"factors_ff3_daily.parquet\", compression=\"zstd\")\nThis is a good fit when you already have a reusable Ibis query pipeline and want to write the result directly to Parquet without materializing the whole result in memory first.",
+    "crumbs": [
+      "Workflows",
+      "PostgreSQL to Parquet"
+    ]
+  },
+  {
+    "objectID": "pg-to-pq.html#related-reference-pages",
+    "href": "pg-to-pq.html#related-reference-pages",
+    "title": "PostgreSQL to Parquet",
+    "section": "Related reference pages",
+    "text": "Related reference pages\n\ndb_to_pq\npg_update_pq\ndb_schema_to_pq\nibis_to_pq",
+    "crumbs": [
+      "Workflows",
+      "PostgreSQL to Parquet"
+    ]
+  },
+  {
+    "objectID": "reference/ibis.ibis_to_pq.html",
+    "href": "reference/ibis.ibis_to_pq.html",
+    "title": "ibis.ibis_to_pq",
+    "section": "",
+    "text": "ibis.ibis_to_pq(\n    table,\n    out_file,\n    *,\n    engine=None,\n    row_group_size=1024 * 1024,\n    threads=None,\n    tz='UTC',\n    adbc_batch_size_hint_bytes=None,\n    adbc_use_copy=None,\n    **writer_kwargs,\n)\nWrite an Ibis PostgreSQL table expression to a parquet file.\nThis helper compiles an Ibis PostgreSQL expression to SQL and runs it through the same PostgreSQL export engines used elsewhere in db2pq. The resulting Arrow stream is written directly to the destination Parquet file.\nibis_to_pq() currently supports Ibis expressions backed by a PostgreSQL connection. To use it, install the optional dependency:\npip install \"db2pq[ibis]\"\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable\n\nIbis table expression backed by PostgreSQL. This may be a base table or a derived expression such as a filtered, selected, or mutated query.\nrequired\n\n\nout_file\nstr or path - like\nDestination parquet file path.\nrequired\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to run the compiled PostgreSQL SQL. If omitted, uses the configured default engine from set_default_engine() / DB2PQ_ENGINE.\n\"duckdb\"\n\n\nrow_group_size\nint[Optional]\nMaximum number of rows in each written Parquet row group.\n1024 * 1024\n\n\nthreads\nint[Optional]\nMaximum DuckDB worker threads to use when engine=\"duckdb\".\nNone\n\n\ntz\nstr[Optional]\nTime zone assumption for naive PostgreSQL timestamps before normalizing Parquet output to UTC.\n'UTC'\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nADBC batch size hint in bytes when engine=\"adbc\".\nNone\n\n\nadbc_use_copy\nbool[Optional]\nExplicitly enable or disable the PostgreSQL ADBC driver’s COPY optimization when engine=\"adbc\".\nNone\n\n\n**writer_kwargs\n\nAdditional keyword arguments passed to pyarrow.parquet.ParquetWriter. This can be used to set options such as compression=\"zstd\".\n{}\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\npq_file\nstr\nName of parquet file created.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nTypeError\nIf the supplied Ibis expression is not backed by PostgreSQL, or if PostgreSQL connection information cannot be determined from the backend.\n\n\n\n\n\n\n&gt;&gt;&gt; from db2pq import ibis_to_pq\n&gt;&gt;&gt; expr = con.table(\"my_table\").filter(lambda t: t.id &gt; 100)\n&gt;&gt;&gt; ibis_to_pq(expr, \"my_table.parquet\")\n'my_table.parquet'\n&gt;&gt;&gt; expr = con.table(\"my_table\").select(\"id\", \"value\")\n&gt;&gt;&gt; ibis_to_pq(expr, \"my_table.parquet\", compression=\"zstd\")\n'my_table.parquet'",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "ibis.ibis_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/ibis.ibis_to_pq.html#parameters",
+    "href": "reference/ibis.ibis_to_pq.html#parameters",
+    "title": "ibis.ibis_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable\n\nIbis table expression backed by PostgreSQL. This may be a base table or a derived expression such as a filtered, selected, or mutated query.\nrequired\n\n\nout_file\nstr or path - like\nDestination parquet file path.\nrequired\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to run the compiled PostgreSQL SQL. If omitted, uses the configured default engine from set_default_engine() / DB2PQ_ENGINE.\n\"duckdb\"\n\n\nrow_group_size\nint[Optional]\nMaximum number of rows in each written Parquet row group.\n1024 * 1024\n\n\nthreads\nint[Optional]\nMaximum DuckDB worker threads to use when engine=\"duckdb\".\nNone\n\n\ntz\nstr[Optional]\nTime zone assumption for naive PostgreSQL timestamps before normalizing Parquet output to UTC.\n'UTC'\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nADBC batch size hint in bytes when engine=\"adbc\".\nNone\n\n\nadbc_use_copy\nbool[Optional]\nExplicitly enable or disable the PostgreSQL ADBC driver’s COPY optimization when engine=\"adbc\".\nNone\n\n\n**writer_kwargs\n\nAdditional keyword arguments passed to pyarrow.parquet.ParquetWriter. This can be used to set options such as compression=\"zstd\".\n{}",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "ibis.ibis_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/ibis.ibis_to_pq.html#returns",
+    "href": "reference/ibis.ibis_to_pq.html#returns",
+    "title": "ibis.ibis_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\npq_file\nstr\nName of parquet file created.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "ibis.ibis_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/ibis.ibis_to_pq.html#raises",
+    "href": "reference/ibis.ibis_to_pq.html#raises",
+    "title": "ibis.ibis_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nTypeError\nIf the supplied Ibis expression is not backed by PostgreSQL, or if PostgreSQL connection information cannot be determined from the backend.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "ibis.ibis_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/ibis.ibis_to_pq.html#examples",
+    "href": "reference/ibis.ibis_to_pq.html#examples",
+    "title": "ibis.ibis_to_pq",
+    "section": "",
+    "text": "&gt;&gt;&gt; from db2pq import ibis_to_pq\n&gt;&gt;&gt; expr = con.table(\"my_table\").filter(lambda t: t.id &gt; 100)\n&gt;&gt;&gt; ibis_to_pq(expr, \"my_table.parquet\")\n'my_table.parquet'\n&gt;&gt;&gt; expr = con.table(\"my_table\").select(\"id\", \"value\")\n&gt;&gt;&gt; ibis_to_pq(expr, \"my_table.parquet\", compression=\"zstd\")\n'my_table.parquet'",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "ibis.ibis_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.db_schema_tables.html",
+    "href": "reference/postgres.schema.db_schema_tables.html",
+    "title": "postgres.schema.db_schema_tables",
+    "section": "",
+    "text": "postgres.schema.db_schema_tables\npostgres.schema.db_schema_tables(\n    schema,\n    *,\n    views=False,\n    user=None,\n    host=None,\n    database=None,\n    dbname=None,\n    port=None,\n)\nGet list of all tables in a PostgreSQL schema.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.db_schema_tables"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.wrds_update_pg.html",
+    "href": "reference/postgres.update.wrds_update_pg.html",
+    "title": "postgres.update.wrds_update_pg",
+    "section": "",
+    "text": "postgres.update.wrds_update_pg(\n    table_name,\n    schema,\n    *,\n    wrds_id=None,\n    col_types=None,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    user=None,\n    host=None,\n    dbname=None,\n    port=None,\n    force=False,\n    create_roles=True,\n    wrds_schema=None,\n    use_sas=False,\n    encoding='utf-8',\n    tz='UTC',\n)\nMaterialize a WRDS PostgreSQL table into a local PostgreSQL database.\nThe destination table is created from scratch based on the SQL SELECT used to extract the data (via DuckDB schema inference), then populated using PostgreSQL binary COPY for performance.\n\n\n\nAny existing destination table is dropped.\nkeep/drop use regex matching on source column names.\nIf both drop and keep are provided, drop is applied first.\nUpdate / fingerprint logic is handled elsewhere (or added later).\nIf create_roles is True, ensures schema owner role (&lt;schema&gt;) and read-only role (&lt;schema&gt;_access) exist, then applies grants.\nIf wrds_schema is provided, it is used as the source WRDS schema while data are still written to destination schema.\nIf use_sas is True, freshness and destination comment metadata are derived from SAS metadata instead of WRDS PostgreSQL comments.\ntz (default \"UTC\") is used to convert source timestamp without time zone columns via AT TIME ZONE.\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbool\nTrue if an update was performed, False if the destination table was already up to date.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.wrds_update_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.wrds_update_pg.html#notes",
+    "href": "reference/postgres.update.wrds_update_pg.html#notes",
+    "title": "postgres.update.wrds_update_pg",
+    "section": "",
+    "text": "Any existing destination table is dropped.\nkeep/drop use regex matching on source column names.\nIf both drop and keep are provided, drop is applied first.\nUpdate / fingerprint logic is handled elsewhere (or added later).\nIf create_roles is True, ensures schema owner role (&lt;schema&gt;) and read-only role (&lt;schema&gt;_access) exist, then applies grants.\nIf wrds_schema is provided, it is used as the source WRDS schema while data are still written to destination schema.\nIf use_sas is True, freshness and destination comment metadata are derived from SAS metadata instead of WRDS PostgreSQL comments.\ntz (default \"UTC\") is used to convert source timestamp without time zone columns via AT TIME ZONE.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.wrds_update_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.wrds_update_pg.html#returns",
+    "href": "reference/postgres.update.wrds_update_pg.html#returns",
+    "title": "postgres.update.wrds_update_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nbool\nTrue if an update was performed, False if the destination table was already up to date.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.wrds_update_pg"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pq.html",
+    "href": "reference/core.wrds_pg_to_pq.html",
+    "title": "core.wrds_pg_to_pq",
+    "section": "",
+    "text": "core.wrds_pg_to_pq(\n    table_name,\n    schema,\n    *,\n    wrds_id=None,\n    data_dir=None,\n    col_types=None,\n    row_group_size=1048576,\n    obs=None,\n    modified=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    where=None,\n    batched=True,\n    threads=3,\n    tz='UTC',\n    engine=None,\n    numeric_mode='text',\n    adbc_batch_size_hint_bytes=None,\n    adbc_use_copy=None,\n    archive=False,\n    archive_dir=None,\n)\nExport a table from the WRDS PostgreSQL database to a parquet file.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\n\nName of table in database.\nrequired\n\n\nschema\n\nName of database schema.\nrequired\n\n\nwrds_id\nstring\nWRDS user ID used to access WRDS services. This parameter is required and must be provided either explicitly or via the WRDS_ID environment variable.\nNone\n\n\ndata_dir\nstring[Optional]\nRoot directory of parquet data repository. The default is to use the environment value DATA_DIR or (if not set) the current directory.\nNone\n\n\ncol_types\nDict[Optional]\nDictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, col_types = {'permno': 'int32', 'permco': 'int32'}.\nNone\n\n\nrow_group_size\nint[Optional]\nMaximum number of rows in each written row group. Default is 1024 * 1024.\n1048576\n\n\nobs\nInteger[Optional]\nNumber of observations to import from database table. Implemented using SQL LIMIT. Setting this to modest value (e.g., obs=1000) can be useful for testing wrds_pg_to_pq() with large tables.\nNone\n\n\nalt_table_name\nstring[Optional]\nBasename of parquet file. Used when file should have different name from table_name.\nNone\n\n\nkeep\nstring or iterable[Optional]\nRegex pattern(s) indicating columns to keep.\nNone\n\n\ndrop\nstring or iterable[Optional]\nRegex pattern(s) indicating columns to drop. If both drop and keep are provided, drop is applied first.\nNone\n\n\nbatched\nbool[Optional]\nIndicates whether data will be extracting in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.\nTrue\n\n\nthreads\nint[Optional]\nThe number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.\n3\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nOn the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes.\nNone\n\n\nadbc_use_copy\nbool[Optional]\nOn the ADBC path, enable or disable the PostgreSQL driver’s COPY optimization explicitly.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.\n\n\n\n\n\n\n&gt;&gt;&gt; wrds_pg_to_pq(\"dsi\", \"crsp\")\n&gt;&gt;&gt; wrds_pg_to_pq(\"feed21_bankruptcy_notification\", \"audit\")",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_pg_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pq.html#parameters",
+    "href": "reference/core.wrds_pg_to_pq.html#parameters",
+    "title": "core.wrds_pg_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\n\nName of table in database.\nrequired\n\n\nschema\n\nName of database schema.\nrequired\n\n\nwrds_id\nstring\nWRDS user ID used to access WRDS services. This parameter is required and must be provided either explicitly or via the WRDS_ID environment variable.\nNone\n\n\ndata_dir\nstring[Optional]\nRoot directory of parquet data repository. The default is to use the environment value DATA_DIR or (if not set) the current directory.\nNone\n\n\ncol_types\nDict[Optional]\nDictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, col_types = {'permno': 'int32', 'permco': 'int32'}.\nNone\n\n\nrow_group_size\nint[Optional]\nMaximum number of rows in each written row group. Default is 1024 * 1024.\n1048576\n\n\nobs\nInteger[Optional]\nNumber of observations to import from database table. Implemented using SQL LIMIT. Setting this to modest value (e.g., obs=1000) can be useful for testing wrds_pg_to_pq() with large tables.\nNone\n\n\nalt_table_name\nstring[Optional]\nBasename of parquet file. Used when file should have different name from table_name.\nNone\n\n\nkeep\nstring or iterable[Optional]\nRegex pattern(s) indicating columns to keep.\nNone\n\n\ndrop\nstring or iterable[Optional]\nRegex pattern(s) indicating columns to drop. If both drop and keep are provided, drop is applied first.\nNone\n\n\nbatched\nbool[Optional]\nIndicates whether data will be extracting in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.\nTrue\n\n\nthreads\nint[Optional]\nThe number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.\n3\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nOn the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes.\nNone\n\n\nadbc_use_copy\nbool[Optional]\nOn the ADBC path, enable or disable the PostgreSQL driver’s COPY optimization explicitly.\nNone",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_pg_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pq.html#returns",
+    "href": "reference/core.wrds_pg_to_pq.html#returns",
+    "title": "core.wrds_pg_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_pg_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pq.html#examples",
+    "href": "reference/core.wrds_pg_to_pq.html#examples",
+    "title": "core.wrds_pg_to_pq",
+    "section": "",
+    "text": "&gt;&gt;&gt; wrds_pg_to_pq(\"dsi\", \"crsp\")\n&gt;&gt;&gt; wrds_pg_to_pq(\"feed21_bankruptcy_notification\", \"audit\")",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_pg_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.pg_update_pq.html",
+    "href": "reference/core.pg_update_pq.html",
+    "title": "core.pg_update_pq",
+    "section": "",
+    "text": "core.pg_update_pq\ncore.pg_update_pq(\n    table_name,\n    schema,\n    *,\n    user=None,\n    host=None,\n    database=None,\n    port=None,\n    data_dir=None,\n    force=False,\n    col_types=None,\n    row_group_size=1048576,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    where=None,\n    batched=True,\n    threads=3,\n    tz='UTC',\n    engine=None,\n    numeric_mode='text',\n    adbc_batch_size_hint_bytes=None,\n    adbc_use_copy=None,\n    archive=False,\n    archive_dir=None,\n)\nExport a local PostgreSQL table to Parquet when the source is newer.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.pg_update_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pq.html",
+    "href": "reference/core.db_to_pq.html",
+    "title": "core.db_to_pq",
+    "section": "",
+    "text": "core.db_to_pq(\n    table_name,\n    schema,\n    *,\n    user=None,\n    host=None,\n    database=None,\n    port=None,\n    data_dir=None,\n    col_types=None,\n    row_group_size=1048576,\n    obs=None,\n    modified=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    where=None,\n    batched=True,\n    threads=None,\n    tz='UTC',\n    engine=None,\n    numeric_mode='text',\n    adbc_batch_size_hint_bytes=None,\n    adbc_use_copy=None,\n    archive=False,\n    archive_dir=None,\n)\nExport a PostgreSQL table to a parquet file.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\n\nName of table in database.\nrequired\n\n\nschema\n\nName of database schema.\nrequired\n\n\nhost\n\nHost name for the PostgreSQL server. The default is to use the environment value PGHOST.\nNone\n\n\ndatabase\n\nName for the PostgreSQL database. The default is to use the environment value PGDATABASE or user.\nNone\n\n\ndata_dir\n\nRoot directory of parquet data repository. The default is to use the environment value DATA_DIR or (if not set) the current directory.\nNone\n\n\ncol_types\n\nDictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, col_types = {'permno':'integer', 'permco':'integer'}.\nNone\n\n\nrow_group_size\n\nMaximum number of rows in each written row group. Default is 1024 * 1024.\n1048576\n\n\nobs\n\nNumber of observations to import from database table. Implemented using SQL LIMIT. Setting this to modest value (e.g., obs=1000) can be useful for testing db_to_pq() with large tables.\nNone\n\n\nmodified\n\nLast modified string.\nNone\n\n\nalt_table_name\n\nBasename of parquet file. Used when file should have different name from table_name.\nNone\n\n\nkeep\n\nRegex pattern(s) indicating columns to keep.\nNone\n\n\ndrop\n\nRegex pattern(s) indicating columns to drop. If both drop and keep are provided, drop is applied first.\nNone\n\n\nbatched\n\nIndicates whether data will be extracting in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.\nTrue\n\n\nthreads\n\nThe number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.\nNone\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet. \"adbc\" streams Arrow record batches directly from PostgreSQL.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nOn the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes. This can affect throughput by changing the size of batches returned by fetch_record_batch().\nNone\n\n\nadbc_use_copy\nbool[Optional]\nOn the ADBC path, enable or disable the PostgreSQL driver’s COPY optimization explicitly. If omitted, the driver default is used.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.\n\n\n\n\n\n\n&gt;&gt;&gt; db_to_pq(\"dsi\", \"crsp\")\n&gt;&gt;&gt; db_to_pq(\"feed21_bankruptcy_notification\", \"audit\")",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pq.html#parameters",
+    "href": "reference/core.db_to_pq.html#parameters",
+    "title": "core.db_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\n\nName of table in database.\nrequired\n\n\nschema\n\nName of database schema.\nrequired\n\n\nhost\n\nHost name for the PostgreSQL server. The default is to use the environment value PGHOST.\nNone\n\n\ndatabase\n\nName for the PostgreSQL database. The default is to use the environment value PGDATABASE or user.\nNone\n\n\ndata_dir\n\nRoot directory of parquet data repository. The default is to use the environment value DATA_DIR or (if not set) the current directory.\nNone\n\n\ncol_types\n\nDictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, col_types = {'permno':'integer', 'permco':'integer'}.\nNone\n\n\nrow_group_size\n\nMaximum number of rows in each written row group. Default is 1024 * 1024.\n1048576\n\n\nobs\n\nNumber of observations to import from database table. Implemented using SQL LIMIT. Setting this to modest value (e.g., obs=1000) can be useful for testing db_to_pq() with large tables.\nNone\n\n\nmodified\n\nLast modified string.\nNone\n\n\nalt_table_name\n\nBasename of parquet file. Used when file should have different name from table_name.\nNone\n\n\nkeep\n\nRegex pattern(s) indicating columns to keep.\nNone\n\n\ndrop\n\nRegex pattern(s) indicating columns to drop. If both drop and keep are provided, drop is applied first.\nNone\n\n\nbatched\n\nIndicates whether data will be extracting in batches using to_pyarrow_batches() instead of a single call to to_pyarrow(). Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.\nTrue\n\n\nthreads\n\nThe number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.\nNone\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to read PostgreSQL data before writing Parquet. \"adbc\" streams Arrow record batches directly from PostgreSQL.\n\"duckdb\"\n\n\nnumeric_mode\n(text, float64, decimal)\nOn the ADBC path, cast PostgreSQL NUMERIC columns to TEXT or DOUBLE PRECISION before writing Parquet. \"decimal\" transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit col_types entries take precedence.\n\"text\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nOn the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes. This can affect throughput by changing the size of batches returned by fetch_record_batch().\nNone\n\n\nadbc_use_copy\nbool[Optional]\nOn the ADBC path, enable or disable the PostgreSQL driver’s COPY optimization explicitly. If omitted, the driver default is used.\nNone",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pq.html#returns",
+    "href": "reference/core.db_to_pq.html#returns",
+    "title": "core.db_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pq.html#examples",
+    "href": "reference/core.db_to_pq.html#examples",
+    "title": "core.db_to_pq",
+    "section": "",
+    "text": "&gt;&gt;&gt; db_to_pq(\"dsi\", \"crsp\")\n&gt;&gt;&gt; db_to_pq(\"feed21_bankruptcy_notification\", \"audit\")",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.db_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.wrds_get_tables.html",
+    "href": "reference/postgres.schema.wrds_get_tables.html",
+    "title": "postgres.schema.wrds_get_tables",
+    "section": "",
+    "text": "postgres.schema.wrds_get_tables\npostgres.schema.wrds_get_tables(schema, *, wrds_id=None, views=False)\nGet list of WRDS tables in a schema, optionally including views.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.wrds_get_tables"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_last_modified.html",
+    "href": "reference/files.parquet.pq_last_modified.html",
+    "title": "files.parquet.pq_last_modified",
+    "section": "",
+    "text": "files.parquet.pq_last_modified\nfiles.parquet.pq_last_modified(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive=False,\n    archive_dir='archive',\n)\nGet last-updated metadata for parquet data files.\nIf file_name is provided, return metadata for that file. Else if table_name is provided, resolve the parquet file from table_name/schema/data_dir and return metadata for that file. Else, return a DataFrame summary for all parquet files (optionally constrained to a schema), including a storage indicator with values local/cloud. If archive=True, files are read from archive_dir.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_last_modified"
+    ]
+  },
+  {
+    "objectID": "reference/config.set_default_engine.html",
+    "href": "reference/config.set_default_engine.html",
+    "title": "config.set_default_engine",
+    "section": "",
+    "text": "config.set_default_engine\nconfig.set_default_engine(engine)",
+    "crumbs": [
+      "Reference",
+      "Configuration",
+      "config.set_default_engine"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_sql_to_pq.html",
+    "href": "reference/core.wrds_sql_to_pq.html",
+    "title": "core.wrds_sql_to_pq",
+    "section": "",
+    "text": "core.wrds_sql_to_pq(\n    sql,\n    table_name,\n    schema,\n    *,\n    wrds_id=None,\n    data_dir=None,\n    row_group_size=1048576,\n    modified=None,\n    alt_table_name=None,\n    threads=3,\n    tz='UTC',\n    engine=None,\n    adbc_batch_size_hint_bytes=None,\n    adbc_use_copy=None,\n    archive=False,\n    archive_dir=None,\n)\nRun a SQL query against WRDS PostgreSQL and write the result to Parquet.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nsql\n\nSQL query to execute against the WRDS PostgreSQL database.\nrequired\n\n\ntable_name\n\nLogical source table name used for the output parquet basename unless alt_table_name is supplied.\nrequired\n\n\nschema\n\nSchema name used for the output parquet directory layout.\nrequired\n\n\nwrds_id\nstring[Optional]\nWRDS user ID used to access WRDS services. This parameter is required and must be provided either explicitly or via the WRDS_ID environment variable.\nNone\n\n\ndata_dir\nstring[Optional]\nRoot directory of parquet data repository.\nNone\n\n\nrow_group_size\nint[Optional]\nMaximum number of rows in each written row group.\n1048576\n\n\nmodified\nstring[Optional]\nLast modified string to embed in parquet metadata.\nNone\n\n\nalt_table_name\nstring[Optional]\nBasename of parquet file. Used when the file should have a different name than table_name.\nNone\n\n\nthreads\nint[Optional]\nMaximum DuckDB worker threads to use when engine=\"duckdb\".\n3\n\n\ntz\nstring[Optional]\nTime zone assumption for naive PostgreSQL timestamps before normalizing parquet output to UTC.\n'UTC'\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to run the WRDS PostgreSQL SQL.\n\"duckdb\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nADBC batch size hint in bytes when engine=\"adbc\".\nNone\n\n\nadbc_use_copy\nbool[Optional]\nExplicitly enable or disable the PostgreSQL ADBC driver’s COPY optimization when engine=\"adbc\".\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_sql_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_sql_to_pq.html#parameters",
+    "href": "reference/core.wrds_sql_to_pq.html#parameters",
+    "title": "core.wrds_sql_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nsql\n\nSQL query to execute against the WRDS PostgreSQL database.\nrequired\n\n\ntable_name\n\nLogical source table name used for the output parquet basename unless alt_table_name is supplied.\nrequired\n\n\nschema\n\nSchema name used for the output parquet directory layout.\nrequired\n\n\nwrds_id\nstring[Optional]\nWRDS user ID used to access WRDS services. This parameter is required and must be provided either explicitly or via the WRDS_ID environment variable.\nNone\n\n\ndata_dir\nstring[Optional]\nRoot directory of parquet data repository.\nNone\n\n\nrow_group_size\nint[Optional]\nMaximum number of rows in each written row group.\n1048576\n\n\nmodified\nstring[Optional]\nLast modified string to embed in parquet metadata.\nNone\n\n\nalt_table_name\nstring[Optional]\nBasename of parquet file. Used when the file should have a different name than table_name.\nNone\n\n\nthreads\nint[Optional]\nMaximum DuckDB worker threads to use when engine=\"duckdb\".\n3\n\n\ntz\nstring[Optional]\nTime zone assumption for naive PostgreSQL timestamps before normalizing parquet output to UTC.\n'UTC'\n\n\nengine\n(duckdb, adbc)\nQuery execution engine used to run the WRDS PostgreSQL SQL.\n\"duckdb\"\n\n\nadbc_batch_size_hint_bytes\nint[Optional]\nADBC batch size hint in bytes when engine=\"adbc\".\nNone\n\n\nadbc_use_copy\nbool[Optional]\nExplicitly enable or disable the PostgreSQL ADBC driver’s COPY optimization when engine=\"adbc\".\nNone",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_sql_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_sql_to_pq.html#returns",
+    "href": "reference/core.wrds_sql_to_pq.html#returns",
+    "title": "core.wrds_sql_to_pq",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\npq_file\nstring\nName of parquet file created.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_sql_to_pq"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.process_sql.html",
+    "href": "reference/postgres.update.process_sql.html",
+    "title": "postgres.update.process_sql",
+    "section": "",
+    "text": "postgres.update.process_sql(\n    sql,\n    *,\n    user=None,\n    host=None,\n    dbname=None,\n    port=None,\n    params=None,\n)\nExecute SQL against the destination PostgreSQL database used by wrds_update_pg() by default.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nsql\nstr\nSQL statement to execute.\nrequired\n\n\nuser\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\nhost\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\ndbname\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\nport\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\nparams\nsequence or mapping\nParameters passed to cursor.execute().\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nstr\nPsycopg statusmessage for the executed statement.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.process_sql"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.process_sql.html#parameters",
+    "href": "reference/postgres.update.process_sql.html#parameters",
+    "title": "postgres.update.process_sql",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nsql\nstr\nSQL statement to execute.\nrequired\n\n\nuser\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\nhost\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\ndbname\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\nport\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by wrds_update_pg().\nNone\n\n\nparams\nsequence or mapping\nParameters passed to cursor.execute().\nNone",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.process_sql"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.process_sql.html#returns",
+    "href": "reference/postgres.update.process_sql.html#returns",
+    "title": "postgres.update.process_sql",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nstr\nPsycopg statusmessage for the executed statement.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.process_sql"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_update_schema.html",
+    "href": "reference/core.wrds_update_schema.html",
+    "title": "core.wrds_update_schema",
+    "section": "",
+    "text": "core.wrds_update_schema(schema, *, data_dir=None, threads=3, archive=False)\nUpdate existing parquet files in a schema.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of database schema.\nrequired\n\n\ndata_dir\nstr\nRoot directory of parquet data repository. If not provided, defaults to the value of the DATA_DIR environment variable, or the current directory.\nNone\n\n\nthreads\nint\nThe number of threads DuckDB is allowed to use.\n3\n\n\narchive\nbool\nWhether any existing parquet file will be archived.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\npq_files\nlist[str]\nNames of parquet files updated.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_update_schema"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_update_schema.html#parameters",
+    "href": "reference/core.wrds_update_schema.html#parameters",
+    "title": "core.wrds_update_schema",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of database schema.\nrequired\n\n\ndata_dir\nstr\nRoot directory of parquet data repository. If not provided, defaults to the value of the DATA_DIR environment variable, or the current directory.\nNone\n\n\nthreads\nint\nThe number of threads DuckDB is allowed to use.\n3\n\n\narchive\nbool\nWhether any existing parquet file will be archived.\nFalse",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_update_schema"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_update_schema.html#returns",
+    "href": "reference/core.wrds_update_schema.html#returns",
+    "title": "core.wrds_update_schema",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\npq_files\nlist[str]\nNames of parquet files updated.",
+    "crumbs": [
+      "Reference",
+      "Parquet Export",
+      "core.wrds_update_schema"
+    ]
+  }
+]
