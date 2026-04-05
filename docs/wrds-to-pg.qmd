@@ -1,16 +1,16 @@
 ---
-title: WRDS to PG
+title: WRDS to PostgreSQL
 ---
-
-# WRDS to PostgreSQL
 
 Use this path when you want to materialize WRDS data into a PostgreSQL database
 instead of writing Parquet files.
 
-## Main helper
+## Main helpers
 
 - `wrds_update_pg(table_name, schema, ...)` creates or refreshes a PostgreSQL
   table from a WRDS source table.
+- `wrds_pg_to_pg(table_name, schema, ...)` copies a WRDS PostgreSQL table into
+  another PostgreSQL database without the update check.
 
 ## What it does
 
@@ -32,6 +32,67 @@ wrds_update_pg(
 )
 ```
 
+## More examples
+
+A WRDS-to-PostgreSQL load with explicit integer coercions for common CRSP
+identifier columns:
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    "dsf",
+    "crsp",
+    col_types={"permno": "integer", "permco": "integer"},
+)
+```
+
+An Audit Analytics-style example where you compute a drop list first and then
+materialize the cleaned table:
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    table_name="feed55_auditor_ratification",
+    schema="audit",
+    drop=["match_score", "prior_match_flag", "closest_date"],
+    col_types={
+        "auditor_ratification_fkey": "integer",
+        "share_class_fkey": "integer",
+        "auditor_fkey": "integer",
+        "pcaob_registration_number": "integer",
+    },
+)
+```
+
+After loading a table, it is natural to add indexes or build derived tables in
+the destination PostgreSQL database:
+
+```python
+from db2pq import process_sql
+
+process_sql("CREATE INDEX ON crsp.dsf (permno, date)")
+process_sql("CREATE INDEX ON crsp.dsf (permco)")
+```
+
+For some workflows, you may also materialize a derived table after loading the
+source WRDS tables:
+
+```python
+from db2pq import process_sql
+
+process_sql("""
+DROP TABLE IF EXISTS crsp.tfz_ft;
+CREATE TABLE crsp.tfz_ft AS
+SELECT
+    kytreasnox, tidxfam, ttermtype, ttermlbl, caldt, rdtreasno, rdcrspid
+FROM crsp.tfz_idx
+INNER JOIN crsp.tfz_dly_ft
+USING (kytreasnox);
+""")
+```
+
 ## Common options
 
 - `force=True` refreshes even when the destination already looks current.
@@ -40,8 +101,19 @@ wrds_update_pg(
 - `alt_table_name=` writes to a different destination table name.
 - `create_roles=True` ensures schema roles and grants are created.
 - `wrds_schema=` lets the WRDS source schema differ from the destination schema.
+- `use_sas=True` uses SAS metadata for freshness checks and destination comments.
+
+## Operational helpers
+
+- `wrds_get_tables()` lists WRDS tables in a schema.
+- `process_sql()` executes SQL against the destination PostgreSQL database.
+- `set_table_comment()` manages destination table comments directly.
 
 ## Related reference pages
 
 - [wrds_update_pg](reference/postgres.update.wrds_update_pg.qmd)
+- [wrds_pg_to_pg](reference/core.wrds_pg_to_pg.qmd)
 - [db_schema_tables](reference/postgres.schema.db_schema_tables.qmd)
+- [wrds_get_tables](reference/postgres.schema.wrds_get_tables.qmd)
+- [process_sql](reference/postgres.update.process_sql.qmd)
+- [set_table_comment](reference/postgres.comments.set_table_comment.qmd)

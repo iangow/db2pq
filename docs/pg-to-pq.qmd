@@ -1,8 +1,6 @@
 ---
-title: Other PG to PQ
+title: PostgreSQL to Parquet
 ---
-
-# PostgreSQL to Parquet
 
 Use this path when the source is a PostgreSQL database that is not WRDS, and
 the destination is a Parquet file or directory tree.
@@ -10,6 +8,8 @@ the destination is a Parquet file or directory tree.
 ## Main helpers
 
 - `db_to_pq(table_name, schema, ...)` exports one PostgreSQL table to Parquet.
+- `pg_update_pq(table_name, schema, ...)` exports one PostgreSQL table to
+  Parquet only when the source table is newer.
 - `db_schema_to_pq(schema, ...)` exports all tables in a PostgreSQL schema.
 - `ibis_to_pq(table, out_file, ...)` writes a PostgreSQL-backed Ibis expression
   to Parquet.
@@ -24,19 +24,68 @@ db_to_pq(
     schema="public",
     host="localhost",
     database="mydb",
-    engine="adbc",
 )
 ```
+
+This example uses the default DuckDB-backed path. Reach for `engine="adbc"`
+only when you specifically want to try the ADBC export path.
 
 ## When to use each helper
 
 - Use `db_to_pq()` for one source table.
+- Use `pg_update_pq()` when you want the same update-aware pattern as
+  `wrds_update_pq()`, but for a local PostgreSQL source table.
 - Use `db_schema_to_pq()` when you want a whole schema exported.
 - Use `ibis_to_pq()` when you already have an Ibis expression and want that
   query result written directly to Parquet.
+- Prefer the default DuckDB engine unless you are intentionally testing or
+  benchmarking the ADBC path.
+
+## Ibis example
+
+Here is a more realistic `ibis_to_pq()` pattern adapted from your WRDS/Ibis
+workflow note.
+
+```python
+from sqlalchemy import create_engine
+from dotenv import load_dotenv
+import ibis
+from ibis import _
+from db2pq import ibis_to_pq
+import os
+
+load_dotenv()
+
+connection_string = (
+    "postgresql+psycopg://"
+    f"{os.getenv('WRDS_USER')}:{os.getenv('WRDS_PASSWORD')}"
+    "@wrds-pgdata.wharton.upenn.edu:9737/wrds"
+)
+
+wrds = create_engine(connection_string, pool_pre_ping=True)
+
+db = ibis.postgres.from_connection(
+    wrds.connect().connection.driver_connection
+)
+
+factors_daily = db.table("factors_daily", database="ff")
+
+expr = (
+    factors_daily
+    .filter(_.date >= "2010-01-01")
+    .select("date", "mktrf", "smb", "hml", "rf")
+)
+
+ibis_to_pq(expr, "factors_ff3_daily.parquet", compression="zstd")
+```
+
+This is a good fit when you already have a reusable Ibis query pipeline and
+want to write the result directly to Parquet without materializing the whole
+result in memory first.
 
 ## Related reference pages
 
 - [db_to_pq](reference/core.db_to_pq.qmd)
+- [pg_update_pq](reference/core.pg_update_pq.qmd)
 - [db_schema_to_pq](reference/core.db_schema_to_pq.qmd)
 - [ibis_to_pq](reference/ibis.ibis_to_pq.qmd)

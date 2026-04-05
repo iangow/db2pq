@@ -128,8 +128,6 @@ wrds_pg_to_pq(
     table_name="dsi",
     schema="crsp",
     wrds_id="your_wrds_id",  # or set WRDS_ID in the environment
-    engine="adbc",
-    numeric_mode="float64",
 )
 ```
 
@@ -230,14 +228,12 @@ pq_file = db_to_pq(
     schema="public",
     host="localhost",
     database="mydb",
-    engine="adbc",
-    numeric_mode="float64",
 )
 
 print(pq_file)
 ```
 
-`engine="duckdb"` is the recommended default. `engine="adbc"` is available,
+These examples use the default DuckDB-backed path. `engine="adbc"` is available,
 but ADBC-based paths should currently be treated as experimental.
 
 Use `db_schema_to_pq()` when you want to export an entire local PostgreSQL
@@ -259,7 +255,7 @@ expression rather than a table name:
 from db2pq import ibis_to_pq
 
 expr = con.table("my_table").filter(lambda t: t.id > 100)
-ibis_to_pq(expr, "my_table.parquet", engine="duckdb", compression="zstd")
+ibis_to_pq(expr, "my_table.parquet", compression="zstd")
 ```
 
 ## Parquet layout
@@ -309,10 +305,11 @@ when they use different execution engines.
 `"duckdb"` remains the default engine. You can override it per call:
 
 ```python
-db_to_pq("dsi", "crsp", engine="adbc")
+db_to_pq("dsi", "crsp", engine="duckdb")
 ```
 
-or set a process-wide default:
+or, if you specifically want the ADBC path for a session, set a process-wide
+default:
 
 ```python
 from db2pq import set_default_engine

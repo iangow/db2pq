@@ -2,8 +2,6 @@
 title: Data Management Ideas
 ---
 
-# Data management ideas for `db2pq`
-
 This page adapts the package-relevant parts of the longer note
 ["Data management ideas for researchers"](https://iangow.github.io/notes/published/data_mgt.html).
 The goal here is to connect those ideas directly to the `db2pq` workflows
@@ -138,8 +136,8 @@ vintage rather than simply forcing refreshes manually.
 
 ## Related pages
 
-- [WRDS to PQ](wrds-to-pq.qmd)
-- [Other PG to PQ](pg-to-pq.qmd)
+- [WRDS to Parquet](wrds-to-pq.qmd)
+- [PostgreSQL to Parquet](pg-to-pq.qmd)
 - [API Reference](reference/index.qmd)
 
 ## Original note

@@ -12,6 +12,7 @@ format:
     theme: cosmo
     toc: true
     css:
+      - theme.css
       - reference/_styles-quartodoc.css
 
 quartodoc:
@@ -28,7 +29,9 @@ quartodoc:
         href: index.qmd
       - section: Workflows
         contents:
+          - authentication.qmd
           - data-management.qmd
+          - using-parquet-with-polars.qmd
           - wrds-to-pq.qmd
           - wrds-to-pg.qmd
           - pg-to-pq.qmd
@@ -42,16 +45,25 @@ quartodoc:
       desc: Helpers for exporting PostgreSQL and WRDS data into Parquet files.
       contents:
         - core.db_to_pq
+        - core.pg_update_pq
         - core.wrds_pg_to_pq
+        - core.wrds_sql_to_pq
         - core.db_schema_to_pq
         - core.wrds_update_pq
         - core.wrds_update_schema
         - ibis.ibis_to_pq
     - title: PostgreSQL Sync
-      desc: Helpers for materializing WRDS tables into PostgreSQL.
+      desc: Helpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.
       contents:
+        - core.db_to_pg
+        - core.wrds_pg_to_pg
         - postgres.update.wrds_update_pg
+        - postgres.update.pq_to_pg
+        - postgres.update.pq_update_pg
+        - postgres.update.process_sql
         - postgres.schema.db_schema_tables
+        - postgres.schema.wrds_get_tables
+        - postgres.comments.set_table_comment
     - title: Parquet Utilities
       desc: Helpers for managing and inspecting parquet files produced by db2pq.
       contents:
@@ -60,16 +72,8 @@ quartodoc:
         - files.parquet.pq_archive
         - files.parquet.pq_restore
         - files.parquet.pq_remove
-    - title: Configuration and Credentials
-      desc: Helpers for engine defaults and WRDS credential management.
+    - title: Configuration
+      desc: Helpers for engine defaults and runtime behavior.
       contents:
         - config.set_default_engine
         - config.get_default_engine
-        - credentials.get_wrds_username
-        - credentials.get_wrds_conninfo
-        - credentials.ensure_wrds_id
-        - credentials.ensure_wrds_access
-        - credentials.find_pgpass_entry
-        - credentials.has_pgpass_password
-        - credentials.save_password
-        - credentials.ensure_wrds_credentials

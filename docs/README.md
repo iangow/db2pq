@@ -33,9 +33,11 @@ quarto preview docs
 ## Content layout
 
 - `docs/index.qmd`: site landing page
+- `docs/authentication.qmd`: WRDS authentication and credential-handling guide
 - `docs/data-management.qmd`: adapted research data-management guide
+- `docs/using-parquet-with-polars.qmd`: downstream analysis guide for repository users
 - `docs/wrds-to-pq.qmd`: WRDS to Parquet workflow guide
 - `docs/wrds-to-pg.qmd`: WRDS to PostgreSQL workflow guide
 - `docs/pg-to-pq.qmd`: PostgreSQL to Parquet workflow guide
-- `docs/pq-to-pg.qmd`: Parquet to PostgreSQL status page
+- `docs/pq-to-pg.qmd`: Parquet to PostgreSQL workflow guide
 - `docs/reference/`: generated API reference output

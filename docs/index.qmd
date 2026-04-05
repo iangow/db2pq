@@ -2,26 +2,23 @@
 title: db2pq
 ---
 
-# Export PostgreSQL and WRDS data to Parquet
+::: {.hero}
+`db2pq` is a Python package for building and using Parquet-centered workflows
+for WRDS and PostgreSQL data.
 
-`db2pq` is a Python package for moving data between WRDS, PostgreSQL, and
-Parquet-centered local workflows.
+It is designed for a practical research workflow: move data out of WRDS or
+PostgreSQL, keep local Parquet copies current, and work with those files using
+tools like Polars.
 
-The documentation site is organized around the main paths people take through
-the package:
+::: {.quick-links}
+[Get Started](wrds-to-pq.qmd)
+[Authentication](authentication.qmd)
+[Use with Polars](using-parquet-with-polars.qmd)
+[API Reference](reference/index.qmd)
+:::
+:::
 
-- [Data management ideas](data-management.qmd): package-focused guidance adapted
-  from a longer note on managing research datasets.
-- [WRDS to PQ](wrds-to-pq.qmd): export WRDS tables into Parquet files and keep
-  them up to date.
-- [WRDS to PG](wrds-to-pg.qmd): mirror WRDS tables into a PostgreSQL database.
-- [Other PG to PQ](pg-to-pq.qmd): export tables from non-WRDS PostgreSQL
-  databases to Parquet.
-- [PQ to PG](pq-to-pg.qmd): current status of Parquet-to-PostgreSQL support.
-- [API Reference](reference/index.qmd): generated function reference from
-  docstrings.
-
-## Install
+## Installation
 
 ```bash
 pip install --upgrade db2pq
@@ -44,6 +41,58 @@ from db2pq import wrds_update_pq
 wrds_update_pq("dsi", "crsp")
 ```
 
-## Reference generation
+This example uses the standard update-aware WRDS-to-Parquet path.
+
+## Main Paths
+
+::: {.grid}
+::: {.g-col-12 .g-col-md-6}
+### WRDS to Parquet
+
+Export WRDS tables to Parquet files and update them only when the WRDS source
+is newer.
+
+[Open guide](wrds-to-pq.qmd)
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### WRDS to PostgreSQL
+
+Materialize WRDS tables into a local PostgreSQL database and manage indexes or
+derived tables there.
+
+[Open guide](wrds-to-pg.qmd)
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### PostgreSQL to Parquet
+
+Export local PostgreSQL tables or Ibis expressions into a Parquet repository.
+
+[Open guide](pg-to-pq.qmd)
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### Parquet to PostgreSQL
+
+Load Parquet repository tables back into PostgreSQL and refresh them when the
+Parquet source is newer.
+
+[Open guide](pq-to-pg.qmd)
+:::
+:::
+
+## Learn More
+
+- [Authentication](authentication.qmd): how `db2pq` finds WRDS credentials, uses
+  `.env`, and works with `.pgpass`
+- [Data management ideas](data-management.qmd): how to think about general-purpose
+  versus project-level Parquet data
+- [Using the Parquet repository with Polars](using-parquet-with-polars.qmd):
+  practical analysis patterns once the repository already exists
+- [API Reference](reference/index.qmd): generated function reference from
+  docstrings
+
+## Docs Build
 
 This site uses `quartodoc` for API pages and Quarto for rendering.

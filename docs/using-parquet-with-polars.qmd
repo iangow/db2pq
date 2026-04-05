@@ -1,0 +1,170 @@
+---
+title: Using the Parquet Repository with Polars
+---
+
+Once you have built a local Parquet repository with `db2pq`, the next step is
+usually analysis rather than more data movement. This page shows a practical
+Polars-based workflow for working with those files.
+
+The examples here are adapted from the Python Polars Ball and Brown (1968)
+replication note:
+["Ball and Brown (1968): Replication using Python Polars"](https://iangow.github.io/notes/published/bb68.html).
+
+## Repository layout
+
+By default, `db2pq` writes files in this layout:
+
+```text
+<DATA_DIR>/<schema>/<table>.parquet
+```
+
+That means a CRSP monthly index file might live at:
+
+```text
+$DATA_DIR/crsp/msi.parquet
+```
+
+## Scanning files lazily
+
+Polars works especially well with a `db2pq` repository because you can scan the
+Parquet files lazily instead of reading them into memory all at once.
+
+```python
+from pathlib import Path
+import os
+import polars as pl
+
+data_dir = Path(os.environ["DATA_DIR"])
+
+msi = pl.scan_parquet(data_dir / "crsp" / "msi.parquet")
+msf = pl.scan_parquet(data_dir / "crsp" / "msf.parquet")
+stocknames = pl.scan_parquet(data_dir / "crsp" / "stocknames.parquet")
+ccmxpf_lnkhist = pl.scan_parquet(data_dir / "crsp" / "ccmxpf_lnkhist.parquet")
+
+funda = pl.scan_parquet(data_dir / "comp" / "funda.parquet")
+fundq = pl.scan_parquet(data_dir / "comp" / "fundq.parquet")
+```
+
+The important point is that these objects are `pl.LazyFrame` instances. Polars
+can push filters down into the Parquet scan, read only needed columns, and
+defer work until you call `.collect()`.
+
+## Loading only the tables you need
+
+For the Ball and Brown replication, you do not need a full WRDS mirror. A small
+set of tables is enough:
+
+```python
+from db2pq import wrds_update_pq
+
+# CRSP
+wrds_update_pq("msi", "crsp")
+wrds_update_pq("msf", "crsp")
+wrds_update_pq("stocknames", "crsp")
+wrds_update_pq(
+    "ccmxpf_lnkhist",
+    "crsp",
+    col_types={"lpermno": "int32", "lpermco": "int32"},
+)
+
+# Compustat
+wrds_update_pq("funda", "comp")
+wrds_update_pq("fundq", "comp")
+```
+
+This is often a better pattern than bulk-downloading many tables you may never
+use in the analysis.
+
+## Filtering and selecting lazily
+
+Once you have lazy scans, stay lazy for as long as possible.
+
+```python
+annc_events = (
+    fundq
+    .filter(
+        pl.col("indfmt") == "INDL",
+        pl.col("datafmt") == "STD",
+        pl.col("consol") == "C",
+        pl.col("popsrc") == "D",
+        pl.col("fqtr") == 4,
+        pl.col("fyr") == 12,
+        pl.col("rdq").is_not_null(),
+    )
+    .select("gvkey", "datadate", "rdq")
+    .with_columns(annc_month=pl.col("rdq").dt.truncate("1mo"))
+)
+```
+
+This style lets Polars prune both rows and columns before materialization.
+
+## Building helper tables from smaller inputs
+
+Another useful pattern from the note is to derive small helper tables from
+compact source files before joining them to larger tables.
+
+```python
+crsp_dates = (
+    msi
+    .select("date")
+    .sort("date")
+    .with_row_index("td", offset=1)
+    .with_columns(
+        td=pl.col("td").cast(pl.Int32),
+        month=pl.col("date").dt.truncate("1mo"),
+    )
+)
+```
+
+Using a small table like `msi` to define the monthly calendar is often cleaner
+and cheaper than deriving the same structure from a much larger table such as
+`msf`.
+
+## Join only after narrowing the data
+
+When working with large WRDS-derived tables, a good default strategy is:
+
+- start with lazy scans
+- filter early
+- select only needed columns
+- build compact helper tables
+- join later
+
+That approach is visible throughout the Ball and Brown replication and tends to
+work well for Parquet-centered workflows generally.
+
+## When to collect
+
+Stay in `LazyFrame` form until you actually need concrete results for:
+
+- plotting
+- export
+- summary tables
+- debugging intermediate output
+
+At that point, collect only the object you need:
+
+```python
+preview = annc_events.limit(10).collect()
+```
+
+## Project-level versus shared repositories
+
+The same Polars patterns work whether you are using:
+
+- a shared repository pointed to by `DATA_DIR`
+- a project-level repository created with `data_dir="data"`
+
+For replication-style work, a project-level repository can be attractive
+because it freezes the exact Parquet inputs used in the project.
+
+## Related pages
+
+- [Data management ideas](data-management.qmd)
+- [WRDS to Parquet](wrds-to-pq.qmd)
+- [PostgreSQL to Parquet](pg-to-pq.qmd)
+
+## Original source
+
+For a full research example built around these ideas, see
+["Ball and Brown (1968): Replication using Python Polars"](https://iangow.github.io/notes/published/bb68.html).

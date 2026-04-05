@@ -1,8 +1,6 @@
 ---
-title: WRDS to PQ
+title: WRDS to Parquet
 ---
-
-# WRDS to Parquet
 
 Use this path when the source data live in WRDS PostgreSQL and the destination
 is a local Parquet file repository.
@@ -10,6 +8,8 @@ is a local Parquet file repository.
 ## Main helpers
 
 - `wrds_pg_to_pq(table_name, schema, ...)` exports one WRDS table to Parquet.
+- `wrds_sql_to_pq(sql, table_name, schema, ...)` exports a custom WRDS SQL query
+  into the standard Parquet layout.
 - `wrds_update_pq(table_name, schema, ...)` only rewrites a Parquet file when
   the WRDS source is newer.
 - `wrds_update_schema(schema, ...)` updates a full WRDS schema into Parquet.
@@ -26,13 +26,61 @@ If `WRDS_ID` is not configured yet, `db2pq` can prompt for it and suggest
 adding it to a local `.env` file. If the WRDS PostgreSQL password is not yet in
 `.pgpass`, `db2pq` can prompt for it and save it for later use.
 
+## More examples
+
+A CRSP-style export where identifier columns are normalized to integer types:
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq(
+    "dsf",
+    "crsp",
+    col_types={"permno": "int32", "permco": "int32"},
+)
+```
+
+A RavenPack-style example where the WRDS PostgreSQL schema and the SAS metadata
+schema do not line up:
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq(
+    "rpa_entity_mappings",
+    "ravenpack_common",
+    sas_schema="rpa",
+)
+```
+
+You can also use `sas_schema="rpa"` with explicit timestamp coercions when
+exporting annual RavenPack tables:
+
+```python
+wrds_update_pq(
+    "rpa_djpr_equities_2024",
+    "ravenpack_dj",
+    sas_schema="rpa",
+    batched=False,
+    col_types={
+        "timestamp_utc": "timestamp",
+        "rpa_time_utc": "string",
+        "event_start_date_utc": "timestamp",
+        "event_end_date_utc": "timestamp",
+    },
+)
+```
+
 ## Common options
 
 - `engine="duckdb"` uses DuckDB to read from PostgreSQL.
 - `engine="adbc"` streams Arrow batches directly from PostgreSQL.
+- `where=` applies a SQL filter before export.
 - `keep=` and `drop=` filter source columns with regex patterns.
 - `obs=` limits rows for testing.
 - `archive=True` moves replaced Parquet files into an archive directory.
+- `use_sas=True` can use SAS metadata for update detection when PostgreSQL
+  comments are missing or incomplete.
 
 ## Output layout
 
@@ -45,6 +93,7 @@ Files are written as:
 ## Related reference pages
 
 - [wrds_pg_to_pq](reference/core.wrds_pg_to_pq.qmd)
+- [wrds_sql_to_pq](reference/core.wrds_sql_to_pq.qmd)
 - [wrds_update_pq](reference/core.wrds_update_pq.qmd)
 - [wrds_update_schema](reference/core.wrds_update_schema.qmd)
 - [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)

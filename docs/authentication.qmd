@@ -1,0 +1,121 @@
+---
+title: Authentication
+---
+
+`db2pq` supports a few different ways to resolve WRDS credentials. The goal is
+to keep the common path simple while still working with setups people already
+use for WRDS and PostgreSQL tools.
+
+## The short version
+
+For most users, the easiest setup is:
+
+1. Put your WRDS username in a local `.env` file as `WRDS_ID=...` or
+   `WRDS_USER=...`.
+2. Let `db2pq` store your WRDS PostgreSQL password in `~/.pgpass`.
+
+That gives you a workflow where WRDS helpers can run without asking for your
+password each time.
+
+## Username resolution
+
+For WRDS-related helpers, `db2pq` looks for a WRDS username in this order:
+
+- an explicit `wrds_id=` function argument
+- `WRDS_ID`
+- `WRDS_USER`
+
+`WRDS_USER` is accepted mainly for compatibility with Tidy Finance-style
+project setups.
+
+Example `.env` file:
+
+```bash
+WRDS_ID=your_wrds_id
+DATA_DIR=/path/to/parquet-repository
+```
+
+## Password handling
+
+WRDS PostgreSQL connections ultimately use PostgreSQL password handling, so the
+most reliable long-term setup is to store the password in `.pgpass`.
+
+By default, that file is:
+
+- `~/.pgpass` on macOS and Linux
+- `%APPDATA%/postgresql/pgpass.conf` on Windows
+
+If `PGPASSFILE` is set, PostgreSQL and `db2pq` will use that file instead.
+
+## What happens on first use
+
+If you call a WRDS helper such as `wrds_update_pq()` or `wrds_update_pg()` and
+`db2pq` cannot find a WRDS password in `.pgpass`, it will try to help:
+
+- if `WRDS_PASSWORD` is present in the environment and you are in an
+  interactive session, `db2pq` can offer to copy it into `.pgpass`
+- otherwise, it can prompt you for your WRDS PostgreSQL password and save it to
+  `.pgpass`
+
+That means a Tidy Finance-style `.env` file like this can still work smoothly:
+
+```bash
+WRDS_USER=your_wrds_id
+WRDS_PASSWORD=your_wrds_password
+```
+
+On first use, `db2pq` can move the password into `.pgpass`, after which you can
+remove `WRDS_PASSWORD` from the environment if you prefer.
+
+## Why `.pgpass` is preferred
+
+`.pgpass` is the native PostgreSQL mechanism, so it works consistently across:
+
+- `db2pq`
+- `psycopg`
+- command-line PostgreSQL tools
+- other PostgreSQL-aware software on your machine
+
+`db2pq` also checks that `.pgpass` has safe permissions, because PostgreSQL
+ignores files that are too widely readable.
+
+## Local `.env` support
+
+`db2pq` automatically loads a local `.env` file when resolving defaults. That
+lets you keep project-local configuration such as:
+
+- `WRDS_ID`
+- `WRDS_USER`
+- `WRDS_PASSWORD`
+- `PGUSER`
+- `PGHOST`
+- `PGDATABASE`
+- `PGPORT`
+- `DATA_DIR`
+
+This is especially useful when different projects point at different Parquet
+repositories or PostgreSQL destinations.
+
+## SAS-based workflows
+
+Some `db2pq` workflows can use SAS metadata from WRDS when PostgreSQL comments
+are missing or incomplete. For those cases, password handling is still about
+WRDS PostgreSQL, but you may also need WRDS SSH access configured separately if
+you use `use_sas=True`.
+
+See the SSH setup notes in the project README for that piece.
+
+## Practical recommendation
+
+- Put `WRDS_ID` in a local `.env` file.
+- Use `.pgpass` for the WRDS PostgreSQL password.
+- Use `WRDS_USER` / `WRDS_PASSWORD` only when matching an existing Tidy Finance
+  setup or bootstrapping the first `.pgpass` entry.
+- Keep `DATA_DIR` in `.env` if you want the project to point at a specific
+  Parquet repository by default.
+
+## Related pages
+
+- [WRDS to Parquet](wrds-to-pq.qmd)
+- [WRDS to PostgreSQL](wrds-to-pg.qmd)
+- [Data management ideas](data-management.qmd)

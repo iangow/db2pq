@@ -1,36 +1,57 @@
 ---
-title: PQ to PG
+title: Parquet to PostgreSQL
 ---
 
-# Parquet to PostgreSQL
+`db2pq` now exposes a first-class Parquet-to-PostgreSQL path.
 
-`db2pq` does not currently expose a first-class `pq_to_pg()` helper.
+## Main helpers
 
-Today, the package is strongest in these directions:
+- `pq_to_pg(table_name, schema, ...)` writes a Parquet file from the local
+  repository into PostgreSQL.
+- `pq_update_pg(table_name, schema, ...)` writes only when the Parquet source is
+  newer than the destination PostgreSQL table.
 
-- WRDS to Parquet
-- PostgreSQL to Parquet
-- WRDS to PostgreSQL
+## Typical example
 
-## Current adjacent helpers
+```python
+from db2pq import pq_update_pg
 
-- `pq_list_files()` lists Parquet outputs by schema.
-- `pq_last_modified()` reads modification metadata embedded in Parquet files.
-- `pq_archive()`, `pq_restore()`, and `pq_remove()` manage Parquet files in the
-  local repository.
+pq_update_pg(
+    table_name="company",
+    schema="comp",
+    dbname="research",
+)
+```
 
-## Why this page exists
+## How the update check works
 
-This page keeps the site organized by workflow, while being explicit that the
-Parquet-to-PostgreSQL path is not yet a dedicated public API in `db2pq`.
+`pq_update_pg()` reads the Parquet file’s embedded `last_modified` metadata and
+compares it with the destination PostgreSQL table comment.
 
-If a `pq_to_pg()` workflow is added later, this page is the natural place to
-document it.
+If the Parquet file does not have parseable `last_modified` metadata, the
+function will ask you to use `force=True` instead of guessing.
+
+## Supporting helpers
+
+- `pq_list_files()` lists available Parquet outputs by schema.
+- `pq_last_modified()` inspects the embedded Parquet modification metadata.
+- `pq_archive()`, `pq_restore()`, and `pq_remove()` manage active and archived
+  Parquet files in the local repository.
+
+## Related PostgreSQL helpers
+
+- `db_to_pg()` copies a PostgreSQL table into another PostgreSQL database.
+- `wrds_pg_to_pg()` copies a WRDS PostgreSQL table into PostgreSQL.
+- `process_sql()` and `set_table_comment()` help manage the destination side.
 
 ## Related reference pages
 
+- [pq_to_pg](reference/postgres.update.pq_to_pg.qmd)
+- [pq_update_pg](reference/postgres.update.pq_update_pg.qmd)
 - [pq_list_files](reference/files.paths.pq_list_files.qmd)
 - [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)
 - [pq_archive](reference/files.parquet.pq_archive.qmd)
 - [pq_restore](reference/files.parquet.pq_restore.qmd)
 - [pq_remove](reference/files.parquet.pq_remove.qmd)
+- [db_to_pg](reference/core.db_to_pg.qmd)
+- [wrds_pg_to_pg](reference/core.wrds_pg_to_pg.qmd)

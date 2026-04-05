@@ -42,7 +42,6 @@ pq_remove = _lazy_export(".files.parquet", "pq_remove")
 db_schema_tables = _lazy_export(".postgres.schema", "db_schema_tables")
 wrds_get_tables = _lazy_export(".postgres.schema", "wrds_get_tables")
 wrds_update_pg = _lazy_export(".postgres.update", "wrds_update_pg")
-postgres_write_pg = _lazy_export(".postgres.update", "postgres_write_pg")
 pq_to_pg = _lazy_export(".postgres.update", "pq_to_pg")
 pq_update_pg = _lazy_export(".postgres.update", "pq_update_pg")
 process_sql = _lazy_export(".postgres.update", "process_sql")
@@ -50,14 +49,6 @@ set_table_comment = _lazy_export(".postgres.comments", "set_table_comment")
 close_adbc_cached = _lazy_export(".postgres.adbc", "close_adbc_cached")
 set_default_engine = _lazy_export(".config", "set_default_engine")
 get_default_engine = _lazy_export(".config", "get_default_engine")
-get_wrds_username = _lazy_export(".credentials", "get_wrds_username")
-get_wrds_conninfo = _lazy_export(".credentials", "get_wrds_conninfo")
-ensure_wrds_id = _lazy_export(".credentials", "ensure_wrds_id")
-ensure_wrds_access = _lazy_export(".credentials", "ensure_wrds_access")
-find_pgpass_entry = _lazy_export(".credentials", "find_pgpass_entry")
-has_pgpass_password = _lazy_export(".credentials", "has_pgpass_password")
-save_password = _lazy_export(".credentials", "save_password")
-ensure_wrds_credentials = _lazy_export(".credentials", "ensure_wrds_credentials")
 
 __all__ = [
     "__version__",
@@ -65,10 +56,6 @@ __all__ = [
     "db_schema_to_pq", "db_schema_tables", "wrds_get_tables",
     "wrds_update_pq", "pq_list_files", "wrds_update_schema",
     "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",
-    "wrds_update_pg", "postgres_write_pg", "pq_to_pg", "pq_update_pg", "process_sql", "set_table_comment", "close_adbc_cached",
+    "wrds_update_pg", "pq_to_pg", "pq_update_pg", "process_sql", "set_table_comment", "close_adbc_cached",
     "set_default_engine", "get_default_engine",
-    "get_wrds_username", "get_wrds_conninfo",
-    "ensure_wrds_id", "ensure_wrds_access",
-    "find_pgpass_entry", "has_pgpass_password",
-    "save_password", "ensure_wrds_credentials",
 ]
