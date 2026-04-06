@@ -25,6 +25,12 @@ quartodoc build --config docs/_quarto.yml
 quarto render docs
 ```
 
+Then publish using
+
+```bash
+quarto publish gh-pages docs
+```
+
 For local iteration:
 
 ```bash
