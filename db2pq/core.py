@@ -244,8 +244,59 @@ def db_to_pg(
 ):
     """Write a PostgreSQL table to another PostgreSQL database.
 
-    Parameters mirror ``db_to_pq()`` for the source side, with additional
-    ``dst_*`` parameters describing the destination PostgreSQL connection.
+    Parameters
+    ----------
+    table_name : str
+        Name of the source PostgreSQL table.
+
+    schema : str
+        Name of the source PostgreSQL schema.
+
+    user, host, database, port : optional
+        Connection settings for the source PostgreSQL database. If omitted,
+        resolve from the same environment/default chain used by
+        ``db_to_pq()``.
+
+    dst_user, dst_host, dst_database, dst_port : optional
+        Connection settings for the destination PostgreSQL database. If
+        omitted, resolve from the same environment/default chain used for
+        other destination PostgreSQL helpers.
+
+    dst_schema : str, optional
+        Destination PostgreSQL schema. If omitted, defaults to ``schema``.
+
+    col_types : dict, optional
+        Explicit destination PostgreSQL column types for selected columns.
+
+    obs : int, optional
+        Number of rows to copy from the source table. Implemented with SQL
+        ``LIMIT``.
+
+    alt_table_name : str, optional
+        Destination PostgreSQL table name. If omitted, defaults to
+        ``table_name``.
+
+    keep, drop : str or iterable, optional
+        Regex pattern(s) describing columns to keep or drop before loading
+        the destination table. If both are supplied, ``drop`` is applied
+        first.
+
+    tz : str, optional
+        Default timezone used when normalizing timestamp columns.
+
+    create_roles : bool, optional
+        If ``True``, ensure destination schema owner and access roles exist
+        and apply ownership and grants to the loaded table.
+
+    Returns
+    -------
+    bool
+        ``True`` after the destination table has been created or replaced.
+
+    Examples
+    ----------
+    >>> db_to_pg("dsi", "crsp", dst_database="research")
+    >>> db_to_pg("company", "comp", dst_schema="comp_mirror", obs=1000)
     """
     from .postgres._defaults import resolve_pg_connection
     from .postgres.update import postgres_write_pg
@@ -588,7 +639,59 @@ def wrds_pg_to_pg(
     tz="UTC",
     create_roles=True,
 ):
-    """Write a WRDS PostgreSQL table to another PostgreSQL database."""
+    """Write a WRDS PostgreSQL table to another PostgreSQL database.
+
+    Parameters
+    ----------
+    table_name : str
+        Name of the WRDS source table.
+
+    schema : str
+        Name of the WRDS source schema.
+
+    wrds_id : str, optional
+        WRDS user ID used to access the WRDS PostgreSQL service. If omitted,
+        resolve from ``WRDS_ID`` / ``WRDS_USER`` and related `.env`
+        configuration.
+
+    dst_user, dst_host, dst_database, dst_port : optional
+        Connection settings for the destination PostgreSQL database.
+
+    dst_schema : str, optional
+        Destination PostgreSQL schema. If omitted, defaults to ``schema``.
+
+    col_types : dict, optional
+        Explicit destination PostgreSQL column types for selected columns.
+
+    obs : int, optional
+        Number of rows to copy from WRDS. Implemented with SQL ``LIMIT``.
+
+    alt_table_name : str, optional
+        Destination PostgreSQL table name. If omitted, defaults to
+        ``table_name``.
+
+    keep, drop : str or iterable, optional
+        Regex pattern(s) describing columns to keep or drop before loading
+        the destination table. If both are supplied, ``drop`` is applied
+        first.
+
+    tz : str, optional
+        Default timezone used when normalizing timestamp columns.
+
+    create_roles : bool, optional
+        If ``True``, ensure destination schema owner and access roles exist
+        and apply ownership and grants to the loaded table.
+
+    Returns
+    -------
+    bool
+        ``True`` after the destination table has been created or replaced.
+
+    Examples
+    ----------
+    >>> wrds_pg_to_pg("dsi", "crsp", dst_database="research")
+    >>> wrds_pg_to_pg("company", "comp", dst_schema="comp_mirror", obs=1000)
+    """
     from .postgres.wrds import resolve_wrds_id
 
     wrds_id = resolve_wrds_id(wrds_id)

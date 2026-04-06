@@ -46,8 +46,33 @@ def set_table_comment(
     """
     Set (or clear) a PostgreSQL table comment using psycopg.
 
-    If ``conn`` is omitted, connect to the same destination PostgreSQL
-    database resolved by ``wrds_update_pg()``.
+    Parameters
+    ----------
+    conn : psycopg connection, optional
+        Open PostgreSQL connection to use. If omitted, create a connection
+        using ``user`` / ``host`` / ``dbname`` / ``port``.
+
+    schema : str
+        Name of the PostgreSQL schema containing the table.
+
+    table_name : str
+        Name of the PostgreSQL table whose comment should be updated.
+
+    comment : str or None
+        Comment text to store. Use ``None`` to clear the comment.
+
+    user, host, dbname, port : optional
+        PostgreSQL connection settings used only when ``conn`` is omitted.
+
+    Returns
+    -------
+    None
+        This function updates the table comment in place.
+
+    Examples
+    ----------
+    >>> set_table_comment(schema="crsp", table_name="dsi", comment="Updated 2025-01-31")
+    >>> set_table_comment(schema="crsp", table_name="dsi", comment=None)
     """
     from psycopg import sql as psql
 

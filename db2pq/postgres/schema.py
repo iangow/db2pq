@@ -41,7 +41,30 @@ def db_schema_tables(
     dbname: str | None = None,
     port: int | None = None,
 ) -> list[str]:
-    """Get list of all tables in a PostgreSQL schema."""
+    """Get a list of relations in a PostgreSQL schema.
+
+    Parameters
+    ----------
+    schema : str
+        Name of the PostgreSQL schema to inspect.
+
+    views : bool, optional
+        If ``True``, include views in addition to base tables.
+
+    user, host, database, dbname, port : optional
+        PostgreSQL connection settings. If omitted, resolve from the same
+        environment/default chain used by the other PostgreSQL helpers.
+
+    Returns
+    -------
+    list[str]
+        Sorted relation names in the requested schema.
+
+    Examples
+    ----------
+    >>> db_schema_tables("public")
+    >>> db_schema_tables("crsp", views=True, database="research")
+    """
     user, host, dbname, port = resolve_pg_connection(
         user=user,
         host=host,
@@ -57,6 +80,30 @@ def db_schema_tables(
 def wrds_get_tables(
     schema: str, *, wrds_id: str | None = None, views: bool = False
 ) -> list[str]:
-    """Get list of WRDS tables in a schema, optionally including views."""
+    """Get a list of relations in a WRDS schema.
+
+    Parameters
+    ----------
+    schema : str
+        Name of the WRDS schema to inspect.
+
+    wrds_id : str, optional
+        WRDS user ID used to access the WRDS PostgreSQL service. If omitted,
+        resolve from ``WRDS_ID`` / ``WRDS_USER`` and related `.env`
+        configuration.
+
+    views : bool, optional
+        If ``True``, include views in addition to base tables.
+
+    Returns
+    -------
+    list[str]
+        Sorted relation names in the requested WRDS schema.
+
+    Examples
+    ----------
+    >>> wrds_get_tables("crsp")
+    >>> wrds_get_tables("comp", views=True)
+    """
     with get_wrds_conn(wrds_id) as conn:
         return _list_relations(conn, schema, views=views)

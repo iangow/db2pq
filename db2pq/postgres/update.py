@@ -475,8 +475,50 @@ def pq_to_pg(
     create_roles=True,
     source_comment=None,
 ):
-    """
-    Write a parquet file from the local repository into PostgreSQL.
+    """Write a parquet file from the local repository into PostgreSQL.
+
+    Parameters
+    ----------
+    table_name : str
+        Basename of the source parquet file.
+
+    schema : str
+        Name of the source parquet schema directory.
+
+    data_dir : str, optional
+        Root directory of the parquet data repository. If omitted, defaults
+        to ``DATA_DIR`` or the current working directory.
+
+    user, host, dbname, database, port : optional
+        Destination PostgreSQL connection settings.
+
+    dst_schema : str, optional
+        Destination PostgreSQL schema. If omitted, defaults to ``schema``.
+
+    alt_table_name : str, optional
+        Destination PostgreSQL table name. If omitted, defaults to
+        ``table_name``.
+
+    engine : {"duckdb", "adbc"}, optional
+        Engine used to load the parquet file into PostgreSQL.
+
+    create_roles : bool, optional
+        If ``True``, ensure destination schema owner and access roles exist
+        and apply ownership and grants to the loaded table.
+
+    source_comment : str, optional
+        Comment to store on the destination PostgreSQL table. If omitted,
+        reuse the parquet file's embedded ``last_modified`` metadata.
+
+    Returns
+    -------
+    bool
+        ``True`` after the destination table has been created or replaced.
+
+    Examples
+    ----------
+    >>> pq_to_pg("dsi", "crsp", dbname="research")
+    >>> pq_to_pg("company", "comp", dst_schema="comp_stage", alt_table_name="company_copy")
     """
     from ..files.parquet import get_modified_pq
     from ..files.paths import get_pq_file
@@ -514,8 +556,52 @@ def pq_update_pg(
     force=False,
     create_roles=True,
 ):
-    """
-    Materialize a parquet file into PostgreSQL when the parquet source is newer.
+    """Materialize a parquet file into PostgreSQL when the parquet source is newer.
+
+    Parameters
+    ----------
+    table_name : str
+        Basename of the source parquet file.
+
+    schema : str
+        Name of the source parquet schema directory.
+
+    data_dir : str, optional
+        Root directory of the parquet data repository. If omitted, defaults
+        to ``DATA_DIR`` or the current working directory.
+
+    user, host, dbname, database, port : optional
+        Destination PostgreSQL connection settings.
+
+    dst_schema : str, optional
+        Destination PostgreSQL schema. If omitted, defaults to ``schema``.
+
+    alt_table_name : str, optional
+        Destination PostgreSQL table name. If omitted, defaults to
+        ``table_name``.
+
+    engine : {"duckdb", "adbc"}, optional
+        Engine used to load the parquet file into PostgreSQL.
+
+    force : bool, optional
+        If ``True``, import the parquet file even when the source metadata are
+        missing or the destination does not appear stale.
+
+    create_roles : bool, optional
+        If ``True``, ensure destination schema owner and access roles exist
+        and apply ownership and grants to the loaded table.
+
+    Returns
+    -------
+    bool
+        ``True`` if the parquet file was imported. ``False`` if the
+        destination was already current or the source metadata were
+        insufficient and ``force`` was not requested.
+
+    Examples
+    ----------
+    >>> pq_update_pg("dsi", "crsp", dbname="research")
+    >>> pq_update_pg("company", "comp", dbname="research", force=True)
     """
     from ..files.parquet import get_modified_pq
     from ..files.paths import get_pq_file
