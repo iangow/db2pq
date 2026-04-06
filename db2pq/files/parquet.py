@@ -299,13 +299,37 @@ def pq_archive(table_name=None, schema=None, data_dir=None, file_name=None, arch
     [Parquet Utilities Examples](../parquet-utilities-examples.qmd) and
     [Data management ideas](../data-management.qmd).
 
-    If ``file_name`` is provided, archive that exact file path.
+    Parameters
+    ----------
+    table_name : str, optional
+        Basename of the parquet file to archive when resolving the source
+        file from ``schema`` and ``data_dir``.
 
-    Otherwise, resolve the parquet file from ``table_name`` / ``schema`` /
-    ``data_dir``.
+    schema : str, optional
+        Name of the parquet schema directory used when resolving the source
+        file from ``table_name``.
 
-    Returns the archived file path as a string, or ``None`` if no file was
-    archived.
+    data_dir : str, optional
+        Root directory of the parquet data repository. If omitted, defaults
+        to ``DATA_DIR`` or the current working directory.
+
+    file_name : str or path-like, optional
+        Exact parquet file path to archive. If supplied, ``table_name`` and
+        ``schema`` are ignored.
+
+    archive_dir : str, optional
+        Name of the archive directory under the schema directory. Defaults to
+        ``"archive"``.
+
+    Returns
+    -------
+    str or None
+        Archived file path as a string, or ``None`` if no file was archived.
+
+    Examples
+    ----------
+    >>> pq_archive(table_name="company", schema="comp")
+    >>> pq_archive(file_name="~/Dropbox/pq_data/comp/company.parquet")
     """
     from .timestamps import parse_last_modified
 
@@ -352,8 +376,38 @@ def pq_restore(file_basename, schema, data_dir=None, archive=True, archive_dir=N
     [Parquet Utilities Examples](../parquet-utilities-examples.qmd) and
     [Data management ideas](../data-management.qmd).
 
-    ``file_basename`` may include or omit ``.parquet`` and should refer to a
-    file in ``<data_dir>/<schema>/<archive_dir>/``.
+    Parameters
+    ----------
+    file_basename : str
+        Archived parquet basename to restore. May include or omit the
+        ``.parquet`` suffix and should refer to a file in
+        ``<data_dir>/<schema>/<archive_dir>/``.
+
+    schema : str
+        Name of the parquet schema directory.
+
+    data_dir : str, optional
+        Root directory of the parquet data repository. If omitted, defaults
+        to ``DATA_DIR`` or the current working directory.
+
+    archive : bool, optional
+        If ``True`` and an active destination file already exists, archive
+        the current active file before restoring the archived version.
+
+    archive_dir : str, optional
+        Name of the archive directory under the schema directory. Defaults to
+        ``"archive"``.
+
+    Returns
+    -------
+    str or None
+        Restored active parquet file path as a string, or ``None`` if the
+        restore could not be completed.
+
+    Examples
+    ----------
+    >>> pq_restore("company_20240614T062835Z", "comp")
+    >>> pq_restore("company_20240614T062835Z.parquet", "comp", archive=False)
     """
     archive_dir = archive_dir or "archive"
     data_root = resolve_data_dir(data_dir)
@@ -418,15 +472,40 @@ def pq_remove(
     For workflow-oriented examples, see
     [Parquet Utilities Examples](../parquet-utilities-examples.qmd).
 
-    If ``file_name`` is provided, remove that exact file path.
+    Parameters
+    ----------
+    table_name : str, optional
+        Basename of the parquet file to remove when resolving the source file
+        from ``schema`` and ``data_dir``.
 
-    Otherwise, resolve the parquet file from ``table_name`` / ``schema`` /
-    ``data_dir``.
+    schema : str, optional
+        Name of the parquet schema directory used when resolving the source
+        file from ``table_name``.
 
-    When ``archive=True``, resolved files are looked up under ``archive_dir``.
+    data_dir : str, optional
+        Root directory of the parquet data repository. If omitted, defaults
+        to ``DATA_DIR`` or the current working directory.
 
-    Returns the removed file path as a string, or ``None`` if nothing was
-    removed.
+    file_name : str or path-like, optional
+        Exact parquet file path to remove. If supplied, ``table_name`` and
+        ``schema`` are ignored.
+
+    archive : bool, optional
+        If ``True``, resolved files are looked up under ``archive_dir``.
+
+    archive_dir : str, optional
+        Name of the archive directory under the schema directory. Defaults to
+        ``"archive"``.
+
+    Returns
+    -------
+    str or None
+        Removed file path as a string, or ``None`` if nothing was removed.
+
+    Examples
+    ----------
+    >>> pq_remove(table_name="company", schema="comp")
+    >>> pq_remove(table_name="company_20240614T062835Z", schema="comp", archive=True)
     """
     if file_name is not None:
         p = Path(file_name).expanduser()
@@ -716,16 +795,44 @@ def pq_last_modified(
     [Parquet Utilities Examples](../parquet-utilities-examples.qmd) and
     [Data management ideas](../data-management.qmd).
 
-    If ``file_name`` is provided, return metadata for that file.
+    Parameters
+    ----------
+    table_name : str, optional
+        Basename of the parquet file to inspect when resolving the source
+        file from ``schema`` and ``data_dir``.
 
-    If ``table_name`` is provided, resolve the parquet file from
-    ``table_name`` / ``schema`` / ``data_dir`` and return metadata for that
-    file.
+    schema : str, optional
+        Name of the parquet schema directory to inspect.
 
-    Otherwise, return a DataFrame summary for all parquet files, optionally
-    constrained to ``schema``. The summary includes a ``storage`` indicator
-    with values ``"local"`` and ``"cloud"``. If ``archive=True``, files are
-    read from ``archive_dir``.
+    data_dir : str, optional
+        Root directory of the parquet data repository. If omitted, defaults
+        to ``DATA_DIR`` or the current working directory.
+
+    file_name : str or path-like, optional
+        Exact parquet file path to inspect. If supplied, ``table_name`` and
+        ``schema`` are ignored.
+
+    archive : bool, optional
+        If ``True``, inspect archived parquet files under ``archive_dir``.
+
+    archive_dir : str, optional
+        Name of the archive directory under the schema directory. Defaults to
+        ``"archive"``.
+
+    Returns
+    -------
+    str or pandas.DataFrame
+        If ``file_name`` is supplied, or if ``table_name`` is supplied with
+        ``archive=False``, return the embedded ``last_modified`` string for
+        that parquet file. Otherwise, return a DataFrame summary of matching
+        parquet files, including ``file_name``, ``table``, ``schema``,
+        ``last_mod``, ``last_mod_str``, and ``storage`` columns.
+
+    Examples
+    ----------
+    >>> pq_last_modified(table_name="company", schema="comp")
+    >>> pq_last_modified(table_name="company", schema="comp", archive=True)
+    >>> pq_last_modified(schema="comp", archive=True)
     """
     if file_name is not None:
         return get_modified_pq(file_name)
