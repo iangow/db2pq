@@ -436,7 +436,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.files.parquet.pq_restore" id="toc-db2pq.files.parquet.pq_restore" class="nav-link active" data-scroll-target="#db2pq.files.parquet.pq_restore">files.parquet.pq_restore</a></li>
+  <li><a href="#db2pq.files.parquet.pq_restore" id="toc-db2pq.files.parquet.pq_restore" class="nav-link active" data-scroll-target="#db2pq.files.parquet.pq_restore">files.parquet.pq_restore</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -457,9 +462,88 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Restore an archived parquet file into the schema directory.</p>
 <p>For workflow-oriented examples, see <a href="../parquet-utilities-examples.html">Parquet Utilities Examples</a> and <a href="../data-management.html">Data management ideas</a>.</p>
-<p><code>file_basename</code> may include or omit <code>.parquet</code> and should refer to a file in <code>&lt;data_dir&gt;/&lt;schema&gt;/&lt;archive_dir&gt;/</code>.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 4%">
+<col style="width: 81%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>file_basename</td>
+<td>str</td>
+<td>Archived parquet basename to restore. May include or omit the <code>.parquet</code> suffix and should refer to a file in <code>&lt;data_dir&gt;/&lt;schema&gt;/&lt;archive_dir&gt;/</code>.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>schema</td>
+<td>str</td>
+<td>Name of the parquet schema directory.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>data_dir</td>
+<td>str</td>
+<td>Root directory of the parquet data repository. If omitted, defaults to <code>DATA_DIR</code> or the current working directory.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>archive</td>
+<td>bool</td>
+<td>If <code>True</code> and an active destination file already exists, archive the current active file before restoring the archived version.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>archive_dir</td>
+<td>str</td>
+<td>Name of the archive directory under the schema directory. Defaults to <code>"archive"</code>.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 10%">
+<col style="width: 82%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>str or None</td>
+<td>Restored active parquet file path as a string, or <code>None</code> if the restore could not be completed.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_restore(<span class="st">"company_20240614T062835Z"</span>, <span class="st">"comp"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_restore(<span class="st">"company_20240614T062835Z.parquet"</span>, <span class="st">"comp"</span>, archive<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

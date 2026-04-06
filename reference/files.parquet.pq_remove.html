@@ -436,7 +436,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.files.parquet.pq_remove" id="toc-db2pq.files.parquet.pq_remove" class="nav-link active" data-scroll-target="#db2pq.files.parquet.pq_remove">files.parquet.pq_remove</a></li>
+  <li><a href="#db2pq.files.parquet.pq_remove" id="toc-db2pq.files.parquet.pq_remove" class="nav-link active" data-scroll-target="#db2pq.files.parquet.pq_remove">files.parquet.pq_remove</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -458,12 +463,94 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Remove a parquet file from active or archive storage.</p>
 <p>For workflow-oriented examples, see <a href="../parquet-utilities-examples.html">Parquet Utilities Examples</a>.</p>
-<p>If <code>file_name</code> is provided, remove that exact file path.</p>
-<p>Otherwise, resolve the parquet file from <code>table_name</code> / <code>schema</code> / <code>data_dir</code>.</p>
-<p>When <code>archive=True</code>, resolved files are looked up under <code>archive_dir</code>.</p>
-<p>Returns the removed file path as a string, or <code>None</code> if nothing was removed.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 12%">
+<col style="width: 72%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>table_name</td>
+<td>str</td>
+<td>Basename of the parquet file to remove when resolving the source file from <code>schema</code> and <code>data_dir</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>schema</td>
+<td>str</td>
+<td>Name of the parquet schema directory used when resolving the source file from <code>table_name</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>data_dir</td>
+<td>str</td>
+<td>Root directory of the parquet data repository. If omitted, defaults to <code>DATA_DIR</code> or the current working directory.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>file_name</td>
+<td>str or path - like</td>
+<td>Exact parquet file path to remove. If supplied, <code>table_name</code> and <code>schema</code> are ignored.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>archive</td>
+<td>bool</td>
+<td>If <code>True</code>, resolved files are looked up under <code>archive_dir</code>.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>archive_dir</td>
+<td>str</td>
+<td>Name of the archive directory under the schema directory. Defaults to <code>"archive"</code>.</td>
+<td><code>'archive'</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 14%">
+<col style="width: 76%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>str or None</td>
+<td>Removed file path as a string, or <code>None</code> if nothing was removed.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_remove(table_name<span class="op">=</span><span class="st">"company"</span>, schema<span class="op">=</span><span class="st">"comp"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_remove(table_name<span class="op">=</span><span class="st">"company_20240614T062835Z"</span>, schema<span class="op">=</span><span class="st">"comp"</span>, archive<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

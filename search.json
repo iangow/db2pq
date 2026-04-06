@@ -124,7 +124,43 @@
     "href": "reference/files.parquet.pq_restore.html",
     "title": "files.parquet.pq_restore",
     "section": "",
-    "text": "files.parquet.pq_restore\nfiles.parquet.pq_restore(\n    file_basename,\n    schema,\n    data_dir=None,\n    archive=True,\n    archive_dir=None,\n)\nRestore an archived parquet file into the schema directory.\nFor workflow-oriented examples, see Parquet Utilities Examples and Data management ideas.\nfile_basename may include or omit .parquet and should refer to a file in &lt;data_dir&gt;/&lt;schema&gt;/&lt;archive_dir&gt;/.",
+    "text": "files.parquet.pq_restore(\n    file_basename,\n    schema,\n    data_dir=None,\n    archive=True,\n    archive_dir=None,\n)\nRestore an archived parquet file into the schema directory.\nFor workflow-oriented examples, see Parquet Utilities Examples and Data management ideas.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nfile_basename\nstr\nArchived parquet basename to restore. May include or omit the .parquet suffix and should refer to a file in &lt;data_dir&gt;/&lt;schema&gt;/&lt;archive_dir&gt;/.\nrequired\n\n\nschema\nstr\nName of the parquet schema directory.\nrequired\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\narchive\nbool\nIf True and an active destination file already exists, archive the current active file before restoring the archived version.\nTrue\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nstr or None\nRestored active parquet file path as a string, or None if the restore could not be completed.\n\n\n\n\n\n\n&gt;&gt;&gt; pq_restore(\"company_20240614T062835Z\", \"comp\")\n&gt;&gt;&gt; pq_restore(\"company_20240614T062835Z.parquet\", \"comp\", archive=False)",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_restore"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_restore.html#parameters",
+    "href": "reference/files.parquet.pq_restore.html#parameters",
+    "title": "files.parquet.pq_restore",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nfile_basename\nstr\nArchived parquet basename to restore. May include or omit the .parquet suffix and should refer to a file in &lt;data_dir&gt;/&lt;schema&gt;/&lt;archive_dir&gt;/.\nrequired\n\n\nschema\nstr\nName of the parquet schema directory.\nrequired\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\narchive\nbool\nIf True and an active destination file already exists, archive the current active file before restoring the archived version.\nTrue\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\nNone",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_restore"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_restore.html#returns",
+    "href": "reference/files.parquet.pq_restore.html#returns",
+    "title": "files.parquet.pq_restore",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nstr or None\nRestored active parquet file path as a string, or None if the restore could not be completed.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_restore"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_restore.html#examples",
+    "href": "reference/files.parquet.pq_restore.html#examples",
+    "title": "files.parquet.pq_restore",
+    "section": "",
+    "text": "&gt;&gt;&gt; pq_restore(\"company_20240614T062835Z\", \"comp\")\n&gt;&gt;&gt; pq_restore(\"company_20240614T062835Z.parquet\", \"comp\", archive=False)",
     "crumbs": [
       "Reference",
       "Parquet Utilities",
@@ -184,7 +220,43 @@
     "href": "reference/files.parquet.pq_remove.html",
     "title": "files.parquet.pq_remove",
     "section": "",
-    "text": "files.parquet.pq_remove\nfiles.parquet.pq_remove(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive=False,\n    archive_dir='archive',\n)\nRemove a parquet file from active or archive storage.\nFor workflow-oriented examples, see Parquet Utilities Examples.\nIf file_name is provided, remove that exact file path.\nOtherwise, resolve the parquet file from table_name / schema / data_dir.\nWhen archive=True, resolved files are looked up under archive_dir.\nReturns the removed file path as a string, or None if nothing was removed.",
+    "text": "files.parquet.pq_remove(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive=False,\n    archive_dir='archive',\n)\nRemove a parquet file from active or archive storage.\nFor workflow-oriented examples, see Parquet Utilities Examples.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the parquet file to remove when resolving the source file from schema and data_dir.\nNone\n\n\nschema\nstr\nName of the parquet schema directory used when resolving the source file from table_name.\nNone\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nfile_name\nstr or path - like\nExact parquet file path to remove. If supplied, table_name and schema are ignored.\nNone\n\n\narchive\nbool\nIf True, resolved files are looked up under archive_dir.\nFalse\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\n'archive'\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nstr or None\nRemoved file path as a string, or None if nothing was removed.\n\n\n\n\n\n\n&gt;&gt;&gt; pq_remove(table_name=\"company\", schema=\"comp\")\n&gt;&gt;&gt; pq_remove(table_name=\"company_20240614T062835Z\", schema=\"comp\", archive=True)",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_remove"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_remove.html#parameters",
+    "href": "reference/files.parquet.pq_remove.html#parameters",
+    "title": "files.parquet.pq_remove",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the parquet file to remove when resolving the source file from schema and data_dir.\nNone\n\n\nschema\nstr\nName of the parquet schema directory used when resolving the source file from table_name.\nNone\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nfile_name\nstr or path - like\nExact parquet file path to remove. If supplied, table_name and schema are ignored.\nNone\n\n\narchive\nbool\nIf True, resolved files are looked up under archive_dir.\nFalse\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\n'archive'",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_remove"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_remove.html#returns",
+    "href": "reference/files.parquet.pq_remove.html#returns",
+    "title": "files.parquet.pq_remove",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nstr or None\nRemoved file path as a string, or None if nothing was removed.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_remove"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_remove.html#examples",
+    "href": "reference/files.parquet.pq_remove.html#examples",
+    "title": "files.parquet.pq_remove",
+    "section": "",
+    "text": "&gt;&gt;&gt; pq_remove(table_name=\"company\", schema=\"comp\")\n&gt;&gt;&gt; pq_remove(table_name=\"company_20240614T062835Z\", schema=\"comp\", archive=True)",
     "crumbs": [
       "Reference",
       "Parquet Utilities",
@@ -491,7 +563,43 @@
     "href": "reference/files.parquet.pq_archive.html",
     "title": "files.parquet.pq_archive",
     "section": "",
-    "text": "files.parquet.pq_archive\nfiles.parquet.pq_archive(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive_dir=None,\n)\nArchive a parquet file by renaming it into an archive subdirectory.\nFor workflow-oriented examples, see Parquet Utilities Examples and Data management ideas.\nIf file_name is provided, archive that exact file path.\nOtherwise, resolve the parquet file from table_name / schema / data_dir.\nReturns the archived file path as a string, or None if no file was archived.",
+    "text": "files.parquet.pq_archive(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive_dir=None,\n)\nArchive a parquet file by renaming it into an archive subdirectory.\nFor workflow-oriented examples, see Parquet Utilities Examples and Data management ideas.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the parquet file to archive when resolving the source file from schema and data_dir.\nNone\n\n\nschema\nstr\nName of the parquet schema directory used when resolving the source file from table_name.\nNone\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nfile_name\nstr or path - like\nExact parquet file path to archive. If supplied, table_name and schema are ignored.\nNone\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nstr or None\nArchived file path as a string, or None if no file was archived.\n\n\n\n\n\n\n&gt;&gt;&gt; pq_archive(table_name=\"company\", schema=\"comp\")\n&gt;&gt;&gt; pq_archive(file_name=\"~/Dropbox/pq_data/comp/company.parquet\")",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_archive"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_archive.html#parameters",
+    "href": "reference/files.parquet.pq_archive.html#parameters",
+    "title": "files.parquet.pq_archive",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the parquet file to archive when resolving the source file from schema and data_dir.\nNone\n\n\nschema\nstr\nName of the parquet schema directory used when resolving the source file from table_name.\nNone\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nfile_name\nstr or path - like\nExact parquet file path to archive. If supplied, table_name and schema are ignored.\nNone\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\nNone",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_archive"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_archive.html#returns",
+    "href": "reference/files.parquet.pq_archive.html#returns",
+    "title": "files.parquet.pq_archive",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nstr or None\nArchived file path as a string, or None if no file was archived.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_archive"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_archive.html#examples",
+    "href": "reference/files.parquet.pq_archive.html#examples",
+    "title": "files.parquet.pq_archive",
+    "section": "",
+    "text": "&gt;&gt;&gt; pq_archive(table_name=\"company\", schema=\"comp\")\n&gt;&gt;&gt; pq_archive(file_name=\"~/Dropbox/pq_data/comp/company.parquet\")",
     "crumbs": [
       "Reference",
       "Parquet Utilities",
@@ -1622,7 +1730,43 @@
     "href": "reference/files.parquet.pq_last_modified.html",
     "title": "files.parquet.pq_last_modified",
     "section": "",
-    "text": "files.parquet.pq_last_modified\nfiles.parquet.pq_last_modified(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive=False,\n    archive_dir='archive',\n)\nGet last-updated metadata for parquet data files.\nFor workflow-oriented examples, see Parquet Utilities Examples and Data management ideas.\nIf file_name is provided, return metadata for that file.\nIf table_name is provided, resolve the parquet file from table_name / schema / data_dir and return metadata for that file.\nOtherwise, return a DataFrame summary for all parquet files, optionally constrained to schema. The summary includes a storage indicator with values \"local\" and \"cloud\". If archive=True, files are read from archive_dir.",
+    "text": "files.parquet.pq_last_modified(\n    table_name=None,\n    schema=None,\n    data_dir=None,\n    file_name=None,\n    archive=False,\n    archive_dir='archive',\n)\nGet last-updated metadata for parquet data files.\nFor workflow-oriented examples, see Parquet Utilities Examples and Data management ideas.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the parquet file to inspect when resolving the source file from schema and data_dir.\nNone\n\n\nschema\nstr\nName of the parquet schema directory to inspect.\nNone\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nfile_name\nstr or path - like\nExact parquet file path to inspect. If supplied, table_name and schema are ignored.\nNone\n\n\narchive\nbool\nIf True, inspect archived parquet files under archive_dir.\nFalse\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\n'archive'\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nstr or pandas.DataFrame\nIf file_name is supplied, or if table_name is supplied with archive=False, return the embedded last_modified string for that parquet file. Otherwise, return a DataFrame summary of matching parquet files, including file_name, table, schema, last_mod, last_mod_str, and storage columns.\n\n\n\n\n\n\n&gt;&gt;&gt; pq_last_modified(table_name=\"company\", schema=\"comp\")\n&gt;&gt;&gt; pq_last_modified(table_name=\"company\", schema=\"comp\", archive=True)\n&gt;&gt;&gt; pq_last_modified(schema=\"comp\", archive=True)",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_last_modified"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_last_modified.html#parameters",
+    "href": "reference/files.parquet.pq_last_modified.html#parameters",
+    "title": "files.parquet.pq_last_modified",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the parquet file to inspect when resolving the source file from schema and data_dir.\nNone\n\n\nschema\nstr\nName of the parquet schema directory to inspect.\nNone\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nfile_name\nstr or path - like\nExact parquet file path to inspect. If supplied, table_name and schema are ignored.\nNone\n\n\narchive\nbool\nIf True, inspect archived parquet files under archive_dir.\nFalse\n\n\narchive_dir\nstr\nName of the archive directory under the schema directory. Defaults to \"archive\".\n'archive'",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_last_modified"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_last_modified.html#returns",
+    "href": "reference/files.parquet.pq_last_modified.html#returns",
+    "title": "files.parquet.pq_last_modified",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nstr or pandas.DataFrame\nIf file_name is supplied, or if table_name is supplied with archive=False, return the embedded last_modified string for that parquet file. Otherwise, return a DataFrame summary of matching parquet files, including file_name, table, schema, last_mod, last_mod_str, and storage columns.",
+    "crumbs": [
+      "Reference",
+      "Parquet Utilities",
+      "files.parquet.pq_last_modified"
+    ]
+  },
+  {
+    "objectID": "reference/files.parquet.pq_last_modified.html#examples",
+    "href": "reference/files.parquet.pq_last_modified.html#examples",
+    "title": "files.parquet.pq_last_modified",
+    "section": "",
+    "text": "&gt;&gt;&gt; pq_last_modified(table_name=\"company\", schema=\"comp\")\n&gt;&gt;&gt; pq_last_modified(table_name=\"company\", schema=\"comp\", archive=True)\n&gt;&gt;&gt; pq_last_modified(schema=\"comp\", archive=True)",
     "crumbs": [
       "Reference",
       "Parquet Utilities",
