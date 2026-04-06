@@ -436,7 +436,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.postgres.update.pq_to_pg" id="toc-db2pq.postgres.update.pq_to_pg" class="nav-link active" data-scroll-target="#db2pq.postgres.update.pq_to_pg">postgres.update.pq_to_pg</a></li>
+  <li><a href="#db2pq.postgres.update.pq_to_pg" id="toc-db2pq.postgres.update.pq_to_pg" class="nav-link active" data-scroll-target="#db2pq.postgres.update.pq_to_pg">postgres.update.pq_to_pg</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -465,8 +470,136 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    source_comment<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Write a parquet file from the local repository into PostgreSQL.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 74%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>table_name</td>
+<td>str</td>
+<td>Basename of the source parquet file.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>schema</td>
+<td>str</td>
+<td>Name of the source parquet schema directory.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>data_dir</td>
+<td>str</td>
+<td>Root directory of the parquet data repository. If omitted, defaults to <code>DATA_DIR</code> or the current working directory.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>user</td>
+<td>optional</td>
+<td>Destination PostgreSQL connection settings.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>host</td>
+<td>optional</td>
+<td>Destination PostgreSQL connection settings.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>dbname</td>
+<td>optional</td>
+<td>Destination PostgreSQL connection settings.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>database</td>
+<td>optional</td>
+<td>Destination PostgreSQL connection settings.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>port</td>
+<td>optional</td>
+<td>Destination PostgreSQL connection settings.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>dst_schema</td>
+<td>str</td>
+<td>Destination PostgreSQL schema. If omitted, defaults to <code>schema</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>alt_table_name</td>
+<td>str</td>
+<td>Destination PostgreSQL table name. If omitted, defaults to <code>table_name</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>engine</td>
+<td>(duckdb, adbc)</td>
+<td>Engine used to load the parquet file into PostgreSQL.</td>
+<td><code>"duckdb"</code></td>
+</tr>
+<tr class="even">
+<td>create_roles</td>
+<td>bool</td>
+<td>If <code>True</code>, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.</td>
+<td><code>True</code></td>
+</tr>
+<tr class="odd">
+<td>source_comment</td>
+<td>str</td>
+<td>Comment to store on the destination PostgreSQL table. If omitted, reuse the parquet file’s embedded <code>last_modified</code> metadata.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>bool</td>
+<td><code>True</code> after the destination table has been created or replaced.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_to_pg(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>, dbname<span class="op">=</span><span class="st">"research"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_to_pg(<span class="st">"company"</span>, <span class="st">"comp"</span>, dst_schema<span class="op">=</span><span class="st">"comp_stage"</span>, alt_table_name<span class="op">=</span><span class="st">"company_copy"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

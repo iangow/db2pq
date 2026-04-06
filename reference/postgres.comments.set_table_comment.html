@@ -436,7 +436,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.postgres.comments.set_table_comment" id="toc-db2pq.postgres.comments.set_table_comment" class="nav-link active" data-scroll-target="#db2pq.postgres.comments.set_table_comment">postgres.comments.set_table_comment</a></li>
+  <li><a href="#db2pq.postgres.comments.set_table_comment" id="toc-db2pq.postgres.comments.set_table_comment" class="nav-link active" data-scroll-target="#db2pq.postgres.comments.set_table_comment">postgres.comments.set_table_comment</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -460,9 +465,101 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    port<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Set (or clear) a PostgreSQL table comment using psycopg.</p>
-<p>If <code>conn</code> is omitted, connect to the same destination PostgreSQL database resolved by <code>wrds_update_pg()</code>.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 12%">
+<col style="width: 73%">
+<col style="width: 7%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>conn</td>
+<td>psycopg connection</td>
+<td>Open PostgreSQL connection to use. If omitted, create a connection using <code>user</code> / <code>host</code> / <code>dbname</code> / <code>port</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>schema</td>
+<td>str</td>
+<td>Name of the PostgreSQL schema containing the table.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>table_name</td>
+<td>str</td>
+<td>Name of the PostgreSQL table whose comment should be updated.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>comment</td>
+<td>str or None</td>
+<td>Comment text to store. Use <code>None</code> to clear the comment.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>user</td>
+<td>optional</td>
+<td>PostgreSQL connection settings used only when <code>conn</code> is omitted.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>host</td>
+<td>optional</td>
+<td>PostgreSQL connection settings used only when <code>conn</code> is omitted.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>dbname</td>
+<td>optional</td>
+<td>PostgreSQL connection settings used only when <code>conn</code> is omitted.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>port</td>
+<td>optional</td>
+<td>PostgreSQL connection settings used only when <code>conn</code> is omitted.</td>
+<td><code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>None</td>
+<td>This function updates the table comment in place.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> set_table_comment(schema<span class="op">=</span><span class="st">"crsp"</span>, table_name<span class="op">=</span><span class="st">"dsi"</span>, comment<span class="op">=</span><span class="st">"Updated 2025-01-31"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> set_table_comment(schema<span class="op">=</span><span class="st">"crsp"</span>, table_name<span class="op">=</span><span class="st">"dsi"</span>, comment<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

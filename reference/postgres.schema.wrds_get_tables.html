@@ -436,7 +436,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.postgres.schema.wrds_get_tables" id="toc-db2pq.postgres.schema.wrds_get_tables" class="nav-link active" data-scroll-target="#db2pq.postgres.schema.wrds_get_tables">postgres.schema.wrds_get_tables</a></li>
+  <li><a href="#db2pq.postgres.schema.wrds_get_tables" id="toc-db2pq.postgres.schema.wrds_get_tables" class="nav-link active" data-scroll-target="#db2pq.postgres.schema.wrds_get_tables">postgres.schema.wrds_get_tables</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -449,9 +454,77 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="db2pq.postgres.schema.wrds_get_tables" class="level1">
 <h1>postgres.schema.wrds_get_tables</h1>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>postgres.schema.wrds_get_tables(schema, <span class="op">*</span>, wrds_id<span class="op">=</span><span class="va">None</span>, views<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Get list of WRDS tables in a schema, optionally including views.</p>
+<p>Get a list of relations in a WRDS schema.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 5%">
+<col style="width: 4%">
+<col style="width: 83%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>schema</td>
+<td>str</td>
+<td>Name of the WRDS schema to inspect.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>wrds_id</td>
+<td>str</td>
+<td>WRDS user ID used to access the WRDS PostgreSQL service. If omitted, resolve from <code>WRDS_ID</code> / <code>WRDS_USER</code> and related <code>.env</code> configuration.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>views</td>
+<td>bool</td>
+<td>If <code>True</code>, include views in addition to base tables.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 17%">
+<col style="width: 71%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>list[str]</td>
+<td>Sorted relation names in the requested WRDS schema.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> wrds_get_tables(<span class="st">"crsp"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> wrds_get_tables(<span class="st">"comp"</span>, views<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

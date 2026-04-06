@@ -196,7 +196,43 @@
     "href": "reference/core.db_to_pg.html",
     "title": "core.db_to_pg",
     "section": "",
-    "text": "core.db_to_pg\ncore.db_to_pg(\n    table_name,\n    schema,\n    *,\n    user=None,\n    host=None,\n    database=None,\n    port=None,\n    dst_user=None,\n    dst_host=None,\n    dst_database=None,\n    dst_port=None,\n    dst_schema=None,\n    col_types=None,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    tz='UTC',\n    create_roles=True,\n)\nWrite a PostgreSQL table to another PostgreSQL database.\nParameters mirror db_to_pq() for the source side, with additional dst_* parameters describing the destination PostgreSQL connection.",
+    "text": "core.db_to_pg(\n    table_name,\n    schema,\n    *,\n    user=None,\n    host=None,\n    database=None,\n    port=None,\n    dst_user=None,\n    dst_host=None,\n    dst_database=None,\n    dst_port=None,\n    dst_schema=None,\n    col_types=None,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    tz='UTC',\n    create_roles=True,\n)\nWrite a PostgreSQL table to another PostgreSQL database.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nName of the source PostgreSQL table.\nrequired\n\n\nschema\nstr\nName of the source PostgreSQL schema.\nrequired\n\n\nuser\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\nhost\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\ndatabase\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\nport\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\ndst_user\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_host\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_database\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_port\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\ncol_types\ndict\nExplicit destination PostgreSQL column types for selected columns.\nNone\n\n\nobs\nint\nNumber of rows to copy from the source table. Implemented with SQL LIMIT.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nkeep\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ndrop\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ntz\nstr\nDefault timezone used when normalizing timestamp columns.\n'UTC'\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbool\nTrue after the destination table has been created or replaced.\n\n\n\n\n\n\n&gt;&gt;&gt; db_to_pg(\"dsi\", \"crsp\", dst_database=\"research\")\n&gt;&gt;&gt; db_to_pg(\"company\", \"comp\", dst_schema=\"comp_mirror\", obs=1000)",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.db_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pg.html#parameters",
+    "href": "reference/core.db_to_pg.html#parameters",
+    "title": "core.db_to_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nName of the source PostgreSQL table.\nrequired\n\n\nschema\nstr\nName of the source PostgreSQL schema.\nrequired\n\n\nuser\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\nhost\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\ndatabase\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\nport\noptional\nConnection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by db_to_pq().\nNone\n\n\ndst_user\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_host\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_database\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_port\noptional\nConnection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\ncol_types\ndict\nExplicit destination PostgreSQL column types for selected columns.\nNone\n\n\nobs\nint\nNumber of rows to copy from the source table. Implemented with SQL LIMIT.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nkeep\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ndrop\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ntz\nstr\nDefault timezone used when normalizing timestamp columns.\n'UTC'\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.db_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pg.html#returns",
+    "href": "reference/core.db_to_pg.html#returns",
+    "title": "core.db_to_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nbool\nTrue after the destination table has been created or replaced.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.db_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/core.db_to_pg.html#examples",
+    "href": "reference/core.db_to_pg.html#examples",
+    "title": "core.db_to_pg",
+    "section": "",
+    "text": "&gt;&gt;&gt; db_to_pg(\"dsi\", \"crsp\", dst_database=\"research\")\n&gt;&gt;&gt; db_to_pg(\"company\", \"comp\", dst_schema=\"comp_mirror\", obs=1000)",
     "crumbs": [
       "Reference",
       "PostgreSQL Sync",
@@ -208,7 +244,7 @@
     "href": "reference/index.html",
     "title": "API Reference",
     "section": "",
-    "text": "Helpers for exporting PostgreSQL and WRDS data into Parquet files.\n\n\n\ncore.db_to_pq\nExport a PostgreSQL table to a parquet file.\n\n\ncore.pg_update_pq\nExport a local PostgreSQL table to Parquet when the source is newer.\n\n\ncore.wrds_pg_to_pq\nExport a table from the WRDS PostgreSQL database to a parquet file.\n\n\ncore.wrds_sql_to_pq\nRun a SQL query against WRDS PostgreSQL and write the result to Parquet.\n\n\ncore.db_schema_to_pq\nExport all tables in a PostgreSQL schema to Parquet files.\n\n\ncore.wrds_update_pq\nExport a table from the WRDS PostgreSQL database to a Parquet file.\n\n\ncore.wrds_update_schema\nUpdate existing parquet files in a schema.\n\n\nibis.ibis_to_pq\nWrite an Ibis PostgreSQL table expression to a parquet file.\n\n\n\n\n\n\nHelpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.\n\n\n\ncore.db_to_pg\nWrite a PostgreSQL table to another PostgreSQL database.\n\n\ncore.wrds_pg_to_pg\nWrite a WRDS PostgreSQL table to another PostgreSQL database.\n\n\npostgres.update.wrds_update_pg\nMaterialize a WRDS PostgreSQL table into a local PostgreSQL database.\n\n\npostgres.update.pq_to_pg\nWrite a parquet file from the local repository into PostgreSQL.\n\n\npostgres.update.pq_update_pg\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.\n\n\npostgres.update.process_sql\nExecute SQL against the destination PostgreSQL database used by\n\n\npostgres.schema.db_schema_tables\nGet list of all tables in a PostgreSQL schema.\n\n\npostgres.schema.wrds_get_tables\nGet list of WRDS tables in a schema, optionally including views.\n\n\npostgres.comments.set_table_comment\nSet (or clear) a PostgreSQL table comment using psycopg.\n\n\n\n\n\n\nHelpers for managing and inspecting parquet files produced by db2pq.\n\n\n\nfiles.paths.pq_list_files\nGet a list of parquet files in a schema or its archive directory.\n\n\nfiles.parquet.pq_last_modified\nGet last-updated metadata for parquet data files.\n\n\nfiles.parquet.pq_archive\nArchive a parquet file by renaming it into an archive subdirectory.\n\n\nfiles.parquet.pq_restore\nRestore an archived parquet file into the schema directory.\n\n\nfiles.parquet.pq_remove\nRemove a parquet file from active or archive storage.\n\n\n\n\n\n\nHelpers for engine defaults and runtime behavior.\n\n\n\nconfig.set_default_engine\nSet the session-wide default engine used by db2pq helpers to create\n\n\nconfig.get_default_engine\nReturn the default engine used by db2pq helpers.",
+    "text": "Helpers for exporting PostgreSQL and WRDS data into Parquet files.\n\n\n\ncore.db_to_pq\nExport a PostgreSQL table to a parquet file.\n\n\ncore.pg_update_pq\nExport a local PostgreSQL table to Parquet when the source is newer.\n\n\ncore.wrds_pg_to_pq\nExport a table from the WRDS PostgreSQL database to a parquet file.\n\n\ncore.wrds_sql_to_pq\nRun a SQL query against WRDS PostgreSQL and write the result to Parquet.\n\n\ncore.db_schema_to_pq\nExport all tables in a PostgreSQL schema to Parquet files.\n\n\ncore.wrds_update_pq\nExport a table from the WRDS PostgreSQL database to a Parquet file.\n\n\ncore.wrds_update_schema\nUpdate existing parquet files in a schema.\n\n\nibis.ibis_to_pq\nWrite an Ibis PostgreSQL table expression to a parquet file.\n\n\n\n\n\n\nHelpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.\n\n\n\ncore.db_to_pg\nWrite a PostgreSQL table to another PostgreSQL database.\n\n\ncore.wrds_pg_to_pg\nWrite a WRDS PostgreSQL table to another PostgreSQL database.\n\n\npostgres.update.wrds_update_pg\nMaterialize a WRDS PostgreSQL table into a local PostgreSQL database.\n\n\npostgres.update.pq_to_pg\nWrite a parquet file from the local repository into PostgreSQL.\n\n\npostgres.update.pq_update_pg\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.\n\n\npostgres.update.process_sql\nExecute SQL against the destination PostgreSQL database used by\n\n\npostgres.schema.db_schema_tables\nGet a list of relations in a PostgreSQL schema.\n\n\npostgres.schema.wrds_get_tables\nGet a list of relations in a WRDS schema.\n\n\npostgres.comments.set_table_comment\nSet (or clear) a PostgreSQL table comment using psycopg.\n\n\n\n\n\n\nHelpers for managing and inspecting parquet files produced by db2pq.\n\n\n\nfiles.paths.pq_list_files\nGet a list of parquet files in a schema or its archive directory.\n\n\nfiles.parquet.pq_last_modified\nGet last-updated metadata for parquet data files.\n\n\nfiles.parquet.pq_archive\nArchive a parquet file by renaming it into an archive subdirectory.\n\n\nfiles.parquet.pq_restore\nRestore an archived parquet file into the schema directory.\n\n\nfiles.parquet.pq_remove\nRemove a parquet file from active or archive storage.\n\n\n\n\n\n\nHelpers for engine defaults and runtime behavior.\n\n\n\nconfig.set_default_engine\nSet the session-wide default engine used by db2pq helpers to create\n\n\nconfig.get_default_engine\nReturn the default engine used by db2pq helpers.",
     "crumbs": [
       "Reference",
       "API Reference"
@@ -230,7 +266,7 @@
     "href": "reference/index.html#postgresql-sync",
     "title": "API Reference",
     "section": "",
-    "text": "Helpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.\n\n\n\ncore.db_to_pg\nWrite a PostgreSQL table to another PostgreSQL database.\n\n\ncore.wrds_pg_to_pg\nWrite a WRDS PostgreSQL table to another PostgreSQL database.\n\n\npostgres.update.wrds_update_pg\nMaterialize a WRDS PostgreSQL table into a local PostgreSQL database.\n\n\npostgres.update.pq_to_pg\nWrite a parquet file from the local repository into PostgreSQL.\n\n\npostgres.update.pq_update_pg\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.\n\n\npostgres.update.process_sql\nExecute SQL against the destination PostgreSQL database used by\n\n\npostgres.schema.db_schema_tables\nGet list of all tables in a PostgreSQL schema.\n\n\npostgres.schema.wrds_get_tables\nGet list of WRDS tables in a schema, optionally including views.\n\n\npostgres.comments.set_table_comment\nSet (or clear) a PostgreSQL table comment using psycopg.",
+    "text": "Helpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.\n\n\n\ncore.db_to_pg\nWrite a PostgreSQL table to another PostgreSQL database.\n\n\ncore.wrds_pg_to_pg\nWrite a WRDS PostgreSQL table to another PostgreSQL database.\n\n\npostgres.update.wrds_update_pg\nMaterialize a WRDS PostgreSQL table into a local PostgreSQL database.\n\n\npostgres.update.pq_to_pg\nWrite a parquet file from the local repository into PostgreSQL.\n\n\npostgres.update.pq_update_pg\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.\n\n\npostgres.update.process_sql\nExecute SQL against the destination PostgreSQL database used by\n\n\npostgres.schema.db_schema_tables\nGet a list of relations in a PostgreSQL schema.\n\n\npostgres.schema.wrds_get_tables\nGet a list of relations in a WRDS schema.\n\n\npostgres.comments.set_table_comment\nSet (or clear) a PostgreSQL table comment using psycopg.",
     "crumbs": [
       "Reference",
       "API Reference"
@@ -263,7 +299,43 @@
     "href": "reference/core.wrds_pg_to_pg.html",
     "title": "core.wrds_pg_to_pg",
     "section": "",
-    "text": "core.wrds_pg_to_pg\ncore.wrds_pg_to_pg(\n    table_name,\n    schema,\n    *,\n    wrds_id=None,\n    dst_user=None,\n    dst_host=None,\n    dst_database=None,\n    dst_port=None,\n    dst_schema=None,\n    col_types=None,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    tz='UTC',\n    create_roles=True,\n)\nWrite a WRDS PostgreSQL table to another PostgreSQL database.",
+    "text": "core.wrds_pg_to_pg(\n    table_name,\n    schema,\n    *,\n    wrds_id=None,\n    dst_user=None,\n    dst_host=None,\n    dst_database=None,\n    dst_port=None,\n    dst_schema=None,\n    col_types=None,\n    obs=None,\n    alt_table_name=None,\n    keep=None,\n    drop=None,\n    tz='UTC',\n    create_roles=True,\n)\nWrite a WRDS PostgreSQL table to another PostgreSQL database.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nName of the WRDS source table.\nrequired\n\n\nschema\nstr\nName of the WRDS source schema.\nrequired\n\n\nwrds_id\nstr\nWRDS user ID used to access the WRDS PostgreSQL service. If omitted, resolve from WRDS_ID / WRDS_USER and related .env configuration.\nNone\n\n\ndst_user\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_host\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_database\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_port\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\ncol_types\ndict\nExplicit destination PostgreSQL column types for selected columns.\nNone\n\n\nobs\nint\nNumber of rows to copy from WRDS. Implemented with SQL LIMIT.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nkeep\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ndrop\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ntz\nstr\nDefault timezone used when normalizing timestamp columns.\n'UTC'\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbool\nTrue after the destination table has been created or replaced.\n\n\n\n\n\n\n&gt;&gt;&gt; wrds_pg_to_pg(\"dsi\", \"crsp\", dst_database=\"research\")\n&gt;&gt;&gt; wrds_pg_to_pg(\"company\", \"comp\", dst_schema=\"comp_mirror\", obs=1000)",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.wrds_pg_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pg.html#parameters",
+    "href": "reference/core.wrds_pg_to_pg.html#parameters",
+    "title": "core.wrds_pg_to_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nName of the WRDS source table.\nrequired\n\n\nschema\nstr\nName of the WRDS source schema.\nrequired\n\n\nwrds_id\nstr\nWRDS user ID used to access the WRDS PostgreSQL service. If omitted, resolve from WRDS_ID / WRDS_USER and related .env configuration.\nNone\n\n\ndst_user\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_host\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_database\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_port\noptional\nConnection settings for the destination PostgreSQL database.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\ncol_types\ndict\nExplicit destination PostgreSQL column types for selected columns.\nNone\n\n\nobs\nint\nNumber of rows to copy from WRDS. Implemented with SQL LIMIT.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nkeep\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ndrop\nstr or iterable\nRegex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, drop is applied first.\nNone\n\n\ntz\nstr\nDefault timezone used when normalizing timestamp columns.\n'UTC'\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.wrds_pg_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pg.html#returns",
+    "href": "reference/core.wrds_pg_to_pg.html#returns",
+    "title": "core.wrds_pg_to_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nbool\nTrue after the destination table has been created or replaced.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "core.wrds_pg_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/core.wrds_pg_to_pg.html#examples",
+    "href": "reference/core.wrds_pg_to_pg.html#examples",
+    "title": "core.wrds_pg_to_pg",
+    "section": "",
+    "text": "&gt;&gt;&gt; wrds_pg_to_pg(\"dsi\", \"crsp\", dst_database=\"research\")\n&gt;&gt;&gt; wrds_pg_to_pg(\"company\", \"comp\", dst_schema=\"comp_mirror\", obs=1000)",
     "crumbs": [
       "Reference",
       "PostgreSQL Sync",
@@ -275,7 +347,43 @@
     "href": "reference/postgres.update.pq_update_pg.html",
     "title": "postgres.update.pq_update_pg",
     "section": "",
-    "text": "postgres.update.pq_update_pg\npostgres.update.pq_update_pg(\n    table_name,\n    schema,\n    *,\n    data_dir=None,\n    user=None,\n    host=None,\n    dbname=None,\n    database=None,\n    port=None,\n    dst_schema=None,\n    alt_table_name=None,\n    engine='duckdb',\n    force=False,\n    create_roles=True,\n)\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.",
+    "text": "postgres.update.pq_update_pg(\n    table_name,\n    schema,\n    *,\n    data_dir=None,\n    user=None,\n    host=None,\n    dbname=None,\n    database=None,\n    port=None,\n    dst_schema=None,\n    alt_table_name=None,\n    engine='duckdb',\n    force=False,\n    create_roles=True,\n)\nMaterialize a parquet file into PostgreSQL when the parquet source is newer.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the source parquet file.\nrequired\n\n\nschema\nstr\nName of the source parquet schema directory.\nrequired\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nuser\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nhost\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndbname\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndatabase\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nport\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nengine\n(duckdb, adbc)\nEngine used to load the parquet file into PostgreSQL.\n\"duckdb\"\n\n\nforce\nbool\nIf True, import the parquet file even when the source metadata are missing or the destination does not appear stale.\nFalse\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbool\nTrue if the parquet file was imported. False if the destination was already current or the source metadata were insufficient and force was not requested.\n\n\n\n\n\n\n&gt;&gt;&gt; pq_update_pg(\"dsi\", \"crsp\", dbname=\"research\")\n&gt;&gt;&gt; pq_update_pg(\"company\", \"comp\", dbname=\"research\", force=True)",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_update_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_update_pg.html#parameters",
+    "href": "reference/postgres.update.pq_update_pg.html#parameters",
+    "title": "postgres.update.pq_update_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the source parquet file.\nrequired\n\n\nschema\nstr\nName of the source parquet schema directory.\nrequired\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nuser\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nhost\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndbname\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndatabase\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nport\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nengine\n(duckdb, adbc)\nEngine used to load the parquet file into PostgreSQL.\n\"duckdb\"\n\n\nforce\nbool\nIf True, import the parquet file even when the source metadata are missing or the destination does not appear stale.\nFalse\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_update_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_update_pg.html#returns",
+    "href": "reference/postgres.update.pq_update_pg.html#returns",
+    "title": "postgres.update.pq_update_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nbool\nTrue if the parquet file was imported. False if the destination was already current or the source metadata were insufficient and force was not requested.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_update_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_update_pg.html#examples",
+    "href": "reference/postgres.update.pq_update_pg.html#examples",
+    "title": "postgres.update.pq_update_pg",
+    "section": "",
+    "text": "&gt;&gt;&gt; pq_update_pg(\"dsi\", \"crsp\", dbname=\"research\")\n&gt;&gt;&gt; pq_update_pg(\"company\", \"comp\", dbname=\"research\", force=True)",
     "crumbs": [
       "Reference",
       "PostgreSQL Sync",
@@ -287,7 +395,43 @@
     "href": "reference/postgres.comments.set_table_comment.html",
     "title": "postgres.comments.set_table_comment",
     "section": "",
-    "text": "postgres.comments.set_table_comment\npostgres.comments.set_table_comment(\n    conn=None,\n    *,\n    schema,\n    table_name,\n    comment,\n    user=None,\n    host=None,\n    dbname=None,\n    port=None,\n)\nSet (or clear) a PostgreSQL table comment using psycopg.\nIf conn is omitted, connect to the same destination PostgreSQL database resolved by wrds_update_pg().",
+    "text": "postgres.comments.set_table_comment(\n    conn=None,\n    *,\n    schema,\n    table_name,\n    comment,\n    user=None,\n    host=None,\n    dbname=None,\n    port=None,\n)\nSet (or clear) a PostgreSQL table comment using psycopg.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nconn\npsycopg connection\nOpen PostgreSQL connection to use. If omitted, create a connection using user / host / dbname / port.\nNone\n\n\nschema\nstr\nName of the PostgreSQL schema containing the table.\nrequired\n\n\ntable_name\nstr\nName of the PostgreSQL table whose comment should be updated.\nrequired\n\n\ncomment\nstr or None\nComment text to store. Use None to clear the comment.\nrequired\n\n\nuser\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone\n\n\nhost\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone\n\n\ndbname\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone\n\n\nport\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nNone\nThis function updates the table comment in place.\n\n\n\n\n\n\n&gt;&gt;&gt; set_table_comment(schema=\"crsp\", table_name=\"dsi\", comment=\"Updated 2025-01-31\")\n&gt;&gt;&gt; set_table_comment(schema=\"crsp\", table_name=\"dsi\", comment=None)",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.comments.set_table_comment"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.comments.set_table_comment.html#parameters",
+    "href": "reference/postgres.comments.set_table_comment.html#parameters",
+    "title": "postgres.comments.set_table_comment",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nconn\npsycopg connection\nOpen PostgreSQL connection to use. If omitted, create a connection using user / host / dbname / port.\nNone\n\n\nschema\nstr\nName of the PostgreSQL schema containing the table.\nrequired\n\n\ntable_name\nstr\nName of the PostgreSQL table whose comment should be updated.\nrequired\n\n\ncomment\nstr or None\nComment text to store. Use None to clear the comment.\nrequired\n\n\nuser\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone\n\n\nhost\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone\n\n\ndbname\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone\n\n\nport\noptional\nPostgreSQL connection settings used only when conn is omitted.\nNone",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.comments.set_table_comment"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.comments.set_table_comment.html#returns",
+    "href": "reference/postgres.comments.set_table_comment.html#returns",
+    "title": "postgres.comments.set_table_comment",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nNone\nThis function updates the table comment in place.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.comments.set_table_comment"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.comments.set_table_comment.html#examples",
+    "href": "reference/postgres.comments.set_table_comment.html#examples",
+    "title": "postgres.comments.set_table_comment",
+    "section": "",
+    "text": "&gt;&gt;&gt; set_table_comment(schema=\"crsp\", table_name=\"dsi\", comment=\"Updated 2025-01-31\")\n&gt;&gt;&gt; set_table_comment(schema=\"crsp\", table_name=\"dsi\", comment=None)",
     "crumbs": [
       "Reference",
       "PostgreSQL Sync",
@@ -299,7 +443,43 @@
     "href": "reference/postgres.update.pq_to_pg.html",
     "title": "postgres.update.pq_to_pg",
     "section": "",
-    "text": "postgres.update.pq_to_pg\npostgres.update.pq_to_pg(\n    table_name,\n    schema,\n    *,\n    data_dir=None,\n    user=None,\n    host=None,\n    dbname=None,\n    database=None,\n    port=None,\n    dst_schema=None,\n    alt_table_name=None,\n    engine='duckdb',\n    create_roles=True,\n    source_comment=None,\n)\nWrite a parquet file from the local repository into PostgreSQL.",
+    "text": "postgres.update.pq_to_pg(\n    table_name,\n    schema,\n    *,\n    data_dir=None,\n    user=None,\n    host=None,\n    dbname=None,\n    database=None,\n    port=None,\n    dst_schema=None,\n    alt_table_name=None,\n    engine='duckdb',\n    create_roles=True,\n    source_comment=None,\n)\nWrite a parquet file from the local repository into PostgreSQL.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the source parquet file.\nrequired\n\n\nschema\nstr\nName of the source parquet schema directory.\nrequired\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nuser\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nhost\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndbname\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndatabase\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nport\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nengine\n(duckdb, adbc)\nEngine used to load the parquet file into PostgreSQL.\n\"duckdb\"\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue\n\n\nsource_comment\nstr\nComment to store on the destination PostgreSQL table. If omitted, reuse the parquet file’s embedded last_modified metadata.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbool\nTrue after the destination table has been created or replaced.\n\n\n\n\n\n\n&gt;&gt;&gt; pq_to_pg(\"dsi\", \"crsp\", dbname=\"research\")\n&gt;&gt;&gt; pq_to_pg(\"company\", \"comp\", dst_schema=\"comp_stage\", alt_table_name=\"company_copy\")",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_to_pg.html#parameters",
+    "href": "reference/postgres.update.pq_to_pg.html#parameters",
+    "title": "postgres.update.pq_to_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\ntable_name\nstr\nBasename of the source parquet file.\nrequired\n\n\nschema\nstr\nName of the source parquet schema directory.\nrequired\n\n\ndata_dir\nstr\nRoot directory of the parquet data repository. If omitted, defaults to DATA_DIR or the current working directory.\nNone\n\n\nuser\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nhost\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndbname\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndatabase\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\nport\noptional\nDestination PostgreSQL connection settings.\nNone\n\n\ndst_schema\nstr\nDestination PostgreSQL schema. If omitted, defaults to schema.\nNone\n\n\nalt_table_name\nstr\nDestination PostgreSQL table name. If omitted, defaults to table_name.\nNone\n\n\nengine\n(duckdb, adbc)\nEngine used to load the parquet file into PostgreSQL.\n\"duckdb\"\n\n\ncreate_roles\nbool\nIf True, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.\nTrue\n\n\nsource_comment\nstr\nComment to store on the destination PostgreSQL table. If omitted, reuse the parquet file’s embedded last_modified metadata.\nNone",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_to_pg.html#returns",
+    "href": "reference/postgres.update.pq_to_pg.html#returns",
+    "title": "postgres.update.pq_to_pg",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nbool\nTrue after the destination table has been created or replaced.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.update.pq_to_pg"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.update.pq_to_pg.html#examples",
+    "href": "reference/postgres.update.pq_to_pg.html#examples",
+    "title": "postgres.update.pq_to_pg",
+    "section": "",
+    "text": "&gt;&gt;&gt; pq_to_pg(\"dsi\", \"crsp\", dbname=\"research\")\n&gt;&gt;&gt; pq_to_pg(\"company\", \"comp\", dst_schema=\"comp_stage\", alt_table_name=\"company_copy\")",
     "crumbs": [
       "Reference",
       "PostgreSQL Sync",
@@ -1202,7 +1382,43 @@
     "href": "reference/postgres.schema.db_schema_tables.html",
     "title": "postgres.schema.db_schema_tables",
     "section": "",
-    "text": "postgres.schema.db_schema_tables\npostgres.schema.db_schema_tables(\n    schema,\n    *,\n    views=False,\n    user=None,\n    host=None,\n    database=None,\n    dbname=None,\n    port=None,\n)\nGet list of all tables in a PostgreSQL schema.",
+    "text": "postgres.schema.db_schema_tables(\n    schema,\n    *,\n    views=False,\n    user=None,\n    host=None,\n    database=None,\n    dbname=None,\n    port=None,\n)\nGet a list of relations in a PostgreSQL schema.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of the PostgreSQL schema to inspect.\nrequired\n\n\nviews\nbool\nIf True, include views in addition to base tables.\nFalse\n\n\nuser\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\nhost\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\ndatabase\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\ndbname\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\nport\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str]\nSorted relation names in the requested schema.\n\n\n\n\n\n\n&gt;&gt;&gt; db_schema_tables(\"public\")\n&gt;&gt;&gt; db_schema_tables(\"crsp\", views=True, database=\"research\")",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.db_schema_tables"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.db_schema_tables.html#parameters",
+    "href": "reference/postgres.schema.db_schema_tables.html#parameters",
+    "title": "postgres.schema.db_schema_tables",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of the PostgreSQL schema to inspect.\nrequired\n\n\nviews\nbool\nIf True, include views in addition to base tables.\nFalse\n\n\nuser\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\nhost\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\ndatabase\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\ndbname\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone\n\n\nport\noptional\nPostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by the other PostgreSQL helpers.\nNone",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.db_schema_tables"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.db_schema_tables.html#returns",
+    "href": "reference/postgres.schema.db_schema_tables.html#returns",
+    "title": "postgres.schema.db_schema_tables",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nlist[str]\nSorted relation names in the requested schema.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.db_schema_tables"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.db_schema_tables.html#examples",
+    "href": "reference/postgres.schema.db_schema_tables.html#examples",
+    "title": "postgres.schema.db_schema_tables",
+    "section": "",
+    "text": "&gt;&gt;&gt; db_schema_tables(\"public\")\n&gt;&gt;&gt; db_schema_tables(\"crsp\", views=True, database=\"research\")",
     "crumbs": [
       "Reference",
       "PostgreSQL Sync",
@@ -1358,7 +1574,43 @@
     "href": "reference/postgres.schema.wrds_get_tables.html",
     "title": "postgres.schema.wrds_get_tables",
     "section": "",
-    "text": "postgres.schema.wrds_get_tables\npostgres.schema.wrds_get_tables(schema, *, wrds_id=None, views=False)\nGet list of WRDS tables in a schema, optionally including views.",
+    "text": "postgres.schema.wrds_get_tables(schema, *, wrds_id=None, views=False)\nGet a list of relations in a WRDS schema.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of the WRDS schema to inspect.\nrequired\n\n\nwrds_id\nstr\nWRDS user ID used to access the WRDS PostgreSQL service. If omitted, resolve from WRDS_ID / WRDS_USER and related .env configuration.\nNone\n\n\nviews\nbool\nIf True, include views in addition to base tables.\nFalse\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str]\nSorted relation names in the requested WRDS schema.\n\n\n\n\n\n\n&gt;&gt;&gt; wrds_get_tables(\"crsp\")\n&gt;&gt;&gt; wrds_get_tables(\"comp\", views=True)",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.wrds_get_tables"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.wrds_get_tables.html#parameters",
+    "href": "reference/postgres.schema.wrds_get_tables.html#parameters",
+    "title": "postgres.schema.wrds_get_tables",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nschema\nstr\nName of the WRDS schema to inspect.\nrequired\n\n\nwrds_id\nstr\nWRDS user ID used to access the WRDS PostgreSQL service. If omitted, resolve from WRDS_ID / WRDS_USER and related .env configuration.\nNone\n\n\nviews\nbool\nIf True, include views in addition to base tables.\nFalse",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.wrds_get_tables"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.wrds_get_tables.html#returns",
+    "href": "reference/postgres.schema.wrds_get_tables.html#returns",
+    "title": "postgres.schema.wrds_get_tables",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nlist[str]\nSorted relation names in the requested WRDS schema.",
+    "crumbs": [
+      "Reference",
+      "PostgreSQL Sync",
+      "postgres.schema.wrds_get_tables"
+    ]
+  },
+  {
+    "objectID": "reference/postgres.schema.wrds_get_tables.html#examples",
+    "href": "reference/postgres.schema.wrds_get_tables.html#examples",
+    "title": "postgres.schema.wrds_get_tables",
+    "section": "",
+    "text": "&gt;&gt;&gt; wrds_get_tables(\"crsp\")\n&gt;&gt;&gt; wrds_get_tables(\"comp\", views=True)",
     "crumbs": [
       "Reference",
       "PostgreSQL Sync",

@@ -436,7 +436,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.core.wrds_pg_to_pg" id="toc-db2pq.core.wrds_pg_to_pg" class="nav-link active" data-scroll-target="#db2pq.core.wrds_pg_to_pg">core.wrds_pg_to_pg</a></li>
+  <li><a href="#db2pq.core.wrds_pg_to_pg" id="toc-db2pq.core.wrds_pg_to_pg" class="nav-link active" data-scroll-target="#db2pq.core.wrds_pg_to_pg">core.wrds_pg_to_pg</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -467,8 +472,148 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    create_roles<span class="op">=</span><span class="va">True</span>,</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Write a WRDS PostgreSQL table to another PostgreSQL database.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 76%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>table_name</td>
+<td>str</td>
+<td>Name of the WRDS source table.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>schema</td>
+<td>str</td>
+<td>Name of the WRDS source schema.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>wrds_id</td>
+<td>str</td>
+<td>WRDS user ID used to access the WRDS PostgreSQL service. If omitted, resolve from <code>WRDS_ID</code> / <code>WRDS_USER</code> and related <code>.env</code> configuration.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>dst_user</td>
+<td>optional</td>
+<td>Connection settings for the destination PostgreSQL database.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>dst_host</td>
+<td>optional</td>
+<td>Connection settings for the destination PostgreSQL database.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>dst_database</td>
+<td>optional</td>
+<td>Connection settings for the destination PostgreSQL database.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>dst_port</td>
+<td>optional</td>
+<td>Connection settings for the destination PostgreSQL database.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>dst_schema</td>
+<td>str</td>
+<td>Destination PostgreSQL schema. If omitted, defaults to <code>schema</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>col_types</td>
+<td>dict</td>
+<td>Explicit destination PostgreSQL column types for selected columns.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>obs</td>
+<td>int</td>
+<td>Number of rows to copy from WRDS. Implemented with SQL <code>LIMIT</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>alt_table_name</td>
+<td>str</td>
+<td>Destination PostgreSQL table name. If omitted, defaults to <code>table_name</code>.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>keep</td>
+<td>str or iterable</td>
+<td>Regex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, <code>drop</code> is applied first.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>drop</td>
+<td>str or iterable</td>
+<td>Regex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, <code>drop</code> is applied first.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>tz</td>
+<td>str</td>
+<td>Default timezone used when normalizing timestamp columns.</td>
+<td><code>'UTC'</code></td>
+</tr>
+<tr class="odd">
+<td>create_roles</td>
+<td>bool</td>
+<td>If <code>True</code>, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.</td>
+<td><code>True</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>bool</td>
+<td><code>True</code> after the destination table has been created or replaced.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> wrds_pg_to_pg(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>, dst_database<span class="op">=</span><span class="st">"research"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> wrds_pg_to_pg(<span class="st">"company"</span>, <span class="st">"comp"</span>, dst_schema<span class="op">=</span><span class="st">"comp_mirror"</span>, obs<span class="op">=</span><span class="dv">1000</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
