@@ -9,6 +9,8 @@ python3 -m pip install -e ".[docs]"
 ```
 
 `quartodoc` generates the API reference pages. Quarto renders the website.
+The docs extra also installs Jupyter so Quarto can execute Python code chunks
+embedded in `.qmd` pages.
 
 If your main project environment is on Python 3.14, it is safer to build the
 docs in a separate Python 3.11 or 3.12 virtualenv until `quartodoc` fully

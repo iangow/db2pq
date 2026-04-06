@@ -295,9 +295,17 @@ def pq_archive(table_name=None, schema=None, data_dir=None, file_name=None, arch
     """
     Archive a parquet file by renaming it into an archive subdirectory.
 
-    If file_name is provided, archive that exact file path.
-    Otherwise, resolve the parquet file from table_name/schema/data_dir.
-    Returns archived file path as a string, or None if no file was archived.
+    For workflow-oriented examples, see
+    [Parquet Utilities Examples](../parquet-utilities-examples.qmd) and
+    [Data management ideas](../data-management.qmd).
+
+    If ``file_name`` is provided, archive that exact file path.
+
+    Otherwise, resolve the parquet file from ``table_name`` / ``schema`` /
+    ``data_dir``.
+
+    Returns the archived file path as a string, or ``None`` if no file was
+    archived.
     """
     from .timestamps import parse_last_modified
 
@@ -340,8 +348,12 @@ def pq_restore(file_basename, schema, data_dir=None, archive=True, archive_dir=N
     """
     Restore an archived parquet file into the schema directory.
 
-    file_basename may include or omit .parquet and should refer to a file in:
-    <data_dir>/<schema>/<archive_dir>/
+    For workflow-oriented examples, see
+    [Parquet Utilities Examples](../parquet-utilities-examples.qmd) and
+    [Data management ideas](../data-management.qmd).
+
+    ``file_basename`` may include or omit ``.parquet`` and should refer to a
+    file in ``<data_dir>/<schema>/<archive_dir>/``.
     """
     archive_dir = archive_dir or "archive"
     data_root = resolve_data_dir(data_dir)
@@ -403,10 +415,18 @@ def pq_remove(
     """
     Remove a parquet file from active or archive storage.
 
-    If file_name is provided, remove that exact file path.
-    Otherwise, resolve the parquet file from table_name/schema/data_dir.
-    When archive=True, resolved files are looked up under archive_dir.
-    Returns removed file path as a string, or None if nothing was removed.
+    For workflow-oriented examples, see
+    [Parquet Utilities Examples](../parquet-utilities-examples.qmd).
+
+    If ``file_name`` is provided, remove that exact file path.
+
+    Otherwise, resolve the parquet file from ``table_name`` / ``schema`` /
+    ``data_dir``.
+
+    When ``archive=True``, resolved files are looked up under ``archive_dir``.
+
+    Returns the removed file path as a string, or ``None`` if nothing was
+    removed.
     """
     if file_name is not None:
         p = Path(file_name).expanduser()
@@ -692,12 +712,20 @@ def pq_last_modified(
     """
     Get last-updated metadata for parquet data files.
 
-    If file_name is provided, return metadata for that file.
-    Else if table_name is provided, resolve the parquet file from
-    table_name/schema/data_dir and return metadata for that file.
-    Else, return a DataFrame summary for all parquet files (optionally
-    constrained to a schema), including a storage indicator with values
-    local/cloud. If archive=True, files are read from archive_dir.
+    For workflow-oriented examples, see
+    [Parquet Utilities Examples](../parquet-utilities-examples.qmd) and
+    [Data management ideas](../data-management.qmd).
+
+    If ``file_name`` is provided, return metadata for that file.
+
+    If ``table_name`` is provided, resolve the parquet file from
+    ``table_name`` / ``schema`` / ``data_dir`` and return metadata for that
+    file.
+
+    Otherwise, return a DataFrame summary for all parquet files, optionally
+    constrained to ``schema``. The summary includes a ``storage`` indicator
+    with values ``"local"`` and ``"cloud"``. If ``archive=True``, files are
+    read from ``archive_dir``.
     """
     if file_name is not None:
         return get_modified_pq(file_name)

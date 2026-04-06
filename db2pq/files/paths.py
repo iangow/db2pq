@@ -27,27 +27,29 @@ def get_pq_file(table_name, schema, *, data_dir=None):
 def pq_list_files(schema, *, data_dir=None, archive=False, archive_dir=None):
     """Get a list of parquet files in a schema or its archive directory.
 
+    For workflow-oriented examples, see
+    [Parquet Utilities Examples](../parquet-utilities-examples.qmd).
+
     Parameters
     ----------
-    schema: 
+    schema :
         Name of database schema.
-            
-    data_dir: string [Optional]
-        Root directory of parquet data repository. 
-        The default is to use the environment value `DATA_DIR` 
-        or (if not set) the current directory.
-    
-    archive: bool [Optional]
-        If True, list files in the archive directory under the schema.
-        Default is False.
 
-    archive_dir: string [Optional]
-        Name of archive directory under the schema directory.
-        Default is "archive".
+    data_dir : str, optional
+        Root directory of the parquet data repository. If not provided,
+        defaults to the value of the ``DATA_DIR`` environment variable or the
+        current working directory.
+
+    archive : bool, optional
+        If ``True``, list files in the archive directory under the schema.
+
+    archive_dir : str, optional
+        Name of the archive directory under the schema directory. Defaults to
+        ``"archive"``.
 
     Returns
     -------
-    pq_files: [string]
+    list[str]
         Names of parquet files found.
     """
     data_dir = resolve_data_dir(data_dir)

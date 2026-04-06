@@ -1,6 +1,9 @@
 project:
   type: website
 
+execute:
+  freeze: auto
+
 metadata-files:
   - reference/_sidebar.yml
 
@@ -36,6 +39,9 @@ quartodoc:
           - wrds-to-pg.qmd
           - pg-to-pq.qmd
           - pq-to-pg.qmd
+      - section: Examples
+        contents:
+          - parquet-utilities-examples.qmd
       - section: Reference
         contents:
           - "{{ contents }}"
