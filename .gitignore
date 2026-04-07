@@ -35,3 +35,4 @@ docs/reference/
 /.quarto/
 **/*.quarto_ipynb
 docs/images/web-query-result.jpg
+docs/_freeze/
