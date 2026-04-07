@@ -24,27 +24,33 @@ pip install --upgrade db2pq
 This installs the bundled `psycopg` PostgreSQL client dependency, so most users
 do not need a separate system `libpq` installation.
 
-Install optional SAS support (used by `wrds_update_pq(..., use_sas=True)`):
+Install optional SAS support if you use WRDS SAS metadata checks, especially
+when you want WRDS refresh logic based on the SAS-side source timestamps used by
+`wrds_update_pq(..., use_sas=True)`:
 
 ```bash
 pip install --upgrade "db2pq[sas]"
 ```
 
-Install optional pandas support (needed for DataFrame outputs from
-`pq_last_modified(...)`):
+Install optional pandas support if you want metadata queries returned as pandas
+DataFrames, for example from `pq_last_modified(...)` in notebooks or analysis
+scripts:
 
 ```bash
 pip install --upgrade "db2pq[pandas]"
 ```
 
-Install optional Ibis export support (needed for `ibis_to_pq(...)`):
+Install optional Ibis support if your workflow builds PostgreSQL queries with
+Ibis expressions and you want to export those query results directly to
+Parquet with `ibis_to_pq(...)`:
 
 ```bash
 pip install --upgrade "db2pq[ibis]"
 ```
 
-Install optional ADBC export support (needed for `engine="adbc"` in
-PostgreSQL-to-Parquet helpers):
+Install optional ADBC support if you want the Arrow-based export path for
+PostgreSQL-to-Parquet workflows, including helpers that accept
+`engine="adbc"`:
 
 ```bash
 pip install --upgrade "db2pq[adbc]"
