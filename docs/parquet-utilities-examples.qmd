@@ -22,11 +22,11 @@ Use these helpers when you already have a Parquet repository and want to:
 
 The related API pages are:
 
-- [pq_list_files](reference/pq_list_files.qmd)
-- [pq_last_modified](reference/pq_last_modified.qmd)
-- [pq_archive](reference/pq_archive.qmd)
-- [pq_restore](reference/pq_restore.qmd)
-- [pq_remove](reference/pq_remove.qmd)
+- [pq_list_files](reference/files.paths.pq_list_files.qmd)
+- [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)
+- [pq_archive](reference/files.parquet.pq_archive.qmd)
+- [pq_restore](reference/files.parquet.pq_restore.qmd)
+- [pq_remove](reference/files.parquet.pq_remove.qmd)
 
 ## Setup
 
@@ -137,20 +137,10 @@ Or archive an exact file path:
 
 ```{python}
 #| eval: true
-funda = Path.home() / "Dropbox/pq_data/comp/funda.parquet"
+company = Path.home() / "Dropbox/pq_data/comp/company.parquet"
 
-funda_archive = pq_archive(file_name=funda)
-funda_archive
-```
-
-```{python}
-#| eval: true
-#| include: false
-from db2pq import pq_restore 
-from pathlib import Path
-
-pq_restore(Path(funda_archive).stem, "comp", 
-           data_dir=Path.home() / "Dropbox/pq_data")
+company_archive = pq_archive(file_name=company)
+company_archive
 ```
 
 
@@ -211,12 +201,12 @@ pq_remove(
 Or remove a file by exact path:
 
 ```{python}
-funda_archive
+company_archive
 ```
 
 ```{python}
 #| eval: false
-pq_remove(file_name=funda_archive)
+pq_remove(file_name=company_archive)
 ```
 
 ## Related pages

@@ -25,14 +25,20 @@ settles its Python 3.14 support.
 From the repository root:
 
 ```bash
-quartodoc build --config docs/_quarto.yml
-quarto render docs
+./scripts/build-docs.sh
 ```
 
 Then publish using
 
 ```bash
-quarto publish gh-pages docs
+./scripts/publish-docs.sh
+```
+
+That script runs:
+
+```bash
+./scripts/build-docs.sh
+quarto publish gh-pages docs --no-render
 ```
 
 For local iteration:

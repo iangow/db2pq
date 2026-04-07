@@ -256,11 +256,11 @@ wrds_update_pq("funda", "comp", archive=True)
 
 ## Related reference pages
 
-- [wrds_pg_to_pq](reference/wrds_pg_to_pq.qmd)
-- [wrds_sql_to_pq](reference/wrds_sql_to_pq.qmd)
-- [wrds_update_pq](reference/wrds_update_pq.qmd)
-- [wrds_update_schema](reference/wrds_update_schema.qmd)
-- [pq_last_modified](reference/pq_last_modified.qmd)
+- [wrds_pg_to_pq](reference/core.wrds_pg_to_pq.qmd)
+- [wrds_sql_to_pq](reference/core.wrds_sql_to_pq.qmd)
+- [wrds_update_pq](reference/core.wrds_update_pq.qmd)
+- [wrds_update_schema](reference/core.wrds_update_schema.qmd)
+- [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)
 
 ## Related guides
 

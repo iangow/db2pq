@@ -111,9 +111,9 @@ USING (kytreasnox);
 
 ## Related reference pages
 
-- [wrds_update_pg](reference/wrds_update_pg.qmd)
-- [wrds_pg_to_pg](reference/wrds_pg_to_pg.qmd)
-- [db_schema_tables](reference/db_schema_tables.qmd)
-- [wrds_get_tables](reference/wrds_get_tables.qmd)
-- [process_sql](reference/process_sql.qmd)
-- [set_table_comment](reference/set_table_comment.qmd)
+- [wrds_update_pg](reference/postgres.update.wrds_update_pg.qmd)
+- [wrds_pg_to_pg](reference/core.wrds_pg_to_pg.qmd)
+- [db_schema_tables](reference/postgres.schema.db_schema_tables.qmd)
+- [wrds_get_tables](reference/postgres.schema.wrds_get_tables.qmd)
+- [process_sql](reference/postgres.update.process_sql.qmd)
+- [set_table_comment](reference/postgres.comments.set_table_comment.qmd)

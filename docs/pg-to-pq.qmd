@@ -85,7 +85,7 @@ result in memory first.
 
 ## Related reference pages
 
-- [db_to_pq](reference/db_to_pq.qmd)
-- [pg_update_pq](reference/pg_update_pq.qmd)
-- [db_schema_to_pq](reference/db_schema_to_pq.qmd)
-- [ibis_to_pq](reference/ibis_to_pq.qmd)
+- [db_to_pq](reference/core.db_to_pq.qmd)
+- [pg_update_pq](reference/core.pg_update_pq.qmd)
+- [db_schema_to_pq](reference/core.db_schema_to_pq.qmd)
+- [ibis_to_pq](reference/ibis.ibis_to_pq.qmd)
