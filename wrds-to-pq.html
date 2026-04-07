@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Ian D. Gow">
 
 <title>WRDS to Parquet – db2pq</title>
 <style>
@@ -437,16 +438,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#main-helpers" id="toc-main-helpers" class="nav-link active" data-scroll-target="#main-helpers">Main helpers</a></li>
-  <li><a href="#typical-first-run" id="toc-typical-first-run" class="nav-link" data-scroll-target="#typical-first-run">Typical first run</a></li>
-  <li><a href="#more-examples" id="toc-more-examples" class="nav-link" data-scroll-target="#more-examples">More examples</a></li>
-  <li><a href="#using-sas-metadata-with-use_sastrue" id="toc-using-sas-metadata-with-use_sastrue" class="nav-link" data-scroll-target="#using-sas-metadata-with-use_sastrue">Using SAS metadata with <code>use_sas=True</code></a></li>
-  <li><a href="#common-options" id="toc-common-options" class="nav-link" data-scroll-target="#common-options">Common options</a></li>
-  <li><a href="#output-layout" id="toc-output-layout" class="nav-link" data-scroll-target="#output-layout">Output layout</a></li>
-  <li><a href="#when-to-use-the-web-query" id="toc-when-to-use-the-web-query" class="nav-link" data-scroll-target="#when-to-use-the-web-query">When To Use The Web Query</a></li>
+  <li><a href="#using-wrds_update_pq" id="toc-using-wrds_update_pq" class="nav-link" data-scroll-target="#using-wrds_update_pq">Using <code>wrds_update_pq()</code></a>
+  <ul class="collapse">
+  <li><a href="#an-illustrative-first-run" id="toc-an-illustrative-first-run" class="nav-link" data-scroll-target="#an-illustrative-first-run">An illustrative first run</a></li>
+  <li><a href="#identifying-table-names-and-schemas" id="toc-identifying-table-names-and-schemas" class="nav-link" data-scroll-target="#identifying-table-names-and-schemas">Identifying table names and schemas</a></li>
+  </ul></li>
+  <li><a href="#more-features-of-wrds_update_pq" id="toc-more-features-of-wrds_update_pq" class="nav-link" data-scroll-target="#more-features-of-wrds_update_pq">More features of <code>wrds_update_pq()</code></a>
+  <ul class="collapse">
+  <li><a href="#cleaning-the-data" id="toc-cleaning-the-data" class="nav-link" data-scroll-target="#cleaning-the-data">Cleaning the data</a></li>
+  <li><a href="#working-with-large-tables" id="toc-working-with-large-tables" class="nav-link" data-scroll-target="#working-with-large-tables">Working with large tables</a></li>
+  <li><a href="#forcing-an-update" id="toc-forcing-an-update" class="nav-link" data-scroll-target="#forcing-an-update">Forcing an update</a></li>
+  <li><a href="#using-sas-metadata-for-update-logic" id="toc-using-sas-metadata-for-update-logic" class="nav-link" data-scroll-target="#using-sas-metadata-for-update-logic">Using SAS metadata for update logic</a></li>
+  <li><a href="#archiving-data-when-updating" id="toc-archiving-data-when-updating" class="nav-link" data-scroll-target="#archiving-data-when-updating">Archiving data when updating</a></li>
+  </ul></li>
   <li><a href="#related-reference-pages" id="toc-related-reference-pages" class="nav-link" data-scroll-target="#related-reference-pages">Related reference pages</a></li>
   <li><a href="#related-guides" id="toc-related-guides" class="nav-link" data-scroll-target="#related-guides">Related guides</a></li>
   </ul>
-</nav>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="wrds-to-pq.pdf"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -460,6 +468,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ian D. Gow </p>
+          </div>
+  </div>
     
   
     
@@ -470,81 +484,158 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Use this path when the source data live in WRDS PostgreSQL and the destination is a local Parquet file repository.</p>
+<p>This is place to be when your source data sets live in the WRDS PostgreSQL database and you want to turn them in Parquet files in your local data repository.</p>
 <section id="main-helpers" class="level2">
 <h2 class="anchored" data-anchor-id="main-helpers">Main helpers</h2>
+<p>The main helper function on this path is <code>wrds_update_pq()</code>, which can be used to download a WRDS table as a Parquet file. This function only rewrites a Parquet file when the WRDS source is newer, so it can reduce the volume of unncessary downloads.</p>
+<p>Two additional functions are:</p>
 <ul>
-<li><code>wrds_update_pq(table_name, schema, ...)</code> only rewrites a Parquet file when the WRDS source is newer.</li>
 <li><code>wrds_sql_to_pq(sql, table_name, schema, ...)</code> exports a custom WRDS SQL query into the standard Parquet layout.</li>
 <li><code>wrds_update_schema(schema, ...)</code> updates a full WRDS schema into Parquet.</li>
-<li><code>wrds_pg_to_pq(table_name, schema, ...)</code> exports one WRDS table to Parquet, but without the update logic of <code>wrds_update_pq()</code>.</li>
 </ul>
+<p>A final key function is <code>wrds_pg_to_pq()</code>, which exports one WRDS table to Parquet, but without the update logic of <code>wrds_update_pq()</code>. For most purposes, you should use <code>wrds_update_pq()</code> and not the lower-level <code>wrds_pg_to_pq()</code> function.</p>
 </section>
-<section id="typical-first-run" class="level2">
-<h2 class="anchored" data-anchor-id="typical-first-run">Typical first run</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
+<section id="using-wrds_update_pq" class="level2">
+<h2 class="anchored" data-anchor-id="using-wrds_update_pq">Using <code>wrds_update_pq()</code></h2>
+<section id="an-illustrative-first-run" class="level3">
+<h3 class="anchored" data-anchor-id="an-illustrative-first-run">An illustrative first run</h3>
+<p>A good place to start with <code>wrds_update_pq()</code> is with a smaller table, such as <code>comp.company</code>. Two lines of Python code are enough to get you started.</p>
+<div id="56c1c7ac" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If <code>WRDS_ID</code> is not configured yet, <code>db2pq</code> can prompt for it and suggest adding it to a local <code>.env</code> file. If the WRDS PostgreSQL password is not yet in <code>.pgpass</code>, <code>db2pq</code> can prompt for it and save it for later use.</p>
-</section>
-<section id="more-examples" class="level2">
-<h2 class="anchored" data-anchor-id="more-examples">More examples</h2>
-<p>A CRSP-style export where identifier columns are normalized to integer types:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ccmxpf_lnkhist"</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"crsp"</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{<span class="st">"lpermno"</span>: <span class="st">"int32"</span>, <span class="st">"lpermco"</span>: <span class="st">"int32"</span>},</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="using-sas-metadata-with-use_sastrue" class="level2">
-<h2 class="anchored" data-anchor-id="using-sas-metadata-with-use_sastrue">Using SAS metadata with <code>use_sas=True</code></h2>
-<p>Use this path when the WRDS PostgreSQL table comment is missing or not the freshness signal you want. In this mode, <code>db2pq</code> checks SAS-side metadata instead.</p>
-<p>A RavenPack-style example where the WRDS PostgreSQL schema and the SAS metadata schema do not line up:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rpa_entity_mappings"</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ravenpack_common"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    use_sas<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    sas_schema<span class="op">=</span><span class="st">"rpa"</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>You can also combine <code>use_sas=True</code> with explicit timestamp coercions when exporting annual RavenPack tables:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rpa_djpr_equities_2024"</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ravenpack_dj"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    use_sas<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    sas_schema<span class="op">=</span><span class="st">"rpa"</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    batched<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"timestamp_utc"</span>: <span class="st">"timestamp"</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"rpa_time_utc"</span>: <span class="st">"string"</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"event_start_date_utc"</span>: <span class="st">"timestamp"</span>,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"event_end_date_utc"</span>: <span class="st">"timestamp"</span>,</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="common-options" class="level2">
-<h2 class="anchored" data-anchor-id="common-options">Common options</h2>
-<ul>
-<li><code>engine="duckdb"</code> uses DuckDB to read from PostgreSQL.</li>
-<li><code>engine="adbc"</code> streams Arrow batches directly from PostgreSQL.</li>
-<li><code>where=</code> applies a SQL filter before export.</li>
-<li><code>keep=</code> and <code>drop=</code> filter source columns with regex patterns.</li>
-<li><code>obs=</code> limits rows for testing.</li>
-<li><code>archive=True</code> moves replaced Parquet files into an archive directory.</li>
-<li><code>use_sas=True</code> can use SAS metadata for update detection when PostgreSQL comments are missing or incomplete.</li>
-</ul>
-</section>
-<section id="output-layout" class="level2">
-<h2 class="anchored" data-anchor-id="output-layout">Output layout</h2>
-<p>Files are written as:</p>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"company"</span>, <span class="st">"comp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>comp.company already up to date.</code></pre>
+</div>
+</div>
+<p>Note that there are two key <strong>environment variables</strong> that are used by <code>wrds_update_pq()</code>: <code>DATA_DIR</code> and <code>WRDS_ID</code>.</p>
+<p>The <code>DATA_DIR</code> setting is used to determine where the Parquet file that is created will be stored. Parquet files are written as:</p>
 <pre class="text"><code>&lt;DATA_DIR&gt;/&lt;schema&gt;/&lt;table&gt;.parquet</code></pre>
+<p>If <code>DATA_DIR</code> is unset and you do not pass <code>data_dir=</code>, <code>db2pq</code> falls back to the current working directory.</p>
+<p>As you might expect <code>WRDS_ID</code> should contain your WRDS ID.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> If you have not configured the <code>WRDS_ID</code> environment variable, you will be prompted by <code>db2pq</code> to enter your WRDS ID (<code>db2pq</code> will also suggest adding this to and <code>.env</code> file in the directory you are calling Python from). If the WRDS PostgreSQL password is not yet in <code>.pgpass</code>, <code>db2pq</code> will prompt you for it and save it for later use.</p>
+<p>The best approach is to save these variables in a file named <code>.env</code> either in the calling directory or in your home directory. For example:</p>
+<pre class="text"><code>WRDS_ID=your_wrds_id
+DATA_DIR=~/Dropbox/pq_data</code></pre>
+<p>One approach would be to have a single <code>DATA_DIR</code> set on your computer and use a single data repository for WRDS data for all projects. But, because you can have different <code>DATA_DIR</code> values in <code>.env</code> files in different folders, you can easily maintain project-specific versions of WRDS data if that is how you prefer to manage data.</p>
 </section>
-<section id="when-to-use-the-web-query" class="level2">
-<h2 class="anchored" data-anchor-id="when-to-use-the-web-query">When To Use The Web Query</h2>
-<p>The WRDS web query can be useful when you are trying to identify the exact table behind a dataset or want WRDS to draft a starting SQL query for you. That is often a practical way to move from the WRDS website to a <code>wrds_sql_to_pq(...)</code> workflow.</p>
+<section id="identifying-table-names-and-schemas" class="level3">
+<h3 class="anchored" data-anchor-id="identifying-table-names-and-schemas">Identifying table names and schemas</h3>
+<p>The key requirement for using <code>wrds_update_pq()</code> is that you know the table name and schema that you are looking for.</p>
+<p>This information can come from multiple sources. One source would be existing code. For example, if you see SAS code that refers to <code>comp.funda</code>, you can get the data from WRDS by running <code>wrds_update_pq(table_name="funda", schema="comp")</code>. Multiple examples of code using different table names across a number of schema are provided in <em>Empirical Research in Accounting: Tools and Methods</em> starting with <a href="https://iangow.github.io/far_book/fin-state.html">Chapter 6</a>.</p>
+<p>Another source for this information is the WRDS web query interface, which is discussed <a href="./web-query.html">here</a>. Using the WRDS web query can help to identify the exact table behind a dataset or to draft a starting SQL query for you to edit. In this way, the web query can offer a practical way to move from the WRDS website to a more reproducible workflow.</p>
+</section>
+</section>
+<section id="more-features-of-wrds_update_pq" class="level2">
+<h2 class="anchored" data-anchor-id="more-features-of-wrds_update_pq">More features of <code>wrds_update_pq()</code></h2>
+<p>The <code>wrds_update_pq()</code> function accepts additional optional arguments that allow more refined handling of data.</p>
+<section id="cleaning-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="cleaning-the-data">Cleaning the data</h3>
+<p>Some times WRDS data aren’t in exactly the right form. The <code>wrds_update_pq()</code> allows the user to address issues that exist in some tables.</p>
+<section id="correcting-data-types" class="level4">
+<h4 class="anchored" data-anchor-id="correcting-data-types">Correcting data types</h4>
+<p>For example, the columns <code>lpermno</code> and <code>lpermco</code> on <code>crsp.ccmxpf_lnkhist</code> are stored as floating-point numbers in WRDS’s PostgreSQL database, but <code>permno</code> and <code>permco</code> (what these variables relate to) are elsewhere stored as integers and <code>wrds_update_pq()</code> allows a user to “correct” data types. (For more on <code>crsp.ccmxpf_lnkhist</code>, see <a href="https://iangow.github.io/far_book/identifiers.html#sec-ccm">Chapter 7</a> of <em>Empirical Research in Accounting: Tools and Methods</em>.) The following code illustrates this feature:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ccmxpf_lnkhist"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"crsp"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{<span class="st">"lpermno"</span>: <span class="st">"int32"</span>, <span class="st">"lpermco"</span>: <span class="st">"int32"</span>},</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="setting-time-zones" class="level4">
+<h4 class="anchored" data-anchor-id="setting-time-zones">Setting time zones</h4>
+<p>Another issue is the absence of time zone information. WRDS PostgreSQL timestamps are generally stored as <code>TIMESTAMP WITH TIME ZONE</code> type, which is problematic. For example, the timestamps in <code>ravenpack_dj.rpa_djpr_equities_2024</code> should be encoded as UTC. This can be achieved using the followin.</p>
+<div id="a6fd23ad" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rpa_djpr_equities_2024"</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ravenpack_dj"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    use_sas<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    sas_schema<span class="op">=</span><span class="st">"rpa"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"timestamp_utc"</span>: <span class="st">"timestamp"</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"rpa_time_utc"</span>: <span class="st">"string"</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"event_start_date_utc"</span>: <span class="st">"timestamp"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"event_end_date_utc"</span>: <span class="st">"timestamp"</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>WRDS provides Call Report from the FFIEC as part of its <code>bank</code> schema. We know that the timestamps provided by the FFIEC are expressed in US Eastern time (see my <a href="https://iangow.github.io/notes/published/curate_call_reports.html">note on Call Reports</a>). Fortunately, we can tell <code>wrds_update_pq()</code> this using the <code>tz</code> argument.</p>
+<div id="e9c19cd4" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"wrds_call_rcfa_1"</span>, <span class="st">"bank"</span>, </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>               tz<span class="op">=</span><span class="st">"America/New_York"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="working-with-large-tables" class="level3">
+<h3 class="anchored" data-anchor-id="working-with-large-tables">Working with large tables</h3>
+<p>In principle, <code>wrds_update_pq()</code> can be used to convert any WRDS table to a local Parquet file. However, doing so for very large files will take longer and use more of your local storage space.</p>
+<section id="dropping-unwanted-variables" class="level4">
+<h4 class="anchored" data-anchor-id="dropping-unwanted-variables">Dropping unwanted variables</h4>
+<p>The WRDS tables for Audit Analytics data often include variables from the “company financial block”, which are financial statement variables such as net income or total assets for the “<code>closest</code>”, “<code>match</code>”, “<code>hiwater</code>”, or “<code>prior</code>” periods (either quarters [<code>qu</code>] or years [<code>yr</code>]). These variables expand the size of the tables dramatically, and their provenance is unclear (likely scraped from SEC filings, which are the primary source for Audit Analytics data). Also, the meaning of the terms “<code>closest</code>”, “<code>match</code>”, “<code>hiwater</code>”, and “<code>prior</code>” is unclear, the data have historically been very poorly documented on WRDS, and few researchers appear to use these columns.</p>
+<p>The <code>wrds_update_pq()</code> function allows us to simply omit these variables when exporting the data using the <code>drop=</code> argument. This argument allows us to specify either a <strong>list</strong> of unwanted variables or a <strong>regular expression</strong> that matches variables to be excluded. (For more on regular expressions, see <a href="https://iangow.github.io/far_book/web-data.html">Chapter 9</a> of <em>Empirical Research in Accounting: Tools and Methods</em>.)</p>
+<div id="fa5ed3a1" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"feed02_auditor_changes"</span>, <span class="st">"audit"</span>, </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>               drop<span class="op">=</span><span class="st">"^(match|prior|closest)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="selecting-only-certain-variables" class="level4">
+<h4 class="anchored" data-anchor-id="selecting-only-certain-variables">Selecting only certain variables</h4>
+<p>In some situations, we may only want a small subset of the columns available on WRDS. For example, the <a href="https://www.tidy-finance.org/python/wrds-crsp-and-compustat.html#daily-crsp-data">Tidy Finance book</a> only uses three columns from <code>crsp.dsf_v2</code>. We can handle this with the <code>keep=</code> argument, which allows us to specify either a list of the variables we want or a regular expression that matches variables to be included.</p>
+<div id="1925c19f" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"dsf_v2"</span>, <span class="st">"crsp"</span>, </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>               keep<span class="op">=</span>[<span class="st">"permno"</span>, <span class="st">"dlycaldt"</span>, <span class="st">"dlyret"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="selecting-only-certain-rows" class="level4">
+<h4 class="anchored" data-anchor-id="selecting-only-certain-rows">Selecting only certain rows</h4>
+<p>Another way to reduce the size of downloaded tables is to filter out unneeded rows using <code>where=</code>. The <code>where</code> argument should be written as an SQL <code>WHERE</code> condition. For example, it is common for researchers to focus on the so-called “standard” secondary key set when working with <code>comp.funda</code> (see <a href="https://iangow.github.io/far_book/fin-state.html">Chapter 6</a> of <em>Empirical Research in Accounting: Tools and Methods</em> for more detailed discussion). This can be achieved using code like this:<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<div id="aaf9352c" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"funda"</span>, <span class="st">"comp"</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>               where<span class="op">=</span><span class="st">"indfmt = 'INDL' "</span> <span class="op">+</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"AND datafmt = 'STD' "</span> <span class="op">+</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"AND consol = 'C' "</span> <span class="op">+</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"AND popsrc = 'D'"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="limiting-the-number-of-rows" class="level4">
+<h4 class="anchored" data-anchor-id="limiting-the-number-of-rows">Limiting the number of rows</h4>
+<p>Some times it is helpful to do a test download of a smaller table to make sure that things look right before doing a final download. This can be achieved with the <code>obs=</code> argument. The following code limits the download to 1000 rows.</p>
+<div id="333658e0" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"funda"</span>, <span class="st">"comp"</span>, obs<span class="op">=</span><span class="dv">1000</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="forcing-an-update" class="level3">
+<h3 class="anchored" data-anchor-id="forcing-an-update">Forcing an update</h3>
+<p>Sometimes you may want to trigger a download even when the data on WRDS are no newer than what you have locally. For example, you may have used <code>obs=1000</code> or you may want download with corrected data types using <code>col_types</code>. In such cases, you can use <code>force=True</code>.</p>
+<div id="0c5bd14a" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"funda"</span>, <span class="st">"comp"</span>, force<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="using-sas-metadata-for-update-logic" class="level3">
+<h3 class="anchored" data-anchor-id="using-sas-metadata-for-update-logic">Using SAS metadata for update logic</h3>
+<p>The update logic of <code>wrds_update_pq()</code> works by comparing information stored by WRDS in the PostgreSQL table comment with that retrieved and stored from previous runs of <code>wrds_update_pq()</code>. However, in some cases the PostgreSQL table comments are missing or may not provide the signal of “freshness” that you want to use.</p>
+<p>WRDS data tables generally come in two forms: PostgreSQL tables and SAS files. The <code>wrds_update_pq()</code> function allows a user to specify <code>use_sas=True</code>, which will cause <code>wrds_update_pq()</code> to check the “last updated” metadata from the corresponding WRDS SAS file instead.</p>
+<p>In some cases, the schema used for SAS differs from that used for PostgreSQL and <code>wrds_update_pq()</code> can handle such cases using the <code>sas_schema</code> argument. For example, the WRDS PostgreSQL schema and the SAS schema do not line up for RavenPack and the following code handles this.</p>
+<div id="f9e86128" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rpa_entity_mappings"</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ravenpack_common"</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    use_sas<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    sas_schema<span class="op">=</span><span class="st">"rpa"</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Note that you will need to have installed the <code>[sas]</code> optional features to use <code>use_sas=True</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[sas]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Additionally, you will need to set up your connection to the WRDS cloud server, which is separate from the WRDS PostgreSQL setup. More information on this step is provided on the <code>db2pq</code> package <a href="https://github.com/iangow/db2pq"><code>README</code></a> page.</p>
+</section>
+<section id="archiving-data-when-updating" class="level3">
+<h3 class="anchored" data-anchor-id="archiving-data-when-updating">Archiving data when updating</h3>
+<p>The argument <code>archive=True</code> moves replaced Parquet files into an archive directory.</p>
+<div id="ef96511f" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"funda"</span>, <span class="st">"comp"</span>, archive<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
 </section>
 <section id="related-reference-pages" class="level2">
 <h2 class="anchored" data-anchor-id="related-reference-pages">Related reference pages</h2>
@@ -565,7 +656,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </section>
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>For compatibility with <a href="https://www.tidy-finance.org/python/setting-up-your-environment.html#creating-environment-variables">Tidy Finance</a>, <code>db2pq</code> also accepts values in <code>WRDS_USER</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Here the <code>+</code> glues the four pieces into a single string.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
