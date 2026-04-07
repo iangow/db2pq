@@ -143,14 +143,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>One way to get data from WRDS is the so-called web query interface. While the WRDS documentation for this feature is characteristically poor, one video on the site demonstrates the process for getting data from Compustat, a leading database of financial statement information.</p>
-<p>The video starts with the landing page for WRDS, then selected “Compustat - Capital IQ”, then “North America” under “Compustat”, then “Fundamentals Annual”. This then lands the user on the web query page for that data set.</p>
-<p>According to the video, there are always four steps with the web query.</p>
+<p>One way to get data from WRDS is the <strong>web query</strong> interface. While the WRDS documentation for this feature is characteristically poor, one video on the site demonstrates the process for getting data from Compustat, a leading database of financial statement information.</p>
+<p>The video starts with the landing page for WRDS, then the host selects “Compustat - Capital IQ”, then “North America” under “Compustat”, then “Fundamentals Annual”. This then lands the user on the web query page for that data set.</p>
+<p>According to the video, there are always four steps with the web query:</p>
 <ol type="1">
 <li>Choose your date range. I will follow the video and leave this at the default setting of 15 years of data.</li>
 <li>Apply your company codes. Here the video enters a handful of tickers. I am going to instead select “Search the entire database”.</li>
 <li>Choose variables. Here I will just keep the default option.</li>
-<li>Select your query output. Here the video presenter chooses Excel. No-one should ever use Excel in serious research (see <a href="https://iangow.github.io/notes/published/spreadsheets.html">here</a>). I will choose “comma-delimited text” for output format, “gzip” for compression type, and <code>YYYY-MM-DD.</code> for date format (agai, this is the only acceptable option for research purposes). Note that this last step does not much matter, though I think we may want to keep the size of the input to a minimum.</li>
+<li>Select your query output. Here the video presenter chooses Excel. No-one should ever use Excel in serious research (see <a href="https://iangow.github.io/notes/published/spreadsheets.html">here</a>). I will choose “comma-delimited text” for output format, “gzip” for compression type, and <code>YYYY-MM-DD.</code> for date format (this is really the only acceptable option for research purposes). Note that this last step does not much matter, though I think we may want to keep the size of the input to a minimum.</li>
 </ol>
 <p>I then enter my email address and then check the box to save the query (I select the name <code>web_query</code>). I then click “Submit Form”.</p>
 <p>I then have to wait for the query to run, after which I can go to a page like the one shown in <a href="#fig-web-query-result" class="quarto-xref">Figure&nbsp;1</a>.</p>
@@ -164,7 +164,7 @@ Figure&nbsp;1: WRDS web query results page after submitting a query
 </figcaption>
 </figure>
 </div>
-<p>The next step is <em>not</em> to “Download <code>.gz</code> output”, but to “Download SQL”. In this case the downloaded SQL looks like</p>
+<p>The next step is to download the SQL rather than the <code>.gz</code> output. In this case the downloaded SQL looks like</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    comp_na_daily_all.funda.costat,</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    comp_na_daily_all.funda.curcd,</span>
@@ -205,7 +205,7 @@ Figure&nbsp;1: WRDS web query results page after submitting a query
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> curcd <span class="kw">IN</span> (<span class="st">'USD'</span>, <span class="st">'CAD'</span>)</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> costat <span class="kw">IN</span> (<span class="st">'A'</span>, <span class="st">'I'</span>);</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Now, I can run the following Python code (<code>query</code> is just copy-pasted from above):</p>
-<div id="7760f278" class="cell" data-execution_count="1">
+<div id="94d807a3" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>time</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_sql_to_pq</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -226,16 +226,16 @@ Figure&nbsp;1: WRDS web query results page after submitting a query
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>wrds_sql_to_pq(query, <span class="st">"features"</span>, <span class="st">"my_project"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>CPU times: user 1.72 s, sys: 165 ms, total: 1.89 s
-Wall time: 3.07 s</code></pre>
+<pre><code>CPU times: user 1.11 s, sys: 284 ms, total: 1.39 s
+Wall time: 3.36 s</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="2">
+<div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>'/Users/igow/Dropbox/pq_data/my_project/features.parquet'</code></pre>
 </div>
 </div>
 <p>Now I have a file that I can load into Python or R or whatever modern data analysis package I might be using.</p>
 <p>Note that as an alternative to using <code>wrds_sql_to_pq</code>, I could just choose to get the entire table. In this case, it might be simpler to refer to <code>comp_na_daily_all.funda</code> using its alias <code>comp.funda</code> (this facilitates reproducibility for some WRDS tables). Because I am getting more data, this will take longer. In this second case, I will have used the web query simply to identify the table I want to download.</p>
-<div id="122b3b4c" class="cell" data-execution_count="2">
+<div id="23680adc" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"funda"</span>, <span class="st">"comp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
