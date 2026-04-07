@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>files.parquet.pq_archive – db2pq</title>
+<title>pq_restore – db2pq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -22,41 +22,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -120,7 +85,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/files.paths.pq_list_files.html">Parquet Utilities</a></li><li class="breadcrumb-item"><a href="../reference/files.parquet.pq_archive.html">files.parquet.pq_archive</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/pq_list_files.html">Parquet Utilities</a></li><li class="breadcrumb-item"><a href="../reference/pq_restore.html">pq_restore</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -247,50 +212,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_to_pq</span></a>
+  <a href="../reference/db_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.pg_update_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.pg_update_pq</span></a>
+  <a href="../reference/pg_update_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pg_update_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_pg_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_pg_to_pq</span></a>
+  <a href="../reference/wrds_pg_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_pg_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_sql_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_sql_to_pq</span></a>
+  <a href="../reference/wrds_sql_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_sql_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_schema_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_schema_to_pq</span></a>
+  <a href="../reference/db_schema_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_schema_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_update_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_update_pq</span></a>
+  <a href="../reference/wrds_update_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_update_schema.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_update_schema</span></a>
+  <a href="../reference/wrds_update_schema.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_schema</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/ibis.ibis_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ibis.ibis_to_pq</span></a>
+  <a href="../reference/ibis_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ibis_to_pq</span></a>
   </div>
 </li>
       </ul>
@@ -306,56 +271,56 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_to_pg</span></a>
+  <a href="../reference/db_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_pg_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_pg_to_pg</span></a>
+  <a href="../reference/wrds_pg_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_pg_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.wrds_update_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.wrds_update_pg</span></a>
+  <a href="../reference/wrds_update_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.pq_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.pq_to_pg</span></a>
+  <a href="../reference/pq_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.pq_update_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.pq_update_pg</span></a>
+  <a href="../reference/pq_update_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_update_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.process_sql.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.process_sql</span></a>
+  <a href="../reference/process_sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">process_sql</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.schema.db_schema_tables.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.schema.db_schema_tables</span></a>
+  <a href="../reference/db_schema_tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_schema_tables</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.schema.wrds_get_tables.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.schema.wrds_get_tables</span></a>
+  <a href="../reference/wrds_get_tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_get_tables</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.comments.set_table_comment.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.comments.set_table_comment</span></a>
+  <a href="../reference/set_table_comment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">set_table_comment</span></a>
   </div>
 </li>
       </ul>
@@ -371,32 +336,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.paths.pq_list_files.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.paths.pq_list_files</span></a>
+  <a href="../reference/pq_list_files.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_list_files</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_last_modified.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_last_modified</span></a>
+  <a href="../reference/pq_last_modified.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_last_modified</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_archive.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">files.parquet.pq_archive</span></a>
+  <a href="../reference/pq_archive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_archive</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_restore.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_restore</span></a>
+  <a href="../reference/pq_restore.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">pq_restore</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_remove.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_remove</span></a>
+  <a href="../reference/pq_remove.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_remove</span></a>
   </div>
 </li>
       </ul>
@@ -412,14 +377,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/config.set_default_engine.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">config.set_default_engine</span></a>
+  <a href="../reference/set_default_engine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">set_default_engine</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/config.get_default_engine.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">config.get_default_engine</span></a>
+  <a href="../reference/get_default_engine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">get_default_engine</span></a>
   </div>
 </li>
       </ul>
@@ -436,114 +401,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.files.parquet.pq_archive" id="toc-db2pq.files.parquet.pq_archive" class="nav-link active" data-scroll-target="#db2pq.files.parquet.pq_archive">files.parquet.pq_archive</a>
-  <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
-  </ul></li>
+  <li><a href="#db2pq.pq_restore" id="toc-db2pq.pq_restore" class="nav-link active" data-scroll-target="#db2pq.pq_restore">pq_restore</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/files.paths.pq_list_files.html">Parquet Utilities</a></li><li class="breadcrumb-item"><a href="../reference/files.parquet.pq_archive.html">files.parquet.pq_archive</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/pq_list_files.html">Parquet Utilities</a></li><li class="breadcrumb-item"><a href="../reference/pq_restore.html">pq_restore</a></li></ol></nav></header>
 
 
 
 
-<section id="db2pq.files.parquet.pq_archive" class="level1">
-<h1>files.parquet.pq_archive</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>files.parquet.pq_archive(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    table_name<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    schema<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    data_dir<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    file_name<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    archive_dir<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Archive a parquet file by renaming it into an archive subdirectory.</p>
-<p>For workflow-oriented examples, see <a href="../parquet-utilities-examples.html">Parquet Utilities Examples</a> and <a href="../data-management.html">Data management ideas</a>.</p>
-<section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 7%">
-<col style="width: 12%">
-<col style="width: 73%">
-<col style="width: 6%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>table_name</td>
-<td>str</td>
-<td>Basename of the parquet file to archive when resolving the source file from <code>schema</code> and <code>data_dir</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>schema</td>
-<td>str</td>
-<td>Name of the parquet schema directory used when resolving the source file from <code>table_name</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>data_dir</td>
-<td>str</td>
-<td>Root directory of the parquet data repository. If omitted, defaults to <code>DATA_DIR</code> or the current working directory.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>file_name</td>
-<td>str or path - like</td>
-<td>Exact parquet file path to archive. If supplied, <code>table_name</code> and <code>schema</code> are ignored.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>archive_dir</td>
-<td>str</td>
-<td>Name of the archive directory under the schema directory. Defaults to <code>"archive"</code>.</td>
-<td><code>None</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 14%">
-<col style="width: 76%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td>str or None</td>
-<td>Archived file path as a string, or <code>None</code> if no file was archived.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="examples" class="level2 doc-section doc-section-examples">
-<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_archive(table_name<span class="op">=</span><span class="st">"company"</span>, schema<span class="op">=</span><span class="st">"comp"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pq_archive(file_name<span class="op">=</span><span class="st">"~/Dropbox/pq_data/comp/company.parquet"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="db2pq.pq_restore" class="level1">
+<h1>pq_restore</h1>
+<p><code>pq_restore</code></p>
+<p>Lazy proxy for <code>.files.parquet.pq_restore</code>.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -620,7 +493,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/iangow\.github\.io\/db2pq\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

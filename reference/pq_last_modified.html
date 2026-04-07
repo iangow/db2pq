@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>ibis.ibis_to_pq – db2pq</title>
+<title>pq_last_modified – db2pq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -22,41 +22,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -120,7 +85,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/core.db_to_pq.html">Parquet Export</a></li><li class="breadcrumb-item"><a href="../reference/ibis.ibis_to_pq.html">ibis.ibis_to_pq</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/pq_list_files.html">Parquet Utilities</a></li><li class="breadcrumb-item"><a href="../reference/pq_last_modified.html">pq_last_modified</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -238,59 +203,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
  <span class="menu-text">Parquet Export</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 show">  
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_to_pq</span></a>
+  <a href="../reference/db_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.pg_update_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.pg_update_pq</span></a>
+  <a href="../reference/pg_update_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pg_update_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_pg_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_pg_to_pq</span></a>
+  <a href="../reference/wrds_pg_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_pg_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_sql_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_sql_to_pq</span></a>
+  <a href="../reference/wrds_sql_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_sql_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_schema_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_schema_to_pq</span></a>
+  <a href="../reference/db_schema_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_schema_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_update_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_update_pq</span></a>
+  <a href="../reference/wrds_update_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_update_schema.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_update_schema</span></a>
+  <a href="../reference/wrds_update_schema.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_schema</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/ibis.ibis_to_pq.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">ibis.ibis_to_pq</span></a>
+  <a href="../reference/ibis_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ibis_to_pq</span></a>
   </div>
 </li>
       </ul>
@@ -306,97 +271,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_to_pg</span></a>
+  <a href="../reference/db_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_pg_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_pg_to_pg</span></a>
+  <a href="../reference/wrds_pg_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_pg_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.wrds_update_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.wrds_update_pg</span></a>
+  <a href="../reference/wrds_update_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.pq_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.pq_to_pg</span></a>
+  <a href="../reference/pq_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.pq_update_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.pq_update_pg</span></a>
+  <a href="../reference/pq_update_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_update_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.process_sql.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.process_sql</span></a>
+  <a href="../reference/process_sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">process_sql</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.schema.db_schema_tables.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.schema.db_schema_tables</span></a>
+  <a href="../reference/db_schema_tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_schema_tables</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.schema.wrds_get_tables.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.schema.wrds_get_tables</span></a>
+  <a href="../reference/wrds_get_tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_get_tables</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.comments.set_table_comment.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.comments.set_table_comment</span></a>
+  <a href="../reference/set_table_comment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">set_table_comment</span></a>
   </div>
 </li>
       </ul>
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
  <span class="menu-text">Parquet Utilities</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.paths.pq_list_files.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.paths.pq_list_files</span></a>
+  <a href="../reference/pq_list_files.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_list_files</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_last_modified.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_last_modified</span></a>
+  <a href="../reference/pq_last_modified.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">pq_last_modified</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_archive.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_archive</span></a>
+  <a href="../reference/pq_archive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_archive</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_restore.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_restore</span></a>
+  <a href="../reference/pq_restore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_restore</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_remove.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_remove</span></a>
+  <a href="../reference/pq_remove.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_remove</span></a>
   </div>
 </li>
       </ul>
@@ -412,14 +377,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/config.set_default_engine.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">config.set_default_engine</span></a>
+  <a href="../reference/set_default_engine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">set_default_engine</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/config.get_default_engine.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">config.get_default_engine</span></a>
+  <a href="../reference/get_default_engine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">get_default_engine</span></a>
   </div>
 </li>
       </ul>
@@ -436,170 +401,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.ibis.ibis_to_pq" id="toc-db2pq.ibis.ibis_to_pq" class="nav-link active" data-scroll-target="#db2pq.ibis.ibis_to_pq">ibis.ibis_to_pq</a>
-  <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  <li><a href="#raises" id="toc-raises" class="nav-link" data-scroll-target="#raises">Raises</a></li>
-  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
-  </ul></li>
+  <li><a href="#db2pq.pq_last_modified" id="toc-db2pq.pq_last_modified" class="nav-link active" data-scroll-target="#db2pq.pq_last_modified">pq_last_modified</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/core.db_to_pq.html">Parquet Export</a></li><li class="breadcrumb-item"><a href="../reference/ibis.ibis_to_pq.html">ibis.ibis_to_pq</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/pq_list_files.html">Parquet Utilities</a></li><li class="breadcrumb-item"><a href="../reference/pq_last_modified.html">pq_last_modified</a></li></ol></nav></header>
 
 
 
 
-<section id="db2pq.ibis.ibis_to_pq" class="level1">
-<h1>ibis.ibis_to_pq</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ibis.ibis_to_pq(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    table,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    out_file,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    engine<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    row_group_size<span class="op">=</span><span class="dv">1024</span> <span class="op">*</span> <span class="dv">1024</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    threads<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    tz<span class="op">=</span><span class="st">'UTC'</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    adbc_batch_size_hint_bytes<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    adbc_use_copy<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">**</span>writer_kwargs,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Write an Ibis PostgreSQL table expression to a parquet file.</p>
-<p>This helper compiles an Ibis PostgreSQL expression to SQL and runs it through the same PostgreSQL export engines used elsewhere in <code>db2pq</code>. The resulting Arrow stream is written directly to the destination Parquet file.</p>
-<p><code>ibis_to_pq()</code> currently supports Ibis expressions backed by a PostgreSQL connection. To use it, install the optional dependency:</p>
-<p><code>pip install "db2pq[ibis]"</code></p>
-<section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 12%">
-<col style="width: 8%">
-<col style="width: 72%">
-<col style="width: 6%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>table</td>
-<td></td>
-<td>Ibis table expression backed by PostgreSQL. This may be a base table or a derived expression such as a filtered, selected, or mutated query.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>out_file</td>
-<td>str or path - like</td>
-<td>Destination parquet file path.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td>engine</td>
-<td>(duckdb, adbc)</td>
-<td>Query execution engine used to run the compiled PostgreSQL SQL. If omitted, uses the configured default engine from <code>set_default_engine()</code> / <code>DB2PQ_ENGINE</code>.</td>
-<td><code>"duckdb"</code></td>
-</tr>
-<tr class="even">
-<td>row_group_size</td>
-<td>int[Optional]</td>
-<td>Maximum number of rows in each written Parquet row group.</td>
-<td><code>1024 * 1024</code></td>
-</tr>
-<tr class="odd">
-<td>threads</td>
-<td>int[Optional]</td>
-<td>Maximum DuckDB worker threads to use when <code>engine="duckdb"</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>tz</td>
-<td>str[Optional]</td>
-<td>Time zone assumption for naive PostgreSQL timestamps before normalizing Parquet output to UTC.</td>
-<td><code>'UTC'</code></td>
-</tr>
-<tr class="odd">
-<td>adbc_batch_size_hint_bytes</td>
-<td>int[Optional]</td>
-<td>ADBC batch size hint in bytes when <code>engine="adbc"</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>adbc_use_copy</td>
-<td>bool[Optional]</td>
-<td>Explicitly enable or disable the PostgreSQL ADBC driver’s <code>COPY</code> optimization when <code>engine="adbc"</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>**writer_kwargs</td>
-<td></td>
-<td>Additional keyword arguments passed to <code>pyarrow.parquet.ParquetWriter</code>. This can be used to set options such as <code>compression="zstd"</code>.</td>
-<td><code>{}</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>pq_file</td>
-<td>str</td>
-<td>Name of parquet file created.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="raises" class="level2 doc-section doc-section-raises">
-<h2 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 5%">
-<col style="width: 6%">
-<col style="width: 88%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td>TypeError</td>
-<td>If the supplied Ibis expression is not backed by PostgreSQL, or if PostgreSQL connection information cannot be determined from the backend.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="examples" class="level2 doc-section doc-section-examples">
-<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> db2pq <span class="im">import</span> ibis_to_pq</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> expr <span class="op">=</span> con.table(<span class="st">"my_table"</span>).<span class="bu">filter</span>(<span class="kw">lambda</span> t: t.<span class="bu">id</span> <span class="op">&gt;</span> <span class="dv">100</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> ibis_to_pq(expr, <span class="st">"my_table.parquet"</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">'my_table.parquet'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> expr <span class="op">=</span> con.table(<span class="st">"my_table"</span>).select(<span class="st">"id"</span>, <span class="st">"value"</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> ibis_to_pq(expr, <span class="st">"my_table.parquet"</span>, compression<span class="op">=</span><span class="st">"zstd"</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">'my_table.parquet'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="db2pq.pq_last_modified" class="level1">
+<h1>pq_last_modified</h1>
+<p><code>pq_last_modified</code></p>
+<p>Lazy proxy for <code>.files.parquet.pq_last_modified</code>.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -676,7 +493,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/iangow\.github\.io\/db2pq\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

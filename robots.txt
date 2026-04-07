@@ -1,1 +1,0 @@
-Sitemap: https://iangow.github.io/db2pq/sitemap.xml

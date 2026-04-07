@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>core.db_to_pq – db2pq</title>
+<title>wrds_pg_to_pq – db2pq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -22,41 +22,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -120,7 +85,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/core.db_to_pq.html">Parquet Export</a></li><li class="breadcrumb-item"><a href="../reference/core.db_to_pq.html">core.db_to_pq</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/db_to_pq.html">Parquet Export</a></li><li class="breadcrumb-item"><a href="../reference/wrds_pg_to_pq.html">wrds_pg_to_pq</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -247,50 +212,50 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_to_pq.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">core.db_to_pq</span></a>
+  <a href="../reference/db_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.pg_update_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.pg_update_pq</span></a>
+  <a href="../reference/pg_update_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pg_update_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_pg_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_pg_to_pq</span></a>
+  <a href="../reference/wrds_pg_to_pq.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">wrds_pg_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_sql_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_sql_to_pq</span></a>
+  <a href="../reference/wrds_sql_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_sql_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_schema_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_schema_to_pq</span></a>
+  <a href="../reference/db_schema_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_schema_to_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_update_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_update_pq</span></a>
+  <a href="../reference/wrds_update_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_pq</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_update_schema.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_update_schema</span></a>
+  <a href="../reference/wrds_update_schema.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_schema</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/ibis.ibis_to_pq.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ibis.ibis_to_pq</span></a>
+  <a href="../reference/ibis_to_pq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ibis_to_pq</span></a>
   </div>
 </li>
       </ul>
@@ -306,56 +271,56 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.db_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.db_to_pg</span></a>
+  <a href="../reference/db_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/core.wrds_pg_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">core.wrds_pg_to_pg</span></a>
+  <a href="../reference/wrds_pg_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_pg_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.wrds_update_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.wrds_update_pg</span></a>
+  <a href="../reference/wrds_update_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_update_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.pq_to_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.pq_to_pg</span></a>
+  <a href="../reference/pq_to_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_to_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.pq_update_pg.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.pq_update_pg</span></a>
+  <a href="../reference/pq_update_pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_update_pg</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.update.process_sql.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.update.process_sql</span></a>
+  <a href="../reference/process_sql.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">process_sql</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.schema.db_schema_tables.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.schema.db_schema_tables</span></a>
+  <a href="../reference/db_schema_tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">db_schema_tables</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.schema.wrds_get_tables.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.schema.wrds_get_tables</span></a>
+  <a href="../reference/wrds_get_tables.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">wrds_get_tables</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/postgres.comments.set_table_comment.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">postgres.comments.set_table_comment</span></a>
+  <a href="../reference/set_table_comment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">set_table_comment</span></a>
   </div>
 </li>
       </ul>
@@ -371,32 +336,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.paths.pq_list_files.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.paths.pq_list_files</span></a>
+  <a href="../reference/pq_list_files.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_list_files</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_last_modified.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_last_modified</span></a>
+  <a href="../reference/pq_last_modified.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_last_modified</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_archive.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_archive</span></a>
+  <a href="../reference/pq_archive.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_archive</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_restore.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_restore</span></a>
+  <a href="../reference/pq_restore.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_restore</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/files.parquet.pq_remove.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">files.parquet.pq_remove</span></a>
+  <a href="../reference/pq_remove.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pq_remove</span></a>
   </div>
 </li>
       </ul>
@@ -412,14 +377,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/config.set_default_engine.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">config.set_default_engine</span></a>
+  <a href="../reference/set_default_engine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">set_default_engine</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../reference/config.get_default_engine.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">config.get_default_engine</span></a>
+  <a href="../reference/get_default_engine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">get_default_engine</span></a>
   </div>
 </li>
       </ul>
@@ -436,206 +401,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.core.db_to_pq" id="toc-db2pq.core.db_to_pq" class="nav-link active" data-scroll-target="#db2pq.core.db_to_pq">core.db_to_pq</a>
-  <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
-  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
-  </ul></li>
+  <li><a href="#db2pq.wrds_pg_to_pq" id="toc-db2pq.wrds_pg_to_pq" class="nav-link active" data-scroll-target="#db2pq.wrds_pg_to_pq">wrds_pg_to_pq</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/core.db_to_pq.html">Parquet Export</a></li><li class="breadcrumb-item"><a href="../reference/core.db_to_pq.html">core.db_to_pq</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/index.html">Reference</a></li><li class="breadcrumb-item"><a href="../reference/db_to_pq.html">Parquet Export</a></li><li class="breadcrumb-item"><a href="../reference/wrds_pg_to_pq.html">wrds_pg_to_pq</a></li></ol></nav></header>
 
 
 
 
-<section id="db2pq.core.db_to_pq" class="level1">
-<h1>core.db_to_pq</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>core.db_to_pq(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    table_name,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    schema,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    user<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    host<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    database<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    port<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    data_dir<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    row_group_size<span class="op">=</span><span class="dv">1048576</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    obs<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    modified<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    alt_table_name<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    keep<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    drop<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    batched<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    threads<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    tz<span class="op">=</span><span class="st">'UTC'</span>,</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    engine<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    numeric_mode<span class="op">=</span><span class="st">'text'</span>,</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    adbc_batch_size_hint_bytes<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    adbc_use_copy<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    archive<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    archive_dir<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Export a PostgreSQL table to a parquet file.</p>
-<section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 87%">
-<col style="width: 2%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>table_name</td>
-<td></td>
-<td>Name of table in database.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>schema</td>
-<td></td>
-<td>Name of database schema.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td>host</td>
-<td></td>
-<td>Host name for the PostgreSQL server. The default is to use the environment value <code>PGHOST</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>database</td>
-<td></td>
-<td>Name for the PostgreSQL database. The default is to use the environment value <code>PGDATABASE</code> or user.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>data_dir</td>
-<td></td>
-<td>Root directory of parquet data repository. The default is to use the environment value <code>DATA_DIR</code> or (if not set) the current directory.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>col_types</td>
-<td></td>
-<td>Dictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, <code>col_types = {'permno':'integer', 'permco':'integer'}</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>row_group_size</td>
-<td></td>
-<td>Maximum number of rows in each written row group. Default is <code>1024 * 1024</code>.</td>
-<td><code>1048576</code></td>
-</tr>
-<tr class="even">
-<td>obs</td>
-<td></td>
-<td>Number of observations to import from database table. Implemented using SQL <code>LIMIT</code>. Setting this to modest value (e.g., <code>obs=1000</code>) can be useful for testing <code>db_to_pq()</code> with large tables.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>modified</td>
-<td></td>
-<td>Last modified string.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>alt_table_name</td>
-<td></td>
-<td>Basename of parquet file. Used when file should have different name from <code>table_name</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>keep</td>
-<td></td>
-<td>Regex pattern(s) indicating columns to keep.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>drop</td>
-<td></td>
-<td>Regex pattern(s) indicating columns to drop. If both <code>drop</code> and <code>keep</code> are provided, <code>drop</code> is applied first.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>batched</td>
-<td></td>
-<td>Indicates whether data will be extracting in batches using <code>to_pyarrow_batches()</code> instead of a single call to <code>to_pyarrow()</code>. Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.</td>
-<td><code>True</code></td>
-</tr>
-<tr class="even">
-<td>threads</td>
-<td></td>
-<td>The number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>engine</td>
-<td>(duckdb, adbc)</td>
-<td>Query execution engine used to read PostgreSQL data before writing Parquet. <code>"adbc"</code> streams Arrow record batches directly from PostgreSQL.</td>
-<td><code>"duckdb"</code></td>
-</tr>
-<tr class="even">
-<td>numeric_mode</td>
-<td>(text, float64, decimal)</td>
-<td>On the ADBC path, cast PostgreSQL <code>NUMERIC</code> columns to <code>TEXT</code> or <code>DOUBLE PRECISION</code> before writing Parquet. <code>"decimal"</code> transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit <code>col_types</code> entries take precedence.</td>
-<td><code>"text"</code></td>
-</tr>
-<tr class="odd">
-<td>adbc_batch_size_hint_bytes</td>
-<td>int[Optional]</td>
-<td>On the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes. This can affect throughput by changing the size of batches returned by <code>fetch_record_batch()</code>.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>adbc_use_copy</td>
-<td>bool[Optional]</td>
-<td>On the ADBC path, enable or disable the PostgreSQL driver’s <code>COPY</code> optimization explicitly. If omitted, the driver default is used.</td>
-<td><code>None</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>pq_file</td>
-<td>string</td>
-<td>Name of parquet file created.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="examples" class="level2 doc-section doc-section-examples">
-<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> db_to_pq(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> db_to_pq(<span class="st">"feed21_bankruptcy_notification"</span>, <span class="st">"audit"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="db2pq.wrds_pg_to_pq" class="level1">
+<h1>wrds_pg_to_pq</h1>
+<p><code>wrds_pg_to_pq</code></p>
+<p>Lazy proxy for <code>.core.wrds_pg_to_pq</code>.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -712,7 +493,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/iangow\.github\.io\/db2pq\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
