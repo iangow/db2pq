@@ -7,12 +7,11 @@ is a local Parquet file repository.
 
 ## Main helpers
 
-- `wrds_pg_to_pq(table_name, schema, ...)` exports one WRDS table to Parquet.
-- `wrds_sql_to_pq(sql, table_name, schema, ...)` exports a custom WRDS SQL query
-  into the standard Parquet layout.
 - `wrds_update_pq(table_name, schema, ...)` only rewrites a Parquet file when
   the WRDS source is newer.
+- `wrds_sql_to_pq(sql, table_name, schema, ...)` exports a custom WRDS SQL query into the standard Parquet layout.
 - `wrds_update_schema(schema, ...)` updates a full WRDS schema into Parquet.
+- `wrds_pg_to_pq(table_name, schema, ...)` exports one WRDS table to Parquet, but without the update logic of `wrds_update_pq()`.
 
 ## Typical first run
 
@@ -34,11 +33,17 @@ A CRSP-style export where identifier columns are normalized to integer types:
 from db2pq import wrds_update_pq
 
 wrds_update_pq(
-    "dsf",
+    "ccmxpf_lnkhist",
     "crsp",
-    col_types={"permno": "int32", "permco": "int32"},
+    col_types={"lpermno": "int32", "lpermco": "int32"},
 )
 ```
+
+## Using SAS metadata with `use_sas=True`
+
+Use this path when the WRDS PostgreSQL table comment is missing or not the
+freshness signal you want. In this mode, `db2pq` checks SAS-side metadata
+instead.
 
 A RavenPack-style example where the WRDS PostgreSQL schema and the SAS metadata
 schema do not line up:
@@ -49,17 +54,19 @@ from db2pq import wrds_update_pq
 wrds_update_pq(
     "rpa_entity_mappings",
     "ravenpack_common",
+    use_sas=True,
     sas_schema="rpa",
 )
 ```
 
-You can also use `sas_schema="rpa"` with explicit timestamp coercions when
+You can also combine `use_sas=True` with explicit timestamp coercions when
 exporting annual RavenPack tables:
 
 ```python
 wrds_update_pq(
     "rpa_djpr_equities_2024",
     "ravenpack_dj",
+    use_sas=True,
     sas_schema="rpa",
     batched=False,
     col_types={
@@ -90,10 +97,21 @@ Files are written as:
 <DATA_DIR>/<schema>/<table>.parquet
 ```
 
+## When To Use The Web Query
+
+The WRDS web query can be useful when you are trying to identify the exact
+table behind a dataset or want WRDS to draft a starting SQL query for you.
+That is often a practical way to move from the WRDS website to a
+`wrds_sql_to_pq(...)` workflow.
+
 ## Related reference pages
 
-- [wrds_pg_to_pq](reference/core.wrds_pg_to_pq.qmd)
-- [wrds_sql_to_pq](reference/core.wrds_sql_to_pq.qmd)
-- [wrds_update_pq](reference/core.wrds_update_pq.qmd)
-- [wrds_update_schema](reference/core.wrds_update_schema.qmd)
-- [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)
+- [wrds_pg_to_pq](reference/wrds_pg_to_pq.qmd)
+- [wrds_sql_to_pq](reference/wrds_sql_to_pq.qmd)
+- [wrds_update_pq](reference/wrds_update_pq.qmd)
+- [wrds_update_schema](reference/wrds_update_schema.qmd)
+- [pq_last_modified](reference/pq_last_modified.qmd)
+
+## Related guides
+
+- [Using the WRDS web query](web-query.qmd)

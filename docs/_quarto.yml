@@ -36,6 +36,7 @@ quartodoc:
           - data-management.qmd
           - using-parquet-with-polars.qmd
           - wrds-to-pq.qmd
+          - web-query.qmd
           - wrds-to-pg.qmd
           - pg-to-pq.qmd
           - pq-to-pg.qmd
@@ -50,36 +51,36 @@ quartodoc:
     - title: Parquet Export
       desc: Helpers for exporting PostgreSQL and WRDS data into Parquet files.
       contents:
-        - core.db_to_pq
-        - core.pg_update_pq
-        - core.wrds_pg_to_pq
-        - core.wrds_sql_to_pq
-        - core.db_schema_to_pq
-        - core.wrds_update_pq
-        - core.wrds_update_schema
-        - ibis.ibis_to_pq
+        - db_to_pq
+        - pg_update_pq
+        - wrds_pg_to_pq
+        - wrds_sql_to_pq
+        - db_schema_to_pq
+        - wrds_update_pq
+        - wrds_update_schema
+        - ibis_to_pq
     - title: PostgreSQL Sync
       desc: Helpers for materializing WRDS, PostgreSQL, and Parquet data into PostgreSQL.
       contents:
-        - core.db_to_pg
-        - core.wrds_pg_to_pg
-        - postgres.update.wrds_update_pg
-        - postgres.update.pq_to_pg
-        - postgres.update.pq_update_pg
-        - postgres.update.process_sql
-        - postgres.schema.db_schema_tables
-        - postgres.schema.wrds_get_tables
-        - postgres.comments.set_table_comment
+        - db_to_pg
+        - wrds_pg_to_pg
+        - wrds_update_pg
+        - pq_to_pg
+        - pq_update_pg
+        - process_sql
+        - db_schema_tables
+        - wrds_get_tables
+        - set_table_comment
     - title: Parquet Utilities
       desc: Helpers for managing and inspecting parquet files produced by db2pq.
       contents:
-        - files.paths.pq_list_files
-        - files.parquet.pq_last_modified
-        - files.parquet.pq_archive
-        - files.parquet.pq_restore
-        - files.parquet.pq_remove
+        - pq_list_files
+        - pq_last_modified
+        - pq_archive
+        - pq_restore
+        - pq_remove
     - title: Configuration
       desc: Helpers for engine defaults and runtime behavior.
       contents:
-        - config.set_default_engine
-        - config.get_default_engine
+        - set_default_engine
+        - get_default_engine

@@ -46,12 +46,12 @@ function will ask you to use `force=True` instead of guessing.
 
 ## Related reference pages
 
-- [pq_to_pg](reference/postgres.update.pq_to_pg.qmd)
-- [pq_update_pg](reference/postgres.update.pq_update_pg.qmd)
-- [pq_list_files](reference/files.paths.pq_list_files.qmd)
-- [pq_last_modified](reference/files.parquet.pq_last_modified.qmd)
-- [pq_archive](reference/files.parquet.pq_archive.qmd)
-- [pq_restore](reference/files.parquet.pq_restore.qmd)
-- [pq_remove](reference/files.parquet.pq_remove.qmd)
-- [db_to_pg](reference/core.db_to_pg.qmd)
-- [wrds_pg_to_pg](reference/core.wrds_pg_to_pg.qmd)
+- [pq_to_pg](reference/pq_to_pg.qmd)
+- [pq_update_pg](reference/pq_update_pg.qmd)
+- [pq_list_files](reference/pq_list_files.qmd)
+- [pq_last_modified](reference/pq_last_modified.qmd)
+- [pq_archive](reference/pq_archive.qmd)
+- [pq_restore](reference/pq_restore.qmd)
+- [pq_remove](reference/pq_remove.qmd)
+- [db_to_pg](reference/db_to_pg.qmd)
+- [wrds_pg_to_pg](reference/wrds_pg_to_pg.qmd)

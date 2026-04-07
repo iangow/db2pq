@@ -3,12 +3,10 @@ title: db2pq
 ---
 
 ::: {.hero}
-`db2pq` is a Python package for building and using Parquet-centered workflows
-for WRDS and PostgreSQL data.
+`db2pq` is a Python package for primarily built to support Parquet-centered workflows using data sourced from PostgreSQL data.
+The original focus was on data from the PostgreSQL database offered by Wharton Research Data Services (WRDS).
 
-It is designed for a practical research workflow: move data out of WRDS or
-PostgreSQL, keep local Parquet copies current, and work with those files using
-tools like Polars.
+`db2pq` is designed for a practical research workflow: move data out of WRDS or PostgreSQL, keep local Parquet copies current, and work with those files using tools like Polars, pandas, or R.
 
 ::: {.quick-links}
 [Get Started](wrds-to-pq.qmd)
@@ -26,10 +24,31 @@ pip install --upgrade db2pq
 
 Optional extras:
 
+- `db2pq[sas]`: WRDS SAS-side metadata checks for refresh logic such as
+  `wrds_update_pq(..., use_sas=True)`
+
 ```bash
 pip install --upgrade "db2pq[sas]"
+```
+
+- `db2pq[pandas]`: pandas DataFrame outputs from metadata helpers such as
+  `pq_last_modified(...)`
+
+```bash
 pip install --upgrade "db2pq[pandas]"
+```
+
+- `db2pq[ibis]`: export PostgreSQL-backed Ibis expressions with
+  `ibis_to_pq(...)`
+
+```bash
 pip install --upgrade "db2pq[ibis]"
+```
+
+- `db2pq[adbc]`: use the Arrow-based PostgreSQL export path with
+  `engine="adbc"`
+
+```bash
 pip install --upgrade "db2pq[adbc]"
 ```
 
@@ -88,6 +107,8 @@ Parquet source is newer.
   `.env`, and works with `.pgpass`
 - [Data management ideas](data-management.qmd): how to think about general-purpose
   versus project-level Parquet data
+- [Using the WRDS web query](web-query.qmd): how to turn a WRDS web query into
+  a cleaner SQL export workflow
 - [Using the Parquet repository with Polars](using-parquet-with-polars.qmd):
   practical analysis patterns once the repository already exists
 - [API Reference](reference/index.qmd): generated function reference from

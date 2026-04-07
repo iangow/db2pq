@@ -4,6 +4,10 @@ This repository includes a Quarto + `quartodoc` documentation site under `docs/`
 
 ## Install the docs toolchain
 
+These notes assume `uv` as the default Python package manager, not just for
+this repository. The equivalent `pip` command is shown here because it maps
+directly to the package extra:
+
 ```bash
 python3 -m pip install -e ".[docs]"
 ```

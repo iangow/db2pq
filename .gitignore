@@ -31,3 +31,7 @@ docs/reference/
 # Local env / scratch outputs
 .env
 *.out
+
+/.quarto/
+**/*.quarto_ipynb
+docs/images/web-query-result.jpg
