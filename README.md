@@ -25,8 +25,7 @@ This installs the bundled `psycopg` PostgreSQL client dependency, so most users
 do not need a separate system `libpq` installation.
 
 Install optional SAS support if you use WRDS SAS metadata checks, especially
-when you want WRDS refresh logic based on the SAS-side source timestamps used by
-`wrds_update_pq(..., use_sas=True)`:
+when you want WRDS refresh logic based on the SAS-side source timestamps used by `wrds_update_pq(..., use_sas=True)`:
 
 ```bash
 pip install --upgrade "db2pq[sas]"
