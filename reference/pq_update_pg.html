@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.pq_update_pg" id="toc-db2pq.pq_update_pg" class="nav-link active" data-scroll-target="#db2pq.pq_update_pg">pq_update_pg</a></li>
+  <li><a href="#db2pq.pq_update_pg" id="toc-db2pq.pq_update_pg" class="nav-link active" data-scroll-target="#db2pq.pq_update_pg">pq_update_pg</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +425,35 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.pq_update_pg" class="level1">
 <h1>pq_update_pg</h1>
 <p><code>pq_update_pg</code></p>
-<p>Lazy proxy for <code>.postgres.update.pq_update_pg</code>.</p>
+<p>Materialize a parquet file into PostgreSQL when the parquet source is newer.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>table_name : str Basename of the source parquet file.</p>
+<p>schema : str Name of the source parquet schema directory.</p>
+<p>data_dir : str, optional Root directory of the parquet data repository. If omitted, defaults to <code>DATA_DIR</code> or the current working directory.</p>
+<p>user, host, dbname, database, port : optional Destination PostgreSQL connection settings.</p>
+<p>dst_schema : str, optional Destination PostgreSQL schema. If omitted, defaults to <code>schema</code>.</p>
+<p>alt_table_name : str, optional Destination PostgreSQL table name. If omitted, defaults to <code>table_name</code>.</p>
+<p>engine : {“duckdb”, “adbc”}, optional Engine used to load the parquet file into PostgreSQL.</p>
+<p>force : bool, optional If <code>True</code>, import the parquet file even when the source metadata are missing or the destination does not appear stale.</p>
+<p>create_roles : bool, optional If <code>True</code>, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>bool <code>True</code> if the parquet file was imported. <code>False</code> if the destination was already current or the source metadata were insufficient and <code>force</code> was not requested.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>pq_update_pg(“dsi”, “crsp”, dbname=“research”) pq_update_pg(“company”, “comp”, dbname=“research”, force=True)</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

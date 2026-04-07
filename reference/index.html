@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -426,35 +432,35 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td><a href="../reference/db_to_pq.html#db2pq.db_to_pq">db_to_pq</a></td>
-<td>Lazy proxy for <code>.core.db_to_pq</code>.</td>
+<td>Export a PostgreSQL table to a parquet file.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/pg_update_pq.html#db2pq.pg_update_pq">pg_update_pq</a></td>
-<td>Lazy proxy for <code>.core.pg_update_pq</code>.</td>
+<td>Export a local PostgreSQL table to Parquet when the source is newer.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/wrds_pg_to_pq.html#db2pq.wrds_pg_to_pq">wrds_pg_to_pq</a></td>
-<td>Lazy proxy for <code>.core.wrds_pg_to_pq</code>.</td>
+<td>Export a table from the WRDS PostgreSQL database to a parquet file.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/wrds_sql_to_pq.html#db2pq.wrds_sql_to_pq">wrds_sql_to_pq</a></td>
-<td>Lazy proxy for <code>.core.wrds_sql_to_pq</code>.</td>
+<td>Run a SQL query against WRDS PostgreSQL and write the result to Parquet.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/db_schema_to_pq.html#db2pq.db_schema_to_pq">db_schema_to_pq</a></td>
-<td>Lazy proxy for <code>.core.db_schema_to_pq</code>.</td>
+<td>Export all tables in a PostgreSQL schema to Parquet files.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/wrds_update_pq.html#db2pq.wrds_update_pq">wrds_update_pq</a></td>
-<td>Lazy proxy for <code>.core.wrds_update_pq</code>.</td>
+<td>Export a table from the WRDS PostgreSQL database to a Parquet file.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/wrds_update_schema.html#db2pq.wrds_update_schema">wrds_update_schema</a></td>
-<td>Lazy proxy for <code>.core.wrds_update_schema</code>.</td>
+<td>Update existing parquet files in a schema.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/ibis_to_pq.html#db2pq.ibis_to_pq">ibis_to_pq</a></td>
-<td>Lazy proxy for <code>.ibis.ibis_to_pq</code>.</td>
+<td>Write an Ibis PostgreSQL table expression to a parquet file.</td>
 </tr>
 </tbody>
 </table>
@@ -466,39 +472,39 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td><a href="../reference/db_to_pg.html#db2pq.db_to_pg">db_to_pg</a></td>
-<td>Lazy proxy for <code>.core.db_to_pg</code>.</td>
+<td>Write a PostgreSQL table to another PostgreSQL database.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/wrds_pg_to_pg.html#db2pq.wrds_pg_to_pg">wrds_pg_to_pg</a></td>
-<td>Lazy proxy for <code>.core.wrds_pg_to_pg</code>.</td>
+<td>Write a WRDS PostgreSQL table to another PostgreSQL database.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/wrds_update_pg.html#db2pq.wrds_update_pg">wrds_update_pg</a></td>
-<td>Lazy proxy for <code>.postgres.update.wrds_update_pg</code>.</td>
+<td>Materialize a WRDS PostgreSQL table into a local PostgreSQL database.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/pq_to_pg.html#db2pq.pq_to_pg">pq_to_pg</a></td>
-<td>Lazy proxy for <code>.postgres.update.pq_to_pg</code>.</td>
+<td>Write a parquet file from the local repository into PostgreSQL.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/pq_update_pg.html#db2pq.pq_update_pg">pq_update_pg</a></td>
-<td>Lazy proxy for <code>.postgres.update.pq_update_pg</code>.</td>
+<td>Materialize a parquet file into PostgreSQL when the parquet source is newer.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/process_sql.html#db2pq.process_sql">process_sql</a></td>
-<td>Lazy proxy for <code>.postgres.update.process_sql</code>.</td>
+<td>Execute SQL against the destination PostgreSQL database used by</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/db_schema_tables.html#db2pq.db_schema_tables">db_schema_tables</a></td>
-<td>Lazy proxy for <code>.postgres.schema.db_schema_tables</code>.</td>
+<td>Get a list of relations in a PostgreSQL schema.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/wrds_get_tables.html#db2pq.wrds_get_tables">wrds_get_tables</a></td>
-<td>Lazy proxy for <code>.postgres.schema.wrds_get_tables</code>.</td>
+<td>Get a list of relations in a WRDS schema.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/set_table_comment.html#db2pq.set_table_comment">set_table_comment</a></td>
-<td>Lazy proxy for <code>.postgres.comments.set_table_comment</code>.</td>
+<td>Set (or clear) a PostgreSQL table comment using psycopg.</td>
 </tr>
 </tbody>
 </table>
@@ -510,23 +516,23 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td><a href="../reference/pq_list_files.html#db2pq.pq_list_files">pq_list_files</a></td>
-<td>Lazy proxy for <code>.files.paths.pq_list_files</code>.</td>
+<td>Get a list of parquet files in a schema or its archive directory.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/pq_last_modified.html#db2pq.pq_last_modified">pq_last_modified</a></td>
-<td>Lazy proxy for <code>.files.parquet.pq_last_modified</code>.</td>
+<td>Get last-updated metadata for parquet data files.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/pq_archive.html#db2pq.pq_archive">pq_archive</a></td>
-<td>Lazy proxy for <code>.files.parquet.pq_archive</code>.</td>
+<td>Archive a parquet file by renaming it into an archive subdirectory.</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/pq_restore.html#db2pq.pq_restore">pq_restore</a></td>
-<td>Lazy proxy for <code>.files.parquet.pq_restore</code>.</td>
+<td>Restore an archived parquet file into the schema directory.</td>
 </tr>
 <tr class="odd">
 <td><a href="../reference/pq_remove.html#db2pq.pq_remove">pq_remove</a></td>
-<td>Lazy proxy for <code>.files.parquet.pq_remove</code>.</td>
+<td>Remove a parquet file from active or archive storage.</td>
 </tr>
 </tbody>
 </table>
@@ -538,11 +544,11 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td><a href="../reference/set_default_engine.html#db2pq.set_default_engine">set_default_engine</a></td>
-<td>Lazy proxy for <code>.config.set_default_engine</code>.</td>
+<td>Set the session-wide default engine used by db2pq helpers to create</td>
 </tr>
 <tr class="even">
 <td><a href="../reference/get_default_engine.html#db2pq.get_default_engine">get_default_engine</a></td>
-<td>Lazy proxy for <code>.config.get_default_engine</code>.</td>
+<td>Return the default engine used by db2pq helpers.</td>
 </tr>
 </tbody>
 </table>

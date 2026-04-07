@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.wrds_get_tables" id="toc-db2pq.wrds_get_tables" class="nav-link active" data-scroll-target="#db2pq.wrds_get_tables">wrds_get_tables</a></li>
+  <li><a href="#db2pq.wrds_get_tables" id="toc-db2pq.wrds_get_tables" class="nav-link active" data-scroll-target="#db2pq.wrds_get_tables">wrds_get_tables</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +425,29 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.wrds_get_tables" class="level1">
 <h1>wrds_get_tables</h1>
 <p><code>wrds_get_tables</code></p>
-<p>Lazy proxy for <code>.postgres.schema.wrds_get_tables</code>.</p>
+<p>Get a list of relations in a WRDS schema.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>schema : str Name of the WRDS schema to inspect.</p>
+<p>wrds_id : str, optional WRDS user ID used to access the WRDS PostgreSQL service. If omitted, resolve from <code>WRDS_ID</code> / <code>WRDS_USER</code> and related <code>.env</code> configuration.</p>
+<p>views : bool, optional If <code>True</code>, include views in addition to base tables.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>list[str] Sorted relation names in the requested WRDS schema.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>wrds_get_tables(“crsp”) wrds_get_tables(“comp”, views=True)</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

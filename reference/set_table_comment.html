@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.set_table_comment" id="toc-db2pq.set_table_comment" class="nav-link active" data-scroll-target="#db2pq.set_table_comment">set_table_comment</a></li>
+  <li><a href="#db2pq.set_table_comment" id="toc-db2pq.set_table_comment" class="nav-link active" data-scroll-target="#db2pq.set_table_comment">set_table_comment</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +425,31 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.set_table_comment" class="level1">
 <h1>set_table_comment</h1>
 <p><code>set_table_comment</code></p>
-<p>Lazy proxy for <code>.postgres.comments.set_table_comment</code>.</p>
+<p>Set (or clear) a PostgreSQL table comment using psycopg.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>conn : psycopg connection, optional Open PostgreSQL connection to use. If omitted, create a connection using <code>user</code> / <code>host</code> / <code>dbname</code> / <code>port</code>.</p>
+<p>schema : str Name of the PostgreSQL schema containing the table.</p>
+<p>table_name : str Name of the PostgreSQL table whose comment should be updated.</p>
+<p>comment : str or None Comment text to store. Use <code>None</code> to clear the comment.</p>
+<p>user, host, dbname, port : optional PostgreSQL connection settings used only when <code>conn</code> is omitted.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>None This function updates the table comment in place.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>set_table_comment(schema=“crsp”, table_name=“dsi”, comment=“Updated 2025-01-31”) set_table_comment(schema=“crsp”, table_name=“dsi”, comment=None)</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

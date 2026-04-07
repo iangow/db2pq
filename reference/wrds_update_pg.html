@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,11 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.wrds_update_pg" id="toc-db2pq.wrds_update_pg" class="nav-link active" data-scroll-target="#db2pq.wrds_update_pg">wrds_update_pg</a></li>
+  <li><a href="#db2pq.wrds_update_pg" id="toc-db2pq.wrds_update_pg" class="nav-link active" data-scroll-target="#db2pq.wrds_update_pg">wrds_update_pg</a>
+  <ul class="collapse">
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +424,27 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.wrds_update_pg" class="level1">
 <h1>wrds_update_pg</h1>
 <p><code>wrds_update_pg</code></p>
-<p>Lazy proxy for <code>.postgres.update.wrds_update_pg</code>.</p>
+<p>Materialize a WRDS PostgreSQL table into a local PostgreSQL database.</p>
+<p>The destination table is created from scratch based on the SQL SELECT used to extract the data (via DuckDB schema inference), then populated using PostgreSQL binary COPY for performance.</p>
+<section id="notes" class="level2 doc-section doc-section-notes">
+<h2 class="doc-section doc-section-notes anchored" data-anchor-id="notes">Notes</h2>
+<ul>
+<li>Any existing destination table is dropped.</li>
+<li><code>keep</code>/<code>drop</code> use regex matching on source column names.</li>
+<li>If both <code>drop</code> and <code>keep</code> are provided, <code>drop</code> is applied first.</li>
+<li>Update / fingerprint logic is handled elsewhere (or added later).</li>
+<li>If <code>create_roles</code> is True, ensures schema owner role (<code>&lt;schema&gt;</code>) and read-only role (<code>&lt;schema&gt;_access</code>) exist, then applies grants.</li>
+<li>If <code>wrds_schema</code> is provided, it is used as the source WRDS schema while data are still written to destination <code>schema</code>.</li>
+<li>If <code>use_sas</code> is True, freshness and destination comment metadata are derived from SAS metadata instead of WRDS PostgreSQL comments.</li>
+<li><code>tz</code> (default <code>"UTC"</code>) is used to convert source <code>timestamp without time zone</code> columns via <code>AT TIME ZONE</code>.</li>
+</ul>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>bool <code>True</code> if an update was performed, <code>False</code> if the destination table was already up to date.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

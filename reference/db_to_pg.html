@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.db_to_pg" id="toc-db2pq.db_to_pg" class="nav-link active" data-scroll-target="#db2pq.db_to_pg">db_to_pg</a></li>
+  <li><a href="#db2pq.db_to_pg" id="toc-db2pq.db_to_pg" class="nav-link active" data-scroll-target="#db2pq.db_to_pg">db_to_pg</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +425,37 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.db_to_pg" class="level1">
 <h1>db_to_pg</h1>
 <p><code>db_to_pg</code></p>
-<p>Lazy proxy for <code>.core.db_to_pg</code>.</p>
+<p>Write a PostgreSQL table to another PostgreSQL database.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>table_name : str Name of the source PostgreSQL table.</p>
+<p>schema : str Name of the source PostgreSQL schema.</p>
+<p>user, host, database, port : optional Connection settings for the source PostgreSQL database. If omitted, resolve from the same environment/default chain used by <code>db_to_pq()</code>.</p>
+<p>dst_user, dst_host, dst_database, dst_port : optional Connection settings for the destination PostgreSQL database. If omitted, resolve from the same environment/default chain used for other destination PostgreSQL helpers.</p>
+<p>dst_schema : str, optional Destination PostgreSQL schema. If omitted, defaults to <code>schema</code>.</p>
+<p>col_types : dict, optional Explicit destination PostgreSQL column types for selected columns.</p>
+<p>obs : int, optional Number of rows to copy from the source table. Implemented with SQL <code>LIMIT</code>.</p>
+<p>alt_table_name : str, optional Destination PostgreSQL table name. If omitted, defaults to <code>table_name</code>.</p>
+<p>keep, drop : str or iterable, optional Regex pattern(s) describing columns to keep or drop before loading the destination table. If both are supplied, <code>drop</code> is applied first.</p>
+<p>tz : str, optional Default timezone used when normalizing timestamp columns.</p>
+<p>create_roles : bool, optional If <code>True</code>, ensure destination schema owner and access roles exist and apply ownership and grants to the loaded table.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>bool <code>True</code> after the destination table has been created or replaced.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>db_to_pg(“dsi”, “crsp”, dst_database=“research”) db_to_pg(“company”, “comp”, dst_schema=“comp_mirror”, obs=1000)</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

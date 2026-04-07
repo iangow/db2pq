@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,11 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.process_sql" id="toc-db2pq.process_sql" class="nav-link active" data-scroll-target="#db2pq.process_sql">process_sql</a></li>
+  <li><a href="#db2pq.process_sql" id="toc-db2pq.process_sql" class="nav-link active" data-scroll-target="#db2pq.process_sql">process_sql</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +424,17 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.process_sql" class="level1">
 <h1>process_sql</h1>
 <p><code>process_sql</code></p>
-<p>Lazy proxy for <code>.postgres.update.process_sql</code>.</p>
+<p>Execute SQL against the destination PostgreSQL database used by <code>wrds_update_pg()</code> by default.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>sql : str SQL statement to execute. user, host, dbname, port : optional PostgreSQL connection settings. If omitted, resolve from the same environment/default chain used by <code>wrds_update_pg()</code>. params : sequence or mapping, optional Parameters passed to <code>cursor.execute()</code>.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>str Psycopg <code>statusmessage</code> for the executed statement.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

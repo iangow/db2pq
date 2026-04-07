@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,11 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.wrds_update_schema" id="toc-db2pq.wrds_update_schema" class="nav-link active" data-scroll-target="#db2pq.wrds_update_schema">wrds_update_schema</a></li>
+  <li><a href="#db2pq.wrds_update_schema" id="toc-db2pq.wrds_update_schema" class="nav-link active" data-scroll-target="#db2pq.wrds_update_schema">wrds_update_schema</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +424,20 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.wrds_update_schema" class="level1">
 <h1>wrds_update_schema</h1>
 <p><code>wrds_update_schema</code></p>
-<p>Lazy proxy for <code>.core.wrds_update_schema</code>.</p>
+<p>Update existing parquet files in a schema.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>schema : str Name of database schema.</p>
+<p>data_dir : str, optional Root directory of parquet data repository. If not provided, defaults to the value of the <code>DATA_DIR</code> environment variable, or the current directory.</p>
+<p>threads : int, optional The number of threads DuckDB is allowed to use.</p>
+<p>archive : bool, optional Whether any existing parquet file will be archived.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>pq_files : list[str] Names of parquet files updated.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

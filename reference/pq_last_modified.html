@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.pq_last_modified" id="toc-db2pq.pq_last_modified" class="nav-link active" data-scroll-target="#db2pq.pq_last_modified">pq_last_modified</a></li>
+  <li><a href="#db2pq.pq_last_modified" id="toc-db2pq.pq_last_modified" class="nav-link active" data-scroll-target="#db2pq.pq_last_modified">pq_last_modified</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +425,33 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.pq_last_modified" class="level1">
 <h1>pq_last_modified</h1>
 <p><code>pq_last_modified</code></p>
-<p>Lazy proxy for <code>.files.parquet.pq_last_modified</code>.</p>
+<p>Get last-updated metadata for parquet data files.</p>
+<p>For workflow-oriented examples, see <a href="../parquet-utilities-examples.html">Parquet Utilities Examples</a> and <a href="../data-management.html">Data management ideas</a>.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>table_name : str, optional Basename of the parquet file to inspect when resolving the source file from <code>schema</code> and <code>data_dir</code>.</p>
+<p>schema : str, optional Name of the parquet schema directory to inspect.</p>
+<p>data_dir : str, optional Root directory of the parquet data repository. If omitted, defaults to <code>DATA_DIR</code> or the current working directory.</p>
+<p>file_name : str or path-like, optional Exact parquet file path to inspect. If supplied, <code>table_name</code> and <code>schema</code> are ignored.</p>
+<p>archive : bool, optional If <code>True</code>, inspect archived parquet files under <code>archive_dir</code>.</p>
+<p>archive_dir : str, optional Name of the archive directory under the schema directory. Defaults to <code>"archive"</code>.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>str or pandas.DataFrame If <code>file_name</code> is supplied, or if <code>table_name</code> is supplied with <code>archive=False</code>, return the embedded <code>last_modified</code> string for that parquet file. Otherwise, return a DataFrame summary of matching parquet files, including <code>file_name</code>, <code>table</code>, <code>schema</code>, <code>last_mod</code>, <code>last_mod_str</code>, and <code>storage</code> columns.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>pq_last_modified(table_name=“company”, schema=“comp”) pq_last_modified(table_name=“company”, schema=“comp”, archive=True) pq_last_modified(schema=“comp”, archive=True)</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

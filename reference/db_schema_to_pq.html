@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.db_schema_to_pq" id="toc-db2pq.db_schema_to_pq" class="nav-link active" data-scroll-target="#db2pq.db_schema_to_pq">db_schema_to_pq</a></li>
+  <li><a href="#db2pq.db_schema_to_pq" id="toc-db2pq.db_schema_to_pq" class="nav-link active" data-scroll-target="#db2pq.db_schema_to_pq">db_schema_to_pq</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +425,39 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.db_schema_to_pq" class="level1">
 <h1>db_schema_to_pq</h1>
 <p><code>db_schema_to_pq</code></p>
-<p>Lazy proxy for <code>.core.db_schema_to_pq</code>.</p>
+<p>Export all tables in a PostgreSQL schema to Parquet files.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>schema : str Name of the PostgreSQL database schema.</p>
+<p>user : str, optional PostgreSQL user role. If not provided, defaults to the value of the <code>PGUSER</code> environment variable, or (if unset) the current system user.</p>
+<p>host : str, optional Host name for the PostgreSQL server. If not provided, defaults to the value of the <code>PGHOST</code> environment variable, or <code>"localhost"</code> if unset.</p>
+<p>dbname : str, optional Name of the PostgreSQL database. If not provided, defaults to the value of the <code>PGDATABASE</code> environment variable, or (if unset) the resolved <code>user</code>.</p>
+<p>port : int, optional Port for the PostgreSQL server. If not provided, defaults to the value of the <code>PGPORT</code> environment variable, or <code>5432</code> if unset.</p>
+<p>data_dir : str, optional Root directory of the Parquet data repository. If not provided, defaults to the value of the <code>DATA_DIR</code> environment variable, or the current working directory.</p>
+<p>row_group_size : int, optional Maximum number of rows in each written Parquet row group. Must be positive. Default is <code>1024 * 1024</code>.</p>
+<p>batched : bool, optional Whether data are extracted in batches using <code>to_pyarrow_batches()</code> instead of a single call to <code>to_pyarrow()</code>. Using batches reduces memory usage for large tables at the cost of slightly lower performance.</p>
+<p>threads : int, optional Number of threads DuckDB is allowed to use. If provided, must be positive.</p>
+<p>engine : {“duckdb”, “adbc”}, optional Query execution engine used to read PostgreSQL data before writing Parquet.</p>
+<p>numeric_mode : {“text”, “float64”, “decimal”}, optional On the ADBC path, cast PostgreSQL <code>NUMERIC</code> columns to <code>TEXT</code> or <code>DOUBLE PRECISION</code> before writing Parquet. <code>"decimal"</code> transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit <code>col_types</code> entries take precedence.</p>
+<p>archive : bool, optional Whether an existing Parquet file should be archived before being replaced.</p>
+<p>archive_dir : str, optional Name of the directory (relative to <code>data_dir/schema</code>) where archived Parquet files will be stored.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>results : list[str] List of Parquet file paths returned by <code>db_to_pq()</code>, one for each table in the schema.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>db_schema_to_pq(“crsp”) db_schema_to_pq(“audit”, archive=True)</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

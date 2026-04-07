@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,12 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.pq_remove" id="toc-db2pq.pq_remove" class="nav-link active" data-scroll-target="#db2pq.pq_remove">pq_remove</a></li>
+  <li><a href="#db2pq.pq_remove" id="toc-db2pq.pq_remove" class="nav-link active" data-scroll-target="#db2pq.pq_remove">pq_remove</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +425,33 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.pq_remove" class="level1">
 <h1>pq_remove</h1>
 <p><code>pq_remove</code></p>
-<p>Lazy proxy for <code>.files.parquet.pq_remove</code>.</p>
+<p>Remove a parquet file from active or archive storage.</p>
+<p>For workflow-oriented examples, see <a href="../parquet-utilities-examples.html">Parquet Utilities Examples</a>.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>table_name : str, optional Basename of the parquet file to remove when resolving the source file from <code>schema</code> and <code>data_dir</code>.</p>
+<p>schema : str, optional Name of the parquet schema directory used when resolving the source file from <code>table_name</code>.</p>
+<p>data_dir : str, optional Root directory of the parquet data repository. If omitted, defaults to <code>DATA_DIR</code> or the current working directory.</p>
+<p>file_name : str or path-like, optional Exact parquet file path to remove. If supplied, <code>table_name</code> and <code>schema</code> are ignored.</p>
+<p>archive : bool, optional If <code>True</code>, resolved files are looked up under <code>archive_dir</code>.</p>
+<p>archive_dir : str, optional Name of the archive directory under the schema directory. Defaults to <code>"archive"</code>.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>str or None Removed file path as a string, or <code>None</code> if nothing was removed.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>pq_remove(table_name=“company”, schema=“comp”) pq_remove(table_name=“company_20240614T062835Z”, schema=“comp”, archive=True)</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

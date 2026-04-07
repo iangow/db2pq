@@ -151,6 +151,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../web-query.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Using the WRDS web query</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../wrds-to-pg.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">WRDS to PostgreSQL</span></a>
   </div>
@@ -401,7 +407,13 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#db2pq.ibis_to_pq" id="toc-db2pq.ibis_to_pq" class="nav-link active" data-scroll-target="#db2pq.ibis_to_pq">ibis_to_pq</a></li>
+  <li><a href="#db2pq.ibis_to_pq" id="toc-db2pq.ibis_to_pq" class="nav-link active" data-scroll-target="#db2pq.ibis_to_pq">ibis_to_pq</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#raises" id="toc-raises" class="nav-link" data-scroll-target="#raises">Raises</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -414,9 +426,49 @@ ul.task-list li input[type="checkbox"] {
 <section id="db2pq.ibis_to_pq" class="level1">
 <h1>ibis_to_pq</h1>
 <p><code>ibis_to_pq</code></p>
-<p>Lazy proxy for <code>.ibis.ibis_to_pq</code>.</p>
+<p>Write an Ibis PostgreSQL table expression to a parquet file.</p>
+<p>This helper compiles an Ibis PostgreSQL expression to SQL and runs it through the same PostgreSQL export engines used elsewhere in <code>db2pq</code>. The resulting Arrow stream is written directly to the destination Parquet file.</p>
+<p><code>ibis_to_pq()</code> currently supports Ibis expressions backed by a PostgreSQL connection. To use it, install the optional dependency:</p>
+<p><code>pip install "db2pq[ibis]"</code></p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<p>table : Ibis table expression backed by PostgreSQL. This may be a base table or a derived expression such as a filtered, selected, or mutated query.</p>
+<p>out_file : str or path-like Destination parquet file path.</p>
+<p>engine : {“duckdb”, “adbc”} [Optional] Query execution engine used to run the compiled PostgreSQL SQL. If omitted, uses the configured default engine from <code>set_default_engine()</code> / <code>DB2PQ_ENGINE</code>.</p>
+<p>row_group_size : int [Optional] Maximum number of rows in each written Parquet row group.</p>
+<p>threads : int [Optional] Maximum DuckDB worker threads to use when <code>engine="duckdb"</code>.</p>
+<p>tz : str [Optional] Time zone assumption for naive PostgreSQL timestamps before normalizing Parquet output to UTC.</p>
+<p>adbc_batch_size_hint_bytes : int [Optional] ADBC batch size hint in bytes when <code>engine="adbc"</code>.</p>
+<p>adbc_use_copy : bool [Optional] Explicitly enable or disable the PostgreSQL ADBC driver’s <code>COPY</code> optimization when <code>engine="adbc"</code>.</p>
+<p>**writer_kwargs Additional keyword arguments passed to <code>pyarrow.parquet.ParquetWriter</code>. This can be used to set options such as <code>compression="zstd"</code>.</p>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<p>pq_file : str Name of parquet file created.</p>
+</section>
+<section id="raises" class="level2 doc-section doc-section-raises">
+<h2 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h2>
+<p>TypeError If the supplied Ibis expression is not backed by PostgreSQL, or if PostgreSQL connection information cannot be determined from the backend.</p>
+</section>
+<section id="examples" class="level2 doc-section doc-section-examples">
+<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>from db2pq import ibis_to_pq expr = con.table(“my_table”).filter(lambda t: t.id &gt; 100) ibis_to_pq(expr, “my_table.parquet”) ‘my_table.parquet’</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<blockquote class="blockquote">
+<p>expr = con.table(“my_table”).select(“id”, “value”) ibis_to_pq(expr, “my_table.parquet”, compression=“zstd”) ‘my_table.parquet’</p>
+</blockquote>
+</blockquote>
+</blockquote>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
