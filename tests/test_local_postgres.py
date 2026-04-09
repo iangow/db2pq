@@ -186,9 +186,15 @@ def test_wrds_update_pg_use_sas_passes_sas_comment_to_writer(monkeypatch):
         lambda **kwargs: calls.append(kwargs) or True,
     )
 
-    assert wrds_update_pg("some_view", "boardex", use_sas=True) is True
+    assert wrds_update_pg(
+        "some_view",
+        "boardex",
+        use_sas=True,
+        sas_schema="boardexna",
+    ) is True
     assert seen["use_sas"] is True
     assert seen["schema"] == "boardex"
+    assert seen["sas_schema"] == "boardexna"
     assert calls[0]["source_comment"] == "Last modified: 2026-03-27"
 
 
