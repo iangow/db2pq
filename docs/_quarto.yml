@@ -33,6 +33,7 @@ quartodoc:
         href: index.qmd
       - section: Workflows
         contents:
+          - installation.qmd
           - authentication.qmd
           - data-management.qmd
           - using-parquet-with-polars.qmd
@@ -40,6 +41,7 @@ quartodoc:
           - web-query.qmd
           - wrds-to-pg.qmd
           - pg-to-pq.qmd
+          - pg-to-pg.qmd
           - pq-to-pg.qmd
       - section: Examples
         contents:

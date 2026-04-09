@@ -361,6 +361,7 @@ def wrds_update_pg(
     *,
     wrds_id=None,
     col_types=None,
+    sas_schema=None,
     obs=None,
     alt_table_name=None,
     keep=None,
@@ -395,6 +396,8 @@ def wrds_update_pg(
       data are still written to destination ``schema``.
     - If ``use_sas`` is True, freshness and destination comment metadata are
       derived from SAS metadata instead of WRDS PostgreSQL comments.
+    - ``sas_schema`` overrides the SAS-side schema used for metadata lookups
+      when ``use_sas`` is True.
     - ``tz`` (default ``"UTC"``) is used to convert source
       ``timestamp without time zone`` columns via ``AT TIME ZONE``.
 
@@ -422,7 +425,7 @@ def wrds_update_pg(
             schema=source_schema,
             wrds_id=wrds_id,
             use_sas=use_sas,
-            sas_schema=source_schema,
+            sas_schema=sas_schema,
             encoding=encoding,
         )
         if not force:

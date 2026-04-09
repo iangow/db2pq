@@ -3,6 +3,9 @@
 `db2pq` is a Python library for moving data from PostgreSQL into Apache Parquet files.
 It is designed for both general PostgreSQL sources and the WRDS PostgreSQL service.
 
+If you are contributing to the project, see `CONTRIBUTING.md` for the
+recommended local development workflow.
+
 ## What it does
 
 - Export a single PostgreSQL table to Parquet.
@@ -387,12 +390,18 @@ change detection.
 - `batched=True` (default) lowers memory usage for large tables.
 - `engine="adbc"` streams Arrow record batches directly from PostgreSQL into
   Parquet and may reduce RAM use versus the default DuckDB path.
-- On the ADBC path, `numeric_mode="text"` casts PostgreSQL `NUMERIC` columns
-  to `TEXT`, and `numeric_mode="float64"` casts them to `DOUBLE PRECISION`.
-  `numeric_mode="decimal"` transports them as `TEXT` and converts eligible
-  columns back to Arrow decimals using PostgreSQL precision/scale metadata.
-  Columns without usable metadata remain strings. `col_types` still takes
-  precedence over the mode.
+- `numeric_mode=None` (the default) keeps engine-specific "least
+  interference" behavior: DuckDB preserves PostgreSQL `NUMERIC` columns as
+  Arrow decimals, while ADBC defaults to text-backed numerics.
+- `numeric_mode="text"` casts PostgreSQL `NUMERIC` columns to `TEXT` on both
+  engines.
+- `numeric_mode="float64"` casts PostgreSQL `NUMERIC` columns to `DOUBLE
+  PRECISION` on both engines.
+- `numeric_mode="decimal"` preserves native decimal output on DuckDB. On the
+  ADBC path it transports numerics as `TEXT` and converts eligible columns
+  back to Arrow decimals using PostgreSQL precision/scale metadata. Columns
+  without usable metadata remain strings. `col_types` still takes precedence
+  over the mode.
 - `col_types` can be used to cast selected columns before writing Parquet.
 - `keep`/`drop` accept regex pattern(s) in both `wrds_update_pq()` and
   `wrds_update_pg()`. If both are supplied, `drop` is applied before `keep`.

@@ -3,15 +3,10 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [[ -x .venv/bin/quartodoc ]]; then
-  QUARTODOC=.venv/bin/quartodoc
-else
-  QUARTODOC=quartodoc
-fi
-
 find docs/reference -maxdepth 1 -type f \
   \( -name '*.qmd' -o -name '_sidebar.yml' \) \
   -delete
 
-$QUARTODOC build --config docs/_quarto.yml
-quarto render docs --use-freezer
+uv run --extra docs python -c "import db2pq; print(f'Using db2pq from {db2pq.__file__}')"
+uv run --extra docs quartodoc build --config docs/_quarto.yml
+uv run --extra docs quarto render docs --use-freezer

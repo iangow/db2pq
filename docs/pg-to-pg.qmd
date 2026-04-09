@@ -1,0 +1,86 @@
+---
+title: PostgreSQL to PostgreSQL
+---
+
+Use this path when both the source and destination are PostgreSQL databases and
+the source is not WRDS.
+
+## Main helpers
+
+- `db_to_pg(table_name, schema, ...)` copies one PostgreSQL table into another
+  PostgreSQL database.
+- `process_sql()` helps manage the destination database after loading, for
+  example by creating indexes or derived tables.
+- `set_table_comment()` manages destination table comments directly when needed.
+
+## Typical example
+
+```python
+from db2pq import db_to_pg
+
+db_to_pg(
+    table_name="company",
+    schema="public",
+    host="localhost",
+    database="source_db",
+    dst_host="localhost",
+    dst_database="analytics",
+)
+```
+
+## When to use this path
+
+Use `db_to_pg()` when you want to:
+
+- copy selected PostgreSQL tables into another PostgreSQL database
+- rename the destination schema or table while loading
+- adjust selected destination column types with `col_types=`
+- trim columns with `keep=` or `drop=`
+
+If your destination is Parquet rather than PostgreSQL, use
+[PostgreSQL to Parquet](pg-to-pq.qmd) instead.
+
+## More examples
+
+Write into a differently named destination schema:
+
+```python
+from db2pq import db_to_pg
+
+db_to_pg(
+    "company",
+    "public",
+    database="source_db",
+    dst_database="analytics",
+    dst_schema="research",
+)
+```
+
+Limit rows for a quick test run:
+
+```python
+from db2pq import db_to_pg
+
+db_to_pg(
+    "company",
+    "public",
+    database="source_db",
+    dst_database="analytics",
+    obs=1000,
+)
+```
+
+After loading a table, it is natural to add indexes in the destination
+database:
+
+```python
+from db2pq import process_sql
+
+process_sql("CREATE INDEX ON research.company (gvkey)")
+```
+
+## Related reference pages
+
+- [db_to_pg](reference/core.db_to_pg.qmd)
+- [process_sql](reference/postgres.update.process_sql.qmd)
+- [set_table_comment](reference/postgres.comments.set_table_comment.qmd)

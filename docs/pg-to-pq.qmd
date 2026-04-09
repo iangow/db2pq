@@ -8,33 +8,35 @@ the destination is a Parquet file or directory tree.
 ## Main helpers
 
 - `db_to_pq(table_name, schema, ...)` exports one PostgreSQL table to Parquet.
-- `pg_update_pq(table_name, schema, ...)` exports one PostgreSQL table to
-  Parquet only when the source table is newer.
+- `pg_update_pq(table_name, schema, ...)` exports one PostgreSQL table to Parquet only when the source table is newer.
 - `db_schema_to_pq(schema, ...)` exports all tables in a PostgreSQL schema.
-- `ibis_to_pq(table, out_file, ...)` writes a PostgreSQL-backed Ibis expression
-  to Parquet.
+- `ibis_to_pq(table, out_file, ...)` writes a PostgreSQL-backed Ibis expression to Parquet.
 
 ## Typical example
 
-```python
-from db2pq import db_to_pq
-
-db_to_pq(
-    table_name="my_table",
-    schema="public",
-    host="localhost",
-    database="mydb",
-)
+```text
+PGHOST=localhost
+PGDATABASE=analytics
+PGUSER=postgres
 ```
 
-This example uses the default DuckDB-backed path. Reach for `engine="adbc"`
-only when you specifically want to try the ADBC export path.
+```{python}
+from db2pq import db_to_pq, pg_update_pq
+```
 
-By default, numeric handling follows the selected engine's least-interfering
-behavior: DuckDB preserves PostgreSQL `NUMERIC` columns as decimals, while the
-ADBC path defaults to text-backed numerics. Set `numeric_mode="text"`,
-`"float64"`, or `"decimal"` if you want the same explicit behavior regardless
-of engine.
+```{python}
+db_to_pq(table_name="msf_v2", schema="crsp")
+```
+
+```{python}
+pg_update_pq(table_name="msf_v2", schema="crsp")
+```
+
+This example uses the default DuckDB-backed path. 
+Reach for `engine="adbc"` only when you specifically want to try the ADBC export path.
+
+By default, numeric handling follows the selected engine's least-interfering behaviour: DuckDB preserves PostgreSQL `NUMERIC` columns as decimals, while the ADBC path defaults to text-backed numerics. 
+Set `numeric_mode="text"`, `"float64"`, or `"decimal"` if you want to deviate from the default behaviour for each engine.
 
 ## When to use each helper
 
@@ -52,26 +54,19 @@ of engine.
 Here is a more realistic `ibis_to_pq()` pattern adapted from your WRDS/Ibis
 workflow note.
 
-```python
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
-import ibis
+```{python}
 from ibis import _
 from db2pq import ibis_to_pq
 import os
 
-load_dotenv()
+import os
+import ibis
 
-connection_string = (
-    "postgresql+psycopg://"
-    f"{os.getenv('WRDS_USER')}:{os.getenv('WRDS_PASSWORD')}"
-    "@wrds-pgdata.wharton.upenn.edu:9737/wrds"
-)
-
-wrds = create_engine(connection_string, pool_pre_ping=True)
-
-db = ibis.postgres.from_connection(
-    wrds.connect().connection.driver_connection
+db = ibis.postgres.connect(
+    host="wrds-pgdata.wharton.upenn.edu",
+    port=9737,
+    database="wrds",
+    user=os.environ["WRDS_ID"],
 )
 
 factors_daily = db.table("factors_daily", database="ff")

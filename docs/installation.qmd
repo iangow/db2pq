@@ -1,0 +1,107 @@
+---
+title: Installation
+---
+
+This page collects the practical getting-started material for installing
+`db2pq`, choosing optional extras, and seeing the main workflow paths.
+
+## Installation
+
+```bash
+pip install --upgrade db2pq
+```
+
+Optional extras:
+
+- `db2pq[sas]`: WRDS SAS-side metadata checks for refresh logic such as
+  `wrds_update_pq(..., use_sas=True)`
+
+```bash
+pip install --upgrade "db2pq[sas]"
+```
+
+- `db2pq[pandas]`: pandas DataFrame outputs from metadata helpers such as
+  `pq_last_modified(...)`
+
+```bash
+pip install --upgrade "db2pq[pandas]"
+```
+
+- `db2pq[ibis]`: export PostgreSQL-backed Ibis expressions with
+  `ibis_to_pq(...)`
+
+```bash
+pip install --upgrade "db2pq[ibis]"
+```
+
+- `db2pq[adbc]`: use the Arrow-based export path with `engine="adbc"`
+
+```bash
+pip install --upgrade "db2pq[adbc]"
+```
+
+## Quick example
+
+```python
+from db2pq import wrds_update_pq
+
+wrds_update_pq("dsi", "crsp")
+```
+
+This example uses the standard update-aware WRDS-to-Parquet path.
+
+## Main Paths
+
+::: {.grid}
+::: {.g-col-12 .g-col-md-6}
+### WRDS to Parquet
+
+Export WRDS tables to Parquet files and update them only when the WRDS source
+is newer.
+
+[Open guide](wrds-to-pq.qmd)
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### WRDS to PostgreSQL
+
+Materialize WRDS tables into a local PostgreSQL database and manage indexes or
+derived tables there.
+
+[Open guide](wrds-to-pg.qmd)
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### PostgreSQL to Parquet
+
+Export local PostgreSQL tables or Ibis expressions into a Parquet repository.
+
+[Open guide](pg-to-pq.qmd)
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### Parquet to PostgreSQL
+
+Load Parquet repository tables back into PostgreSQL and refresh them when the
+Parquet source is newer.
+
+[Open guide](pq-to-pg.qmd)
+:::
+:::
+
+## Learn More
+
+- [Authentication](authentication.qmd): how `db2pq` finds WRDS credentials, uses
+  `.env`, and works with `.pgpass`
+- [Data management ideas](data-management.qmd): how to think about general-purpose
+  versus project-level Parquet data
+- [Using the WRDS web query](web-query.qmd): how to turn a WRDS web query into
+  a cleaner SQL export workflow
+- [Using the Parquet repository with Polars](using-parquet-with-polars.qmd):
+  practical analysis patterns once the repository already exists
+- [API Reference](reference/index.qmd): generated function reference from
+  docstrings
+
+## Docs Build
+
+This site uses `quartodoc` for API pages and Quarto for rendering.

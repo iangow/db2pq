@@ -7,10 +7,23 @@ instead of writing Parquet files.
 
 ## Main helpers
 
+The main helper function on this path is `wrds_update_pg()`, which can be used
+to copy a WRDS table into a local PostgreSQL database.
+This function only rewrites the destination table when the WRDS source appears
+to be newer, so it can reduce the volume of unnecessary refreshes.
+
+The main helper is:
+
 - `wrds_update_pg(table_name, schema, ...)` creates or refreshes a PostgreSQL
   table from a WRDS source table.
+
+There is also:
+
 - `wrds_pg_to_pg(table_name, schema, ...)` copies a WRDS PostgreSQL table into
   another PostgreSQL database without the update check.
+
+For most purposes, you should use `wrds_update_pg()` and not the lower-level
+`wrds_pg_to_pg()` function.
 
 ## What it does
 
@@ -18,45 +31,145 @@ instead of writing Parquet files.
 from that query shape, copies rows into PostgreSQL, and stores WRDS table
 metadata in the destination comment for update checks.
 
+## Using `wrds_update_pg()`
+
+### An illustrative first run
+
+A good place to start with `wrds_update_pg()` is with a smaller table such as
+`comp.company`.
+Two lines of Python code are enough to get you started.
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg("company", "comp")
+```
+
+Two sets of settings matter here.
+
+For WRDS access, `db2pq` looks for `WRDS_ID` (or `WRDS_USER`) and uses the
+WRDS PostgreSQL password saved in `.pgpass`.
+
+For the destination database, the PostgreSQL defaults come from the usual
+environment variables such as `PGUSER`, `PGHOST`, `PGDATABASE`, and `PGPORT`,
+unless you pass `user=`, `host=`, `dbname=`, or `port=` explicitly.
+
+It is often convenient to store these in a project-level `.env` file.
+The best approach is usually to save these variables in a file named `.env`
+either in the calling directory or in your home directory.
+For example:
+
+```text
+WRDS_ID=your_wrds_id
+PGUSER=postgres
+PGHOST=localhost
+PGDATABASE=analytics
+PGPORT=5432
+```
+
+If you have not yet saved your WRDS PostgreSQL password in `.pgpass`, `db2pq`
+can prompt you for it and save it for later use.
+
+One approach is to keep a single PostgreSQL destination for all of your WRDS
+mirrors.
+But because you can have different `.env` files in different folders, it is
+also easy to maintain project-specific PostgreSQL destinations if that better
+fits how you manage data.
+
+### Identifying table names and schemas
+
+As with the Parquet workflow, the key requirement is knowing the WRDS table name
+and schema.
+
+One source is existing code.
+For example, SAS code referring to `comp.funda` maps naturally to
+`wrds_update_pg(table_name="funda", schema="comp")`.
+Multiple examples of code using different table names across a number of
+schemas are provided in *Empirical Research in Accounting: Tools and Methods*
+starting with [Chapter 6](https://iangow.github.io/far_book/fin-state.html).
+
+The WRDS web query interface can also help identify the exact table behind a
+dataset or provide a starting SQL query that helps you understand the source
+data before materializing it locally.
+In this way, the web query can offer a practical way to move from the WRDS
+website to a more reproducible workflow.
+
 ## Typical example
 
-```python
-from db2pq import wrds_update_pg
+```text
+PGHOST=localhost
+PGDATABASE=analytics
+PGUSER=postgres
+```
 
-wrds_update_pg(
-    table_name="dsi",
-    schema="crsp",
-    user="postgres",
-    host="localhost",
-    dbname="analytics",
+```{python}
+from db2pq import wrds_update_pg
+```
+
+```{python}
+wrds_update_pg(table_name="company", schema="comp")
+```
+
+## More features of `wrds_update_pg()`
+
+The `wrds_update_pg()` function accepts several optional arguments that are
+useful when refining what is loaded into PostgreSQL.
+
+### Cleaning the data
+
+Sometimes WRDS data are not in exactly the right form.
+The `wrds_update_pg()` function allows the user to address issues that exist in
+some tables.
+
+#### Correcting data types
+
+This is helpful for tables such as `crsp.ccmxpf_lnkhist`, where
+identifier-like variables are stored on WRDS as floating-point values:
+(For more on `crsp.ccmxpf_lnkhist`, see [Chapter 7](https://iangow.github.io/far_book/identifiers.html#sec-ccm)
+of *Empirical Research in Accounting: Tools and Methods*.)
+
+```{python}
+wrds_update_pg("ccmxpf_lnkhist", "crsp",
+    col_types={"lpermno": "integer", "lpermco": "integer"},
 )
 ```
 
-## More examples
+#### Setting time zones
 
-A WRDS-to-PostgreSQL load with explicit integer coercions for common CRSP
-identifier columns:
+Some WRDS tables use `timestamp without time zone` fields where the intended
+time zone is known from context.
+The `tz=` argument lets you tell `wrds_update_pg()` how those timestamps should
+be interpreted before loading them into PostgreSQL.
 
-```python
-from db2pq import wrds_update_pg
+For WRDS Call Report data, for example, Eastern time may be the right choice:
 
-wrds_update_pg(
-    "dsf",
-    "crsp",
-    col_types={"permno": "integer", "permco": "integer"},
+```{python}
+wrds_update_pg("wrds_call_rcfa_1", "bank",
+    tz="America/New_York",
 )
 ```
+
+### Working with large tables
+
+In principle, `wrds_update_pg()` can be used to copy any WRDS table into a
+local PostgreSQL database.
+However, doing so for very large tables will take longer and use more local
+storage.
+
+#### Dropping unwanted variables
+
+Large WRDS tables sometimes contain many columns you do not need.
+The `drop=` argument can take either a list of column names or a regular
+expression.
 
 An Audit Analytics-style example where you compute a drop list first and then
 materialize the cleaned table:
 
-```python
-from db2pq import wrds_update_pg
-
+```{python}
 wrds_update_pg(
     table_name="feed55_auditor_ratification",
     schema="audit",
-    drop=["match_score", "prior_match_flag", "closest_date"],
+    drop=["^(prior|match|closest)(fy|qu)"],
     col_types={
         "auditor_ratification_fkey": "integer",
         "share_class_fkey": "integer",
@@ -65,6 +178,118 @@ wrds_update_pg(
     },
 )
 ```
+
+The WRDS tables for Audit Analytics data often include variables from the
+"company financial block", such as financial statement variables for
+"closest", "match", "hiwater", or "prior" periods.
+These columns can expand the size of the tables dramatically, and their
+provenance and meaning are often unclear.
+
+For Audit Analytics tables with many poorly documented "match", "prior", or
+"closest" fields, a regex-based drop can be convenient:
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    "feed02_auditor_changes",
+    "audit",
+    drop="^(match|prior|closest)",
+)
+```
+
+#### Keeping only selected variables
+
+In some situations, you may only want a small subset of the columns available
+on WRDS.
+We can handle this with the `keep=` argument, which allows us to specify either
+a list of the variables we want or a regular expression that matches variables
+to be included.
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    "dsf_v2",
+    "crsp",
+    keep=["permno", "dlycaldt", "dlyret"],
+)
+```
+
+#### Limiting rows for test loads
+
+Sometimes it is helpful to do a test load of a smaller table to make sure that
+things look right before doing a final refresh.
+This can be achieved with the `obs=` argument.
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg("funda", "comp", obs=1000)
+```
+
+### Forcing a refresh
+
+If you want to rebuild a destination table even when the metadata suggest it is
+already current, use `force=True`.
+For example, you may have used `obs=1000` or you may want to refresh with
+corrected data types using `col_types`.
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg("funda", "comp", force=True)
+```
+
+### Using SAS metadata for update checks
+
+Most update checks use WRDS PostgreSQL metadata, but `use_sas=True` lets you
+use the corresponding WRDS SAS metadata instead.
+This is helpful when PostgreSQL comments are missing or when the SAS metadata is
+the better signal of freshness.
+
+WRDS data tables generally come in two forms: PostgreSQL tables and SAS files.
+When you use `use_sas=True`, `wrds_update_pg()` checks the metadata from the
+corresponding WRDS SAS file instead of relying on the WRDS PostgreSQL comment.
+
+If you also want to load from a WRDS schema into a differently named local
+PostgreSQL schema, use `wrds_schema=`:
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    "dsi",
+    "crsp_local",
+    wrds_schema="crsp",
+    use_sas=True,
+)
+```
+
+In some cases, the schema used for SAS differs from that used for PostgreSQL.
+For those cases, `wrds_update_pg()` also supports `sas_schema=`:
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    "rpa_entity_mappings",
+    "ravenpack_common",
+    use_sas=True,
+    sas_schema="rpa",
+)
+```
+
+Note that you will need to have installed the `[sas]` optional features to use
+`use_sas=True`:
+
+```bash
+pip install --upgrade "db2pq[sas]"
+```
+
+Additionally, you may need to set up your connection to the WRDS cloud server,
+which is separate from the WRDS PostgreSQL setup.
+More information on this step is provided on the package `README` page.
 
 After loading a table, it is natural to add indexes or build derived tables in
 the destination PostgreSQL database:
@@ -102,6 +327,7 @@ USING (kytreasnox);
 - `create_roles=True` ensures schema roles and grants are created.
 - `wrds_schema=` lets the WRDS source schema differ from the destination schema.
 - `use_sas=True` uses SAS metadata for freshness checks and destination comments.
+- `sas_schema=` lets the SAS metadata schema differ from the WRDS PostgreSQL schema.
 
 ## Operational helpers
 

@@ -5,8 +5,20 @@ This repository includes a Quarto + `quartodoc` documentation site under `docs/`
 ## Install the docs toolchain
 
 These notes assume `uv` as the default Python package manager, not just for
-this repository. The equivalent `pip` command is shown here because it maps
-directly to the package extra:
+this repository.
+
+The recommended setup is:
+
+```bash
+uv sync --extra docs
+```
+
+That keeps the local checkout of `db2pq` installed as an editable package, so
+documentation builds use the code in this repository rather than the latest
+release on PyPI.
+
+The equivalent `pip` command is shown here because it maps directly to the
+package extra:
 
 ```bash
 python3 -m pip install -e ".[docs]"
@@ -28,6 +40,10 @@ From the repository root:
 ./scripts/build-docs.sh
 ```
 
+The build script uses `uv run --extra docs ...`, which means `quartodoc`,
+Jupyter execution, and imports of `db2pq` all resolve through the local
+editable checkout.
+
 Then publish using
 
 ```bash
@@ -44,8 +60,8 @@ quarto publish gh-pages docs --no-render
 For local iteration:
 
 ```bash
-quartodoc build --config docs/_quarto.yml --watch
-quarto preview docs
+uv run --extra docs quartodoc build --config docs/_quarto.yml --watch
+uv run --extra docs quarto preview docs
 ```
 
 ## Content layout
