@@ -7,6 +7,29 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-09
+
+### Added
+
+- Added `rename=` support on the single-table PostgreSQL and WRDS workflows,
+  including `db_to_pq()`, `pg_update_pq()`, `db_to_pg()`, `wrds_pg_to_pq()`,
+  `wrds_update_pq()`, `wrds_pg_to_pg()`, and `wrds_update_pg()`.
+- Added tests covering SQL planning and public-helper forwarding for column
+  renaming.
+- Added generated public API shims via `scripts/generate_public_api.py` so
+  top-level `help(...)` reflects current public signatures and docstrings.
+
+### Changed
+
+- Improved public API docstrings to use clearer type information for rendered
+  reference tables and interactive help.
+- Expanded the workflow documentation for PostgreSQL and WRDS paths to explain
+  `rename=` and clarify that `col_types=` refers to output names after
+  renaming.
+- Local PostgreSQL helpers now preserve the pre-existing connection behavior
+  first and only fall back to `.pgpass` prompting/saving on authentication-like
+  failures.
+
 ## [0.2.10] - 2026-03-31
 
 ### Added
