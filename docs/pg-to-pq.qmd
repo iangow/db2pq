@@ -30,6 +30,12 @@ db_to_pq(
 This example uses the default DuckDB-backed path. Reach for `engine="adbc"`
 only when you specifically want to try the ADBC export path.
 
+By default, numeric handling follows the selected engine's least-interfering
+behavior: DuckDB preserves PostgreSQL `NUMERIC` columns as decimals, while the
+ADBC path defaults to text-backed numerics. Set `numeric_mode="text"`,
+`"float64"`, or `"decimal"` if you want the same explicit behavior regardless
+of engine.
+
 ## When to use each helper
 
 - Use `db_to_pq()` for one source table.

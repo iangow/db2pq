@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .comments import get_pg_conn
-from .introspect import get_table_column_types, get_table_columns
+from .introspect import get_table_column_types, get_table_columns, get_table_numeric_bounds
 from .select_sql import count_wrds_rows, plan_wrds_query
 
 
@@ -9,6 +9,7 @@ _DEFAULT_ARROW_BATCH_SIZE = 100_000
 _MIN_ARROW_BATCH_SIZE = 5_000
 _MAX_ARROW_BATCH_SIZE = 100_000
 _TARGET_ARROW_BATCH_BYTES = 8 * 1024 * 1024
+_VALID_NUMERIC_MODES = {"text", "float64", "decimal"}
 
 
 @dataclass
@@ -20,6 +21,8 @@ class DuckDBArrowQuery:
     arrow_batch_size: int = _DEFAULT_ARROW_BATCH_SIZE
 
     def fetch_arrow_reader(self):
+        if hasattr(self.relation, "to_arrow_reader"):
+            return self.relation.to_arrow_reader(batch_size=self.arrow_batch_size)
         return self.relation.fetch_arrow_reader(batch_size=self.arrow_batch_size)
 
     def fetch_arrow_table(self):
@@ -73,6 +76,31 @@ def _estimate_arrow_batch_size(
     batch_size = min(_MAX_ARROW_BATCH_SIZE, batch_size)
     return batch_size
 
+
+def _merge_duckdb_col_types(
+    user_col_types: dict[str, str] | None,
+    numeric_bounds: dict[str, tuple[int, int]],
+    *,
+    numeric_mode: str | None = None,
+) -> dict[str, str]:
+    merged = dict(user_col_types or {})
+
+    if numeric_mode is None:
+        return merged
+
+    if numeric_mode not in _VALID_NUMERIC_MODES:
+        raise ValueError("numeric_mode must be one of 'text', 'float64', or 'decimal'")
+
+    for column in numeric_bounds:
+        if column in merged:
+            continue
+        if numeric_mode == "float64":
+            merged[column] = "double precision"
+        elif numeric_mode == "text":
+            merged[column] = "text"
+
+    return merged
+
 def read_postgres_table(
     *,
     user,
@@ -88,6 +116,7 @@ def read_postgres_table(
     drop=None,
     where=None,
     tz="UTC",
+    numeric_mode: str | None = None,
 ):
     import duckdb
 
@@ -104,6 +133,12 @@ def read_postgres_table(
     with get_pg_conn(uri) as pg_conn:
         all_cols = get_table_columns(pg_conn, schema, table_name)
         source_col_types = get_table_column_types(pg_conn, schema, table_name)
+        numeric_bounds = get_table_numeric_bounds(pg_conn, schema, table_name)
+        col_types = _merge_duckdb_col_types(
+            col_types,
+            numeric_bounds,
+            numeric_mode=numeric_mode,
+        )
         total_rows = count_wrds_rows(
             pg_conn,
             schema=schema,

@@ -2,6 +2,16 @@ from time import gmtime, strftime
 from pathlib import Path
 
 
+def _resolve_numeric_mode(engine: str, numeric_mode: str | None) -> str | None:
+    if numeric_mode is None:
+        return "text" if engine == "adbc" else None
+
+    if numeric_mode not in {"text", "float64", "decimal"}:
+        raise ValueError("numeric_mode must be one of 'text', 'float64', or 'decimal'")
+
+    return numeric_mode
+
+
 def db_to_pq(
     table_name,
     schema,
@@ -23,7 +33,7 @@ def db_to_pq(
     threads=None,
     tz="UTC",
     engine=None,
-    numeric_mode="text",
+    numeric_mode=None,
     adbc_batch_size_hint_bytes=None,
     adbc_use_copy=None,
     archive=False,
@@ -103,12 +113,16 @@ def db_to_pq(
         Parquet. ``"adbc"`` streams Arrow record batches directly from
         PostgreSQL.
 
-    numeric_mode : {"text", "float64", "decimal"} [Optional]
-        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
-        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
-        transports eligible values as text and converts them back to Arrow
-        decimal types using PostgreSQL precision/scale metadata. Explicit
-        ``col_types`` entries take precedence.
+    numeric_mode : {"text", "float64", "decimal"} or None [Optional]
+        Handling for PostgreSQL ``NUMERIC`` columns. If ``None`` (default),
+        each engine uses its least-interfering behavior: DuckDB preserves
+        native decimal output, while ADBC defaults to text-backed numerics.
+        ``"text"`` casts numerics to ``TEXT`` and ``"float64"`` casts them
+        to ``DOUBLE PRECISION`` on both engines. ``"decimal"`` preserves
+        DuckDB decimals and, on the ADBC path, transports eligible values as
+        text before converting them back to Arrow decimals using PostgreSQL
+        precision/scale metadata. Explicit ``col_types`` entries take
+        precedence.
 
     adbc_batch_size_hint_bytes : int [Optional]
         On the ADBC path, hint the PostgreSQL ADBC driver about the desired
@@ -148,6 +162,7 @@ def db_to_pq(
     engine = engine.lower()
     if engine not in {"duckdb", "adbc"}:
         raise ValueError("engine must be either 'duckdb' or 'adbc'")
+    numeric_mode = _resolve_numeric_mode(engine, numeric_mode)
 
     uri = f"postgresql://{user}@{host}:{port}/{dbname}"
 
@@ -200,6 +215,7 @@ def db_to_pq(
         drop=drop,
         where=where,
         tz=tz,
+        numeric_mode=numeric_mode,
     )
         
     pq_file = write_parquet(
@@ -344,7 +360,7 @@ def wrds_pg_to_pq(
     threads=3,
     tz="UTC",
     engine=None,
-    numeric_mode="text",
+    numeric_mode=None,
     adbc_batch_size_hint_bytes=None,
     adbc_use_copy=None,
     archive=False,
@@ -413,12 +429,10 @@ def wrds_pg_to_pq(
         Query execution engine used to read PostgreSQL data before writing
         Parquet.
 
-    numeric_mode : {"text", "float64", "decimal"} [Optional]
-        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
-        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
-        transports eligible values as text and converts them back to Arrow
-        decimal types using PostgreSQL precision/scale metadata. Explicit
-        ``col_types`` entries take precedence.
+    numeric_mode : {"text", "float64", "decimal"} or None [Optional]
+        Handling for PostgreSQL ``NUMERIC`` columns. ``None`` keeps the
+        engine-specific default: native decimals on DuckDB, text-backed
+        numerics on ADBC. Explicit ``col_types`` entries take precedence.
 
     adbc_batch_size_hint_bytes : int [Optional]
         On the ADBC path, hint the PostgreSQL ADBC driver about the desired
@@ -730,7 +744,7 @@ def db_schema_to_pq(
     batched: bool = True,
     threads: int | None = None,
     engine: str | None = None,
-    numeric_mode: str = "text",
+    numeric_mode: str | None = None,
     archive: bool = False,
     archive_dir: str | None = None,
 ) -> list[str]:
@@ -784,12 +798,10 @@ def db_schema_to_pq(
         Query execution engine used to read PostgreSQL data before writing
         Parquet.
 
-    numeric_mode : {"text", "float64", "decimal"}, optional
-        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
-        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
-        transports eligible values as text and converts them back to Arrow
-        decimal types using PostgreSQL precision/scale metadata. Explicit
-        ``col_types`` entries take precedence.
+    numeric_mode : {"text", "float64", "decimal"} or None, optional
+        Handling for PostgreSQL ``NUMERIC`` columns. ``None`` keeps the
+        engine-specific default: native decimals on DuckDB, text-backed
+        numerics on ADBC.
 
     archive : bool, optional
         Whether an existing Parquet file should be archived before
@@ -927,7 +939,7 @@ def pg_update_pq(
     threads=3,
     tz="UTC",
     engine=None,
-    numeric_mode="text",
+    numeric_mode=None,
     adbc_batch_size_hint_bytes=None,
     adbc_use_copy=None,
     archive=False,
@@ -995,7 +1007,7 @@ def wrds_update_pq(
     threads=3,
     tz="UTC",
     engine=None,
-    numeric_mode="text",
+    numeric_mode=None,
     adbc_batch_size_hint_bytes=None,
     adbc_use_copy=None,
     use_sas=False,
@@ -1068,12 +1080,10 @@ def wrds_update_pq(
         Query execution engine used to read PostgreSQL data before writing
         Parquet.
 
-    numeric_mode : {"text", "float64", "decimal"} [Optional]
-        On the ADBC path, cast PostgreSQL ``NUMERIC`` columns to ``TEXT``
-        or ``DOUBLE PRECISION`` before writing Parquet. ``"decimal"``
-        transports eligible values as text and converts them back to Arrow
-        decimal types using PostgreSQL precision/scale metadata. Explicit
-        ``col_types`` entries take precedence.
+    numeric_mode : {"text", "float64", "decimal"} or None [Optional]
+        Handling for PostgreSQL ``NUMERIC`` columns. ``None`` keeps the
+        engine-specific default: native decimals on DuckDB, text-backed
+        numerics on ADBC. Explicit ``col_types`` entries take precedence.
 
     adbc_batch_size_hint_bytes : int [Optional]
         On the ADBC path, hint the PostgreSQL ADBC driver about the desired
