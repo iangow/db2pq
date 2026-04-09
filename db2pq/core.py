@@ -2,6 +2,9 @@ from time import gmtime, strftime
 from pathlib import Path
 
 
+_MODIFIED_DEFAULT = object()
+
+
 def _resolve_numeric_mode(engine: str, numeric_mode: str | None) -> str | None:
     if numeric_mode is None:
         return "text" if engine == "adbc" else None
@@ -10,6 +13,31 @@ def _resolve_numeric_mode(engine: str, numeric_mode: str | None) -> str | None:
         raise ValueError("numeric_mode must be one of 'text', 'float64', or 'decimal'")
 
     return numeric_mode
+
+
+def _resolve_default_table_modified(
+    *,
+    modified: str | None,
+    table_name: str,
+    schema: str,
+    user: str,
+    host: str,
+    database: str,
+    port: int,
+) -> str | None:
+    if modified is not None:
+        return modified
+
+    from .postgres.comments import get_pg_comment
+
+    return get_pg_comment(
+        table_name=table_name,
+        schema=schema,
+        user=user,
+        host=host,
+        dbname=database,
+        port=port,
+    )
 
 
 def db_to_pq(
@@ -84,7 +112,9 @@ def db_to_pq(
         `db_to_pq()` with large tables.
 
     modified: string [Optional]
-        Last modified string.
+        Last modified string to embed in parquet metadata. If omitted, use
+        the source PostgreSQL table comment as parquet ``last_modified``
+        metadata when available.
         
     alt_table_name: string [Optional]
         Basename of parquet file. Used when file should have different name from 
@@ -163,6 +193,15 @@ def db_to_pq(
     if engine not in {"duckdb", "adbc"}:
         raise ValueError("engine must be either 'duckdb' or 'adbc'")
     numeric_mode = _resolve_numeric_mode(engine, numeric_mode)
+    modified = _resolve_default_table_modified(
+        modified=modified,
+        table_name=table_name,
+        schema=schema,
+        user=user,
+        host=host,
+        database=dbname,
+        port=port,
+    )
 
     uri = f"postgresql://{user}@{host}:{port}/{dbname}"
 
@@ -403,6 +442,11 @@ def wrds_pg_to_pq(
         Implemented using SQL `LIMIT`.
         Setting this to modest value (e.g., `obs=1000`) can be useful for testing
         `wrds_pg_to_pq()` with large tables.
+
+    modified : string [Optional]
+        Last modified string to embed in parquet metadata. If omitted, use
+        the WRDS PostgreSQL table comment as parquet ``last_modified``
+        metadata when available.
     
     alt_table_name : string [Optional]
         Basename of parquet file. Used when file should have different name from `table_name`.
@@ -872,6 +916,7 @@ def _update_pq(
     data_dir=None,
     force=False,
     alt_table_name=None,
+    modified=_MODIFIED_DEFAULT,
     **update_kwargs,
 ):
     from .files.parquet import get_modified_pq
@@ -902,14 +947,17 @@ def _update_pq(
         print(f"Updated {schema}.{alt_table_name} is available.")
         print(f"Beginning file download at {get_now()} UTC.")
 
-    pq_file = update_callable(
+    update_call = dict(
         table_name=table_name,
         schema=schema,
         data_dir=data_dir,
-        modified=source_comment,
         alt_table_name=alt_table_name,
         **update_kwargs,
     )
+    if modified is not _MODIFIED_DEFAULT:
+        update_call["modified"] = modified
+
+    pq_file = update_callable(**update_call)
     if pq_file is None:
         print(f"No file download completed at {get_now()} UTC (no rows returned).")
     else:
@@ -1135,7 +1183,7 @@ def wrds_update_pq(
     )
            
     wrds_kind = "wrds_sas" if use_sas else "wrds_pg"
-    return _update_pq(
+    update_kwargs = dict(
         table_name=table_name,
         schema=schema,
         source_kind=wrds_kind,
@@ -1161,6 +1209,10 @@ def wrds_update_pq(
         archive=archive,
         archive_dir=archive_dir,
     )
+    if use_sas:
+        update_kwargs["modified"] = wrds_comment
+
+    return _update_pq(**update_kwargs)
     
 def get_now():
     return strftime("%Y-%m-%d %H:%M:%S", gmtime())
