@@ -36,6 +36,7 @@ Use `db_to_pg()` when you want to:
 - rename the destination schema or table while loading
 - adjust selected destination column types with `col_types=`
 - trim columns with `keep=` or `drop=`
+- rename output columns with `rename=`
 
 If your destination is Parquet rather than PostgreSQL, use
 [PostgreSQL to Parquet](pg-to-pq.qmd) instead.
@@ -69,6 +70,23 @@ db_to_pg(
     obs=1000,
 )
 ```
+
+Rename a source column while loading:
+
+```python
+from db2pq import db_to_pg
+
+db_to_pg(
+    "company",
+    "public",
+    database="source_db",
+    dst_database="analytics",
+    rename={"conm": "company_name"},
+)
+```
+
+If you combine `rename=` with `col_types=`, the keys in `col_types=` should
+refer to the output names after renaming.
 
 After loading a table, it is natural to add indexes in the destination
 database:

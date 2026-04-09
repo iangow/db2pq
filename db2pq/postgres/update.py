@@ -15,6 +15,7 @@ from .comments import (
 from .wrds import get_wrds_uri
 from ._defaults import resolve_uri
 from ..types import normalize_col_types
+from ..credentials import ensure_pg_access
 # from ..files.paths import resolve_data_dir  # later, when you add pq piece
 from ..sync.modified import modified_info, update_available
 
@@ -40,10 +41,15 @@ def process_sql(
     ----------
     sql : str
         SQL statement to execute.
-    user, host, dbname, port : optional
-        PostgreSQL connection settings. If omitted, resolve from the same
-        environment/default chain used by ``wrds_update_pg()``.
-    params : sequence or mapping, optional
+    user : str
+        PostgreSQL user role.
+    host : str
+        PostgreSQL host name.
+    dbname : str
+        PostgreSQL database name.
+    port : int
+        PostgreSQL port.
+    params : sequence or mapping
         Parameters passed to ``cursor.execute()``.
 
     Returns
@@ -51,6 +57,7 @@ def process_sql(
     str
         Psycopg ``statusmessage`` for the executed statement.
     """
+    ensure_pg_access(user=user, host=host, dbname=dbname, port=str(port) if port is not None else None)
     uri = resolve_uri(user=user, host=host, dbname=dbname, port=port)
 
     with get_pg_conn(uri) as conn, conn.cursor() as cur:
@@ -237,6 +244,7 @@ def _write_pg_table_from_source(
     obs=None,
     keep=None,
     drop=None,
+    rename=None,
     create_roles=True,
     source_comment=None,
     tz="UTC",
@@ -252,6 +260,7 @@ def _write_pg_table_from_source(
         all_cols=all_cols,
         source_col_types=source_col_types,
         col_types=col_types,
+        rename=rename,
         keep=keep,
         drop=drop,
         tz=tz,
@@ -324,6 +333,7 @@ def postgres_write_pg(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     create_roles=True,
     source_comment=None,
     tz="UTC",
@@ -350,6 +360,7 @@ def postgres_write_pg(
             obs=obs,
             keep=keep,
             drop=drop,
+            rename=rename,
             create_roles=create_roles,
             source_comment=source_comment,
             tz=tz,
@@ -366,6 +377,7 @@ def wrds_update_pg(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     user=None,
     host=None,
     dbname=None,
@@ -389,6 +401,8 @@ def wrds_update_pg(
     - Any existing destination table is dropped.
     - `keep`/`drop` use regex matching on source column names.
     - If both `drop` and `keep` are provided, `drop` is applied first.
+    - `rename` maps source column names to output column names.
+      `col_types` refers to the output names after renaming.
     - Update / fingerprint logic is handled elsewhere (or added later).
     - If ``create_roles`` is True, ensures schema owner role (``<schema>``)
       and read-only role (``<schema>_access``) exist, then applies grants.
@@ -456,6 +470,7 @@ def wrds_update_pg(
         alt_table_name=alt_table_name,
         keep=keep,
         drop=drop,
+        rename=rename,
         create_roles=create_roles,
         source_comment=wrds_comment,
         tz=tz,
@@ -492,24 +507,27 @@ def pq_to_pg(
         Root directory of the parquet data repository. If omitted, defaults
         to ``DATA_DIR`` or the current working directory.
 
-    user, host, dbname, database, port : optional
-        Destination PostgreSQL connection settings.
-
-    dst_schema : str, optional
+    user : str
+        Destination PostgreSQL user role.
+    host : str
+        Destination PostgreSQL host name.
+    dbname : str
+        Destination PostgreSQL database name.
+    database : str
+        Alias for ``dbname``.
+    port : int
+        Destination PostgreSQL port.
+    dst_schema : str
         Destination PostgreSQL schema. If omitted, defaults to ``schema``.
-
-    alt_table_name : str, optional
+    alt_table_name : str
         Destination PostgreSQL table name. If omitted, defaults to
         ``table_name``.
-
-    engine : {"duckdb", "adbc"}, optional
+    engine : {"duckdb", "adbc"}
         Engine used to load the parquet file into PostgreSQL.
-
-    create_roles : bool, optional
+    create_roles : bool
         If ``True``, ensure destination schema owner and access roles exist
         and apply ownership and grants to the loaded table.
-
-    source_comment : str, optional
+    source_comment : str
         Comment to store on the destination PostgreSQL table. If omitted,
         reuse the parquet file's embedded ``last_modified`` metadata.
 
@@ -526,6 +544,12 @@ def pq_to_pg(
     from ..files.parquet import get_modified_pq
     from ..files.paths import get_pq_file
 
+    ensure_pg_access(
+        user=user,
+        host=host,
+        dbname=dbname or database,
+        port=str(port) if port is not None else None,
+    )
     uri = resolve_uri(user=user, host=host, dbname=dbname or database, port=port)
     pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
     dst_schema = dst_schema or schema
@@ -573,24 +597,27 @@ def pq_update_pg(
         Root directory of the parquet data repository. If omitted, defaults
         to ``DATA_DIR`` or the current working directory.
 
-    user, host, dbname, database, port : optional
-        Destination PostgreSQL connection settings.
-
-    dst_schema : str, optional
+    user : str
+        Destination PostgreSQL user role.
+    host : str
+        Destination PostgreSQL host name.
+    dbname : str
+        Destination PostgreSQL database name.
+    database : str
+        Alias for ``dbname``.
+    port : int
+        Destination PostgreSQL port.
+    dst_schema : str
         Destination PostgreSQL schema. If omitted, defaults to ``schema``.
-
-    alt_table_name : str, optional
+    alt_table_name : str
         Destination PostgreSQL table name. If omitted, defaults to
         ``table_name``.
-
-    engine : {"duckdb", "adbc"}, optional
+    engine : {"duckdb", "adbc"}
         Engine used to load the parquet file into PostgreSQL.
-
-    force : bool, optional
+    force : bool
         If ``True``, import the parquet file even when the source metadata are
         missing or the destination does not appear stale.
-
-    create_roles : bool, optional
+    create_roles : bool
         If ``True``, ensure destination schema owner and access roles exist
         and apply ownership and grants to the loaded table.
 
@@ -609,6 +636,12 @@ def pq_update_pg(
     from ..files.parquet import get_modified_pq
     from ..files.paths import get_pq_file
 
+    ensure_pg_access(
+        user=user,
+        host=host,
+        dbname=dbname or database,
+        port=str(port) if port is not None else None,
+    )
     uri = resolve_uri(user=user, host=host, dbname=dbname or database, port=port)
     pq_file = get_pq_file(table_name=table_name, schema=schema, data_dir=data_dir)
     dst_schema = dst_schema or schema

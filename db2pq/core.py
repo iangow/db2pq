@@ -56,6 +56,7 @@ def db_to_pq(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     where=None,
     batched=True,
     threads=None,
@@ -67,113 +68,99 @@ def db_to_pq(
     archive=False,
     archive_dir=None,
 ):
-    """Export a PostgreSQL table to a parquet file.
+    """Export a PostgreSQL table to a Parquet file.
 
     Parameters
     ----------
-    table_name: 
-        Name of table in database.
-    
-    schema: 
-        Name of database schema.
-
-    host: string [Optional]
-        Host name for the PostgreSQL server.
-        The default is to use the environment value `PGHOST`.
-
-    database: string [Optional]
-        Name for the PostgreSQL database.
-        The default is to use the environment value `PGDATABASE`
-        or user.
-            
-    data_dir: string [Optional]
-        Root directory of parquet data repository. 
-        The default is to use the environment value `DATA_DIR` 
-        or (if not set) the current directory.
-    
-    col_types: Dict [Optional]
-        Dictionary of PostgreSQL data types to be used when importing data to
-        PostgreSQL or writing to Parquet files.
-        For Parquet files, conversion from PostgreSQL to PyArrow types is
-        handled by DuckDB.
-        Only a subset of columns needs to be supplied.
-        Supplied types should be compatible with data emitted by PostgreSQL 
-        (i.e., one can't "fix" arbitrary type issues using this argument).
-        For example, `col_types = {'permno':'integer', 'permco':'integer'}`.
-    
-    row_group_size: int [Optional]
-        Maximum number of rows in each written row group. 
-        Default is `1024 * 1024`.    
-    
-    obs: Integer [Optional]
-        Number of observations to import from database table.
-        Implemented using SQL `LIMIT`.
-        Setting this to modest value (e.g., `obs=1000`) can be useful for testing
-        `db_to_pq()` with large tables.
-
-    modified: string [Optional]
-        Last modified string to embed in parquet metadata. If omitted, use
-        the source PostgreSQL table comment as parquet ``last_modified``
-        metadata when available.
-        
-    alt_table_name: string [Optional]
-        Basename of parquet file. Used when file should have different name from 
-        `table_name`.
-
-    keep: string or iterable [Optional]
-        Regex pattern(s) indicating columns to keep.
-        
-    drop: string or iterable [Optional]
-        Regex pattern(s) indicating columns to drop.
-        If both `drop` and `keep` are provided, `drop` is applied first.
-    
-    batched: bool [Optional]
-        Indicates whether data will be extracting in batches using
-        `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
-        Using batches degrades performance slightly, but dramatically 
-        reduces memory requirements for large tables.
-        
-    threads: int [Optional]
-        The number of threads DuckDB is allowed to use.
-        Setting this may be necessary due to limits imposed on the user
-        by the PostgreSQL database server.
-
-    engine : {"duckdb", "adbc"} [Optional]
+    table_name : str
+        Name of the source PostgreSQL table.
+    schema : str
+        Name of the source PostgreSQL schema.
+    user : str
+        Source PostgreSQL user role.
+    host : str
+        Source PostgreSQL host name.
+    database : str
+        Source PostgreSQL database name.
+    port : int
+        Source PostgreSQL port.
+    data_dir : str
+        Root directory of the Parquet data repository. If omitted, use
+        ``DATA_DIR`` or the current working directory.
+    col_types : dict
+        Explicit output column types. Only a subset of columns needs to be
+        supplied. Types should describe the exported output columns after any
+        renaming.
+    row_group_size : int
+        Maximum number of rows per written Parquet row group. Default is
+        ``1024 * 1024``.
+    obs : int
+        Maximum number of rows to export. Implemented with SQL ``LIMIT``.
+    modified : str
+        Last-modified string to embed in the Parquet metadata. If omitted, use
+        the source PostgreSQL table comment when available.
+    alt_table_name : str
+        Output Parquet basename. If omitted, defaults to ``table_name``.
+    keep, drop : str or iterable
+        Regex pattern(s) describing source columns to keep or drop. If both are
+        supplied, ``drop`` is applied first.
+    rename : dict
+        Mapping from source column names to output column names. Keys are the
+        original PostgreSQL column names and values are the exported names.
+        When ``rename`` is used, ``col_types`` should refer to the output
+        names after renaming.
+    where : str
+        SQL ``WHERE`` condition used to filter source rows before export.
+    batched : bool
+        If ``True``, stream Arrow batches instead of materializing the full
+        result at once. This typically reduces memory use for large tables.
+    threads : int
+        Maximum number of DuckDB worker threads to use on the DuckDB path.
+    tz : str
+        Time zone assumed for ``timestamp without time zone`` source columns
+        before normalizing output timestamps.
+    engine : {"duckdb", "adbc"}
         Query execution engine used to read PostgreSQL data before writing
-        Parquet. ``"adbc"`` streams Arrow record batches directly from
-        PostgreSQL.
-
-    numeric_mode : {"text", "float64", "decimal"} or None [Optional]
-        Handling for PostgreSQL ``NUMERIC`` columns. If ``None`` (default),
-        each engine uses its least-interfering behavior: DuckDB preserves
-        native decimal output, while ADBC defaults to text-backed numerics.
-        ``"text"`` casts numerics to ``TEXT`` and ``"float64"`` casts them
-        to ``DOUBLE PRECISION`` on both engines. ``"decimal"`` preserves
-        DuckDB decimals and, on the ADBC path, transports eligible values as
-        text before converting them back to Arrow decimals using PostgreSQL
-        precision/scale metadata. Explicit ``col_types`` entries take
+        Parquet.
+    numeric_mode : {"text", "float64", "decimal"} or None
+        Handling for PostgreSQL ``NUMERIC`` columns. ``None`` keeps the
+        engine-specific default behavior. Explicit ``col_types`` entries take
         precedence.
+    adbc_batch_size_hint_bytes : int
+        On the ADBC path, hint the PostgreSQL driver about the desired Arrow
+        batch size in bytes.
+    adbc_use_copy : bool
+        On the ADBC path, explicitly enable or disable the PostgreSQL driver's
+        ``COPY`` optimization.
+    archive : bool
+        Whether an existing Parquet file should be archived before replacement.
+    archive_dir : str
+        Name of the archive directory relative to ``data_dir/schema``.
 
-    adbc_batch_size_hint_bytes : int [Optional]
-        On the ADBC path, hint the PostgreSQL ADBC driver about the desired
-        Arrow batch size in bytes. This can affect throughput by changing the
-        size of batches returned by ``fetch_record_batch()``.
-
-    adbc_use_copy : bool [Optional]
-        On the ADBC path, enable or disable the PostgreSQL driver's ``COPY``
-        optimization explicitly. If omitted, the driver default is used.
-    
     Returns
     -------
-    pq_file: string
-        Name of parquet file created.
-    
+    str | None
+        Path to the written Parquet file, or ``None`` if the query returns no
+        rows.
+
     Examples
-    ----------
+    --------
+    Export a table using the default DuckDB-backed path:
+
+    >>> from db2pq import db_to_pq
     >>> db_to_pq("dsi", "crsp")
-    >>> db_to_pq("feed21_bankruptcy_notification", "audit")
+
+    Rename a column and apply an output type override:
+
+    >>> db_to_pq(
+    ...     "company",
+    ...     "public",
+    ...     rename={"conm": "company_name"},
+    ...     col_types={"company_name": "string"},
+    ... )
     """
     from .config import get_default_engine
+    from .credentials import ensure_pg_access
     from .files.parquet import write_parquet
     from .postgres._defaults import resolve_pg_connection
     from .postgres.adbc import export_postgres_table_via_adbc
@@ -182,6 +169,7 @@ def db_to_pq(
     user, host, dbname, port = resolve_pg_connection(
         user=user, host=host, dbname=database, port=port
     )
+    ensure_pg_access(user=user, host=host, dbname=dbname, port=str(port))
     
     if not alt_table_name:
         alt_table_name = table_name
@@ -223,6 +211,7 @@ def db_to_pq(
             obs=obs,
             keep=keep,
             drop=drop,
+            rename=rename,
             where=where,
             row_group_size=row_group_size,
             tz=tz,
@@ -252,6 +241,7 @@ def db_to_pq(
         threads=threads,
         keep=keep,
         drop=drop,
+        rename=rename,
         where=where,
         tz=tz,
         numeric_mode=numeric_mode,
@@ -294,6 +284,7 @@ def db_to_pg(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     tz="UTC",
     create_roles=True,
 ):
@@ -307,39 +298,42 @@ def db_to_pg(
     schema : str
         Name of the source PostgreSQL schema.
 
-    user, host, database, port : optional
-        Connection settings for the source PostgreSQL database. If omitted,
-        resolve from the same environment/default chain used by
-        ``db_to_pq()``.
-
-    dst_user, dst_host, dst_database, dst_port : optional
-        Connection settings for the destination PostgreSQL database. If
-        omitted, resolve from the same environment/default chain used for
-        other destination PostgreSQL helpers.
-
-    dst_schema : str, optional
+    user : str
+        Source PostgreSQL user role.
+    host : str
+        Source PostgreSQL host name.
+    database : str
+        Source PostgreSQL database name.
+    port : int
+        Source PostgreSQL port.
+    dst_user : str
+        Destination PostgreSQL user role.
+    dst_host : str
+        Destination PostgreSQL host name.
+    dst_database : str
+        Destination PostgreSQL database name.
+    dst_port : int
+        Destination PostgreSQL port.
+    dst_schema : str
         Destination PostgreSQL schema. If omitted, defaults to ``schema``.
-
-    col_types : dict, optional
+    col_types : dict
         Explicit destination PostgreSQL column types for selected columns.
-
-    obs : int, optional
+    obs : int
         Number of rows to copy from the source table. Implemented with SQL
         ``LIMIT``.
-
-    alt_table_name : str, optional
+    alt_table_name : str
         Destination PostgreSQL table name. If omitted, defaults to
         ``table_name``.
-
-    keep, drop : str or iterable, optional
+    keep, drop : str or iterable
         Regex pattern(s) describing columns to keep or drop before loading
         the destination table. If both are supplied, ``drop`` is applied
         first.
-
-    tz : str, optional
+    rename : dict
+        Mapping from source column names to destination/output column names.
+        ``col_types`` entries should refer to the renamed output columns.
+    tz : str
         Default timezone used when normalizing timestamp columns.
-
-    create_roles : bool, optional
+    create_roles : bool
         If ``True``, ensure destination schema owner and access roles exist
         and apply ownership and grants to the loaded table.
 
@@ -354,14 +348,17 @@ def db_to_pg(
     >>> db_to_pg("company", "comp", dst_schema="comp_mirror", obs=1000)
     """
     from .postgres._defaults import resolve_pg_connection
+    from .credentials import ensure_pg_access
     from .postgres.update import postgres_write_pg
 
     user, host, dbname, port = resolve_pg_connection(
         user=user, host=host, dbname=database, port=port
     )
+    ensure_pg_access(user=user, host=host, dbname=dbname, port=str(port))
     dst_user, dst_host, dst_dbname, dst_port = resolve_pg_connection(
         user=dst_user, host=dst_host, dbname=dst_database, port=dst_port
     )
+    ensure_pg_access(user=dst_user, host=dst_host, dbname=dst_dbname, port=str(dst_port))
 
     src_uri = f"postgresql://{user}@{host}:{port}/{dbname}"
     dst_uri = f"postgresql://{dst_user}@{dst_host}:{dst_port}/{dst_dbname}"
@@ -377,6 +374,7 @@ def db_to_pg(
         alt_table_name=alt_table_name,
         keep=keep,
         drop=drop,
+        rename=rename,
         create_roles=create_roles,
         tz=tz,
     )
@@ -394,6 +392,7 @@ def wrds_pg_to_pq(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     where=None,
     batched=True,
     threads=3,
@@ -415,80 +414,70 @@ def wrds_pg_to_pq(
     schema: 
         Name of database schema.
 
-    wrds_id : string
+    wrds_id : str
         WRDS user ID used to access WRDS services.
         This parameter is required and must be provided either explicitly
         or via the `WRDS_ID` environment variable.
-
-    data_dir : string [Optional]
+    data_dir : str
         Root directory of parquet data repository. 
         The default is to use the environment value `DATA_DIR` 
         or (if not set) the current directory.
-    
-    col_types : Dict [Optional]
+    col_types : dict
         Dictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files.
         For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB.
         Only a subset of columns needs to be supplied.
         Supplied types should be compatible with data emitted by PostgreSQL 
         (i.e., one can't "fix" arbitrary type issues using this argument).
         For example, `col_types = {'permno': 'int32', 'permco': 'int32'}`.
-    
-    row_group_size : int [Optional]
+    row_group_size : int
         Maximum number of rows in each written row group. 
         Default is `1024 * 1024`.    
-    
-    obs : Integer [Optional]
+    obs : int
         Number of observations to import from database table.
         Implemented using SQL `LIMIT`.
         Setting this to modest value (e.g., `obs=1000`) can be useful for testing
         `wrds_pg_to_pq()` with large tables.
-
-    modified : string [Optional]
+    modified : str
         Last modified string to embed in parquet metadata. If omitted, use
         the WRDS PostgreSQL table comment as parquet ``last_modified``
         metadata when available.
-    
-    alt_table_name : string [Optional]
+    alt_table_name : str
         Basename of parquet file. Used when file should have different name from `table_name`.
-
-    keep : string or iterable [Optional]
+    keep : str or iterable
         Regex pattern(s) indicating columns to keep.
-        
-    drop : string or iterable [Optional]
+    drop : str or iterable
         Regex pattern(s) indicating columns to drop.
         If both `drop` and `keep` are provided, `drop` is applied first.
-
-    batched : bool [Optional]
+    rename : dict
+        Mapping from source WRDS PostgreSQL column names to output column
+        names. ``col_types`` entries should refer to the output names after
+        renaming.
+    batched : bool
         Indicates whether data will be extracting in batches using
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
         Using batches degrades performance slightly, but dramatically 
         reduces memory requirements for large tables.
-    
-    threads : int [Optional]
+    threads : int
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
-
-    engine : {"duckdb", "adbc"} [Optional]
+    engine : {"duckdb", "adbc"}
         Query execution engine used to read PostgreSQL data before writing
         Parquet.
-
-    numeric_mode : {"text", "float64", "decimal"} or None [Optional]
+    numeric_mode : {"text", "float64", "decimal"} or None
         Handling for PostgreSQL ``NUMERIC`` columns. ``None`` keeps the
         engine-specific default: native decimals on DuckDB, text-backed
         numerics on ADBC. Explicit ``col_types`` entries take precedence.
-
-    adbc_batch_size_hint_bytes : int [Optional]
+    adbc_batch_size_hint_bytes : int
         On the ADBC path, hint the PostgreSQL ADBC driver about the desired
         Arrow batch size in bytes.
-
-    adbc_use_copy : bool [Optional]
+    adbc_use_copy : bool
         On the ADBC path, enable or disable the PostgreSQL driver's ``COPY``
         optimization explicitly.
     
     Returns
     -------
-    pq_file: string
+    pq_file : str
         Name of parquet file created.
     
     Examples
@@ -523,6 +512,7 @@ def wrds_pg_to_pq(
         alt_table_name=alt_table_name,
         keep=keep,
         drop=drop,
+        rename=rename,
         where=where,
         batched=batched,
         threads=threads,
@@ -568,44 +558,35 @@ def wrds_sql_to_pq(
     schema :
         Schema name used for the output parquet directory layout.
 
-    wrds_id : string [Optional]
+    wrds_id : str
         WRDS user ID used to access WRDS services. This parameter is required
         and must be provided either explicitly or via the ``WRDS_ID``
         environment variable.
-
-    data_dir : string [Optional]
+    data_dir : str
         Root directory of parquet data repository.
-
-    row_group_size : int [Optional]
+    row_group_size : int
         Maximum number of rows in each written row group.
-
-    modified : string [Optional]
+    modified : str
         Last modified string to embed in parquet metadata.
-
-    alt_table_name : string [Optional]
+    alt_table_name : str
         Basename of parquet file. Used when the file should have a different
         name than ``table_name``.
-
-    threads : int [Optional]
+    threads : int
         Maximum DuckDB worker threads to use when ``engine="duckdb"``.
-
-    tz : string [Optional]
+    tz : str
         Time zone assumption for naive PostgreSQL timestamps before normalizing
         parquet output to UTC.
-
-    engine : {"duckdb", "adbc"} [Optional]
+    engine : {"duckdb", "adbc"}
         Query execution engine used to run the WRDS PostgreSQL SQL.
-
-    adbc_batch_size_hint_bytes : int [Optional]
+    adbc_batch_size_hint_bytes : int
         ADBC batch size hint in bytes when ``engine="adbc"``.
-
-    adbc_use_copy : bool [Optional]
+    adbc_use_copy : bool
         Explicitly enable or disable the PostgreSQL ADBC driver's ``COPY``
         optimization when ``engine="adbc"``.
 
     Returns
     -------
-    pq_file : string
+    pq_file : str
         Name of parquet file created.
     """
     from pathlib import Path
@@ -694,6 +675,7 @@ def wrds_pg_to_pg(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     tz="UTC",
     create_roles=True,
 ):
@@ -712,31 +694,34 @@ def wrds_pg_to_pg(
         resolve from ``WRDS_ID`` / ``WRDS_USER`` and related `.env`
         configuration.
 
-    dst_user, dst_host, dst_database, dst_port : optional
-        Connection settings for the destination PostgreSQL database.
-
-    dst_schema : str, optional
+    dst_user : str
+        Destination PostgreSQL user role.
+    dst_host : str
+        Destination PostgreSQL host name.
+    dst_database : str
+        Destination PostgreSQL database name.
+    dst_port : int
+        Destination PostgreSQL port.
+    dst_schema : str
         Destination PostgreSQL schema. If omitted, defaults to ``schema``.
-
-    col_types : dict, optional
+    col_types : dict
         Explicit destination PostgreSQL column types for selected columns.
-
-    obs : int, optional
+    obs : int
         Number of rows to copy from WRDS. Implemented with SQL ``LIMIT``.
-
-    alt_table_name : str, optional
+    alt_table_name : str
         Destination PostgreSQL table name. If omitted, defaults to
         ``table_name``.
-
-    keep, drop : str or iterable, optional
+    keep, drop : str or iterable
         Regex pattern(s) describing columns to keep or drop before loading
         the destination table. If both are supplied, ``drop`` is applied
         first.
-
-    tz : str, optional
+    rename : dict
+        Mapping from source WRDS PostgreSQL column names to destination/output
+        column names. ``col_types`` entries should refer to the renamed
+        output columns.
+    tz : str
         Default timezone used when normalizing timestamp columns.
-
-    create_roles : bool, optional
+    create_roles : bool
         If ``True``, ensure destination schema owner and access roles exist
         and apply ownership and grants to the loaded table.
 
@@ -771,6 +756,7 @@ def wrds_pg_to_pg(
         alt_table_name=alt_table_name,
         keep=keep,
         drop=drop,
+        rename=rename,
         tz=tz,
         create_roles=create_roles,
     )
@@ -982,6 +968,7 @@ def pg_update_pq(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     where=None,
     batched=True,
     threads=3,
@@ -995,7 +982,9 @@ def pg_update_pq(
 ):
     """Export a local PostgreSQL table to Parquet when the source is newer."""
     from .postgres.comments import get_pg_comment
+    from .credentials import ensure_pg_access
 
+    ensure_pg_access(user=user, host=host, dbname=database, port=str(port) if port is not None else None)
     pg_comment = get_pg_comment(
         table_name=table_name,
         schema=schema,
@@ -1023,6 +1012,7 @@ def pg_update_pq(
         obs=obs,
         keep=keep,
         drop=drop,
+        rename=rename,
         where=where,
         batched=batched,
         threads=threads,
@@ -1050,6 +1040,7 @@ def wrds_update_pq(
     alt_table_name=None,
     keep=None,
     drop=None,
+    rename=None,
     where=None,
     batched=True,
     threads=3,
@@ -1072,20 +1063,20 @@ def wrds_update_pq(
     schema :
         Name of the database schema.
 
-    wrds_id : string
+    wrds_id : str
         WRDS user ID used to access WRDS services.
         This parameter is required and must be provided either explicitly
         or via the `WRDS_ID` environment variable.
 
-    data_dir : string, optional
+    data_dir : str
         Root directory of the Parquet data repository.
         If not provided, defaults to the value of the `DATA_DIR`
         environment variable, or the current working directory.
         
-    force: Boolean
+    force : bool
         Whether update should proceed regardless of date comparison results.
     
-    col_types: Dict [Optional]
+    col_types : dict
         Dictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files.
         For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB.
         Only a subset of columns needs to be supplied.
@@ -1093,61 +1084,66 @@ def wrds_update_pq(
         (i.e., one can't "fix" arbitrary type issues using this argument).
         For example, `col_types = {'permno': 'int32', 'permco': 'int32'}`.
     
-    row_group_size: int [Optional]
+    row_group_size : int
         Maximum number of rows in each written row group. 
         Default is `1024 * 1024`.    
     
-    obs: Integer [Optional]
+    obs : int
         Number of observations to import from database table.
         Implemented using SQL `LIMIT`.
         Setting this to modest value (e.g., `obs=1000`) can be useful for testing
         `wrds_update_pq()` with large tables.
     
-    alt_table_name: string [Optional]
+    alt_table_name : str
         Basename of parquet file. Used when file should have different name from `table_name`.
 
-    keep: string or iterable [Optional]
+    keep : str or iterable
         Regex pattern(s) indicating columns to keep.
         
-    drop: string or iterable [Optional]
+    drop : str or iterable
         Regex pattern(s) indicating columns to drop.
         If both `drop` and `keep` are provided, `drop` is applied first.
 
-    batched: bool [Optional]
+    rename : dict
+        Mapping from source WRDS PostgreSQL column names to output column
+        names. ``col_types`` entries should refer to the output names after
+        renaming.
+
+    batched : bool
         Indicates whether data will be extracting in batches using
         `to_pyarrow_batches()` instead of a single call to `to_pyarrow()`.
         Using batches degrades performance slightly, but dramatically 
         reduces memory requirements for large tables.
                 
-    threads: int [Optional]
+    threads : int
         The number of threads DuckDB is allowed to use.
         Setting this may be necessary due to limits imposed on the user
         by the PostgreSQL database server.
 
-    engine : {"duckdb", "adbc"} [Optional]
+    engine : {"duckdb", "adbc"}
         Query execution engine used to read PostgreSQL data before writing
         Parquet.
 
-    numeric_mode : {"text", "float64", "decimal"} or None [Optional]
+    numeric_mode : {"text", "float64", "decimal"} or None
         Handling for PostgreSQL ``NUMERIC`` columns. ``None`` keeps the
         engine-specific default: native decimals on DuckDB, text-backed
         numerics on ADBC. Explicit ``col_types`` entries take precedence.
 
-    adbc_batch_size_hint_bytes : int [Optional]
+    adbc_batch_size_hint_bytes : int
         On the ADBC path, hint the PostgreSQL ADBC driver about the desired
         Arrow batch size in bytes.
 
-    adbc_use_copy : bool [Optional]
+    adbc_use_copy : bool
         On the ADBC path, enable or disable the PostgreSQL driver's ``COPY``
         optimization explicitly.
     
-    use_sas: bool [Optional]
+    use_sas : bool
         Should update get table comments from SAS data file.
         If False, then updated string comes from WRDS PostgreSQL table comment.
     
     Returns
     -------
-    pq_file: string
+    pq_file : str
         Name of parquet file created.
     
     Examples
@@ -1198,6 +1194,7 @@ def wrds_update_pq(
         obs=obs,
         keep=keep,
         drop=drop,
+        rename=rename,
         where=where,
         batched=batched,
         threads=threads,

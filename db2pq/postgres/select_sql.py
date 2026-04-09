@@ -9,6 +9,7 @@ class QueryPlan:
     schema: str
     table: str
     columns: list[str]
+    source_columns: list[str]
     col_types: dict[str, str]
     source_col_types: dict[str, str]
     sql: str
@@ -63,12 +64,53 @@ def _safe_boolean_cast_expr(expr: str) -> str:
         "END"
     )
 
+
+def _resolve_output_columns(
+    source_columns: list[str],
+    rename: dict[str, str] | None = None,
+) -> list[str]:
+    rename = rename or {}
+    output_columns = [rename.get(column, column) for column in source_columns]
+
+    seen: set[str] = set()
+    duplicates: set[str] = set()
+    for column in output_columns:
+        if column in seen:
+            duplicates.add(column)
+        seen.add(column)
+
+    if duplicates:
+        duplicate_list = ", ".join(sorted(duplicates))
+        raise ValueError(f"rename would create duplicate output columns: {duplicate_list}")
+
+    return output_columns
+
+
+def _normalize_output_col_types(
+    source_columns: list[str],
+    rename: dict[str, str] | None = None,
+    col_types: dict[str, str] | None = None,
+) -> dict[str, str]:
+    col_types = col_types or {}
+    output_columns = set(_resolve_output_columns(source_columns, rename))
+
+    unknown = sorted(set(col_types) - output_columns)
+    if unknown:
+        unknown_list = ", ".join(unknown)
+        raise ValueError(
+            "col_types keys must refer to selected output columns after rename: "
+            f"{unknown_list}"
+        )
+
+    return dict(col_types)
+
 def build_wrds_select_sql(
     *,
     conn,
     schema: str,
     table: str,
-    columns: list[str],
+    source_columns: list[str],
+    output_columns: list[str] | None = None,
     col_types: dict[str, str] | None = None,
     source_col_types: dict[str, str] | None = None,
     tz: str | None = None,
@@ -78,6 +120,10 @@ def build_wrds_select_sql(
 ) -> str:
     col_types = col_types or {}
     source_col_types = source_col_types or {}
+    output_columns = output_columns or source_columns
+
+    if len(source_columns) != len(output_columns):
+        raise ValueError("source_columns and output_columns must have the same length")
 
     qs = qident(conn, schema)
     qt = qident(conn, table)
@@ -85,20 +131,21 @@ def build_wrds_select_sql(
     qtz = qliteral(conn, tz) if tz else None
 
     select_items = []
-    for c in columns:
-        qc = qident(conn, c)
-        source_expr = qc
-        src_type = source_col_types.get(c, "").strip().lower()
+    for source_name, output_name in zip(source_columns, output_columns):
+        qsource = qident(conn, source_name)
+        qoutput = qident(conn, output_name)
+        source_expr = qsource
+        src_type = source_col_types.get(source_name, "").strip().lower()
         if qtz and src_type == "timestamp without time zone":
-            source_expr = f"({qc} AT TIME ZONE {qtz})"
-        if c in col_types:
-            target_type = col_types[c]
+            source_expr = f"({qsource} AT TIME ZONE {qtz})"
+        if output_name in col_types:
+            target_type = col_types[output_name]
             if _is_boolean_type(target_type):
-                select_items.append(f"{_safe_boolean_cast_expr(source_expr)} AS {qc}")
+                select_items.append(f"{_safe_boolean_cast_expr(source_expr)} AS {qoutput}")
             else:
-                select_items.append(f"{source_expr}::{target_type} AS {qc}")
+                select_items.append(f"{source_expr}::{target_type} AS {qoutput}")
         else:
-            select_items.append(f"{source_expr} AS {qc}")
+            select_items.append(f"{source_expr} AS {qoutput}")
 
     out = f"SELECT {', '.join(select_items)} FROM {qprefix}{qs}.{qt}"
     if where:
@@ -116,6 +163,7 @@ def plan_wrds_query(
     all_cols: list[str],
     source_col_types: dict[str, str],
     col_types: dict[str, str] | None = None,
+    rename: dict[str, str] | None = None,
     keep=None,
     drop=None,
     tz: str | None = None,
@@ -123,9 +171,14 @@ def plan_wrds_query(
     where: str | None = None,
     qualified_alias: str | None = None,
 ) -> QueryPlan:
-    col_types = col_types or {}
-    columns = select_columns(all_cols, keep=keep, drop=drop)
-    selected_types = [source_col_types.get(c, "").strip().lower() for c in columns]
+    source_columns = select_columns(all_cols, keep=keep, drop=drop)
+    output_columns = _resolve_output_columns(source_columns, rename)
+    col_types = _normalize_output_col_types(
+        source_columns,
+        rename=rename,
+        col_types=col_types,
+    )
+    selected_types = [source_col_types.get(c, "").strip().lower() for c in source_columns]
     n_naive_ts = sum(t == "timestamp without time zone" for t in selected_types) if tz else 0
     n_tz_ts = sum(t == "timestamp with time zone" for t in selected_types) if tz else 0
 
@@ -133,7 +186,8 @@ def plan_wrds_query(
         conn=conn,
         schema=schema,
         table=table,
-        columns=columns,
+        source_columns=source_columns,
+        output_columns=output_columns,
         col_types=col_types,
         source_col_types=source_col_types,
         tz=tz,
@@ -147,7 +201,8 @@ def plan_wrds_query(
             conn=conn,
             schema=schema,
             table=table,
-            columns=columns,
+            source_columns=source_columns,
+            output_columns=output_columns,
             col_types=col_types,
             source_col_types=source_col_types,
             tz=tz,
@@ -159,7 +214,8 @@ def plan_wrds_query(
     return QueryPlan(
         schema=schema,
         table=table,
-        columns=columns,
+        columns=output_columns,
+        source_columns=source_columns,
         col_types=dict(col_types),
         source_col_types=dict(source_col_types),
         sql=sql,

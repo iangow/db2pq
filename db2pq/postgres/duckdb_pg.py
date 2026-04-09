@@ -81,9 +81,11 @@ def _merge_duckdb_col_types(
     user_col_types: dict[str, str] | None,
     numeric_bounds: dict[str, tuple[int, int]],
     *,
+    rename: dict[str, str] | None = None,
     numeric_mode: str | None = None,
 ) -> dict[str, str]:
     merged = dict(user_col_types or {})
+    rename = rename or {}
 
     if numeric_mode is None:
         return merged
@@ -92,12 +94,13 @@ def _merge_duckdb_col_types(
         raise ValueError("numeric_mode must be one of 'text', 'float64', or 'decimal'")
 
     for column in numeric_bounds:
-        if column in merged:
+        output_name = rename.get(column, column)
+        if output_name in merged:
             continue
         if numeric_mode == "float64":
-            merged[column] = "double precision"
+            merged[output_name] = "double precision"
         elif numeric_mode == "text":
-            merged[column] = "text"
+            merged[output_name] = "text"
 
     return merged
 
@@ -114,6 +117,7 @@ def read_postgres_table(
     threads=None,
     keep=None,
     drop=None,
+    rename=None,
     where=None,
     tz="UTC",
     numeric_mode: str | None = None,
@@ -137,6 +141,7 @@ def read_postgres_table(
         col_types = _merge_duckdb_col_types(
             col_types,
             numeric_bounds,
+            rename=rename,
             numeric_mode=numeric_mode,
         )
         total_rows = count_wrds_rows(
@@ -153,6 +158,7 @@ def read_postgres_table(
             all_cols=all_cols,
             source_col_types=source_col_types,
             col_types=col_types,
+            rename=rename,
             keep=keep,
             drop=drop,
             tz=tz,

@@ -48,25 +48,25 @@ def ibis_to_pq(
     out_file : str or path-like
         Destination parquet file path.
 
-    engine : {"duckdb", "adbc"} [Optional]
+    engine : {"duckdb", "adbc"}
         Query execution engine used to run the compiled PostgreSQL SQL.
         If omitted, uses the configured default engine from
         ``set_default_engine()`` / ``DB2PQ_ENGINE``.
 
-    row_group_size : int [Optional]
+    row_group_size : int
         Maximum number of rows in each written Parquet row group.
 
-    threads : int [Optional]
+    threads : int
         Maximum DuckDB worker threads to use when ``engine="duckdb"``.
 
-    tz : str [Optional]
+    tz : str
         Time zone assumption for naive PostgreSQL timestamps before
         normalizing Parquet output to UTC.
 
-    adbc_batch_size_hint_bytes : int [Optional]
+    adbc_batch_size_hint_bytes : int
         ADBC batch size hint in bytes when ``engine="adbc"``.
 
-    adbc_use_copy : bool [Optional]
+    adbc_use_copy : bool
         Explicitly enable or disable the PostgreSQL ADBC driver's ``COPY``
         optimization when ``engine="adbc"``.
 

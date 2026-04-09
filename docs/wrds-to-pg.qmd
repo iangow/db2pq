@@ -216,6 +216,26 @@ wrds_update_pg(
 )
 ```
 
+#### Renaming variables
+
+The `rename=` argument lets you rename WRDS columns as they are loaded into the
+destination PostgreSQL table.
+The mapping is from source column names to output column names.
+
+```python
+from db2pq import wrds_update_pg
+
+wrds_update_pg(
+    "company",
+    "comp",
+    keep=["gvkey", "conm", "sic"],
+    rename={"conm": "company_name"},
+)
+```
+
+If you combine `rename=` with `col_types=`, the keys in `col_types=` should
+refer to the output names after renaming.
+
 #### Limiting rows for test loads
 
 Sometimes it is helpful to do a test load of a smaller table to make sure that

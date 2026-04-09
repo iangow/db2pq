@@ -242,6 +242,69 @@ def ensure_wrds_access(
     return username
 
 
+def _probe_connection(target: CredentialTarget) -> None:
+    import psycopg
+
+    conninfo = (
+        f"postgresql://{target.username}@{target.hostname}:{target.port}/{target.database}"
+    )
+    with psycopg.connect(conninfo, passfile=str(target.passfile)):
+        return
+
+
+def _is_auth_failure(exc: Exception) -> bool:
+    message = str(exc).lower()
+    auth_markers = (
+        "password authentication failed",
+        "no password supplied",
+        "fe_sendauth",
+        "pg_hba.conf",
+    )
+    return any(marker in message for marker in auth_markers)
+
+
+def ensure_pg_access(
+    conninfo: str = "",
+    *,
+    interactive: bool = True,
+    password_env_var: str = "PGPASSWORD",
+    **kwargs: str | None,
+) -> CredentialTarget:
+    target = resolve_connection_target(conninfo, **kwargs)
+
+    try:
+        _probe_connection(target)
+        return target
+    except Exception as exc:
+        if not _is_auth_failure(exc):
+            raise
+
+    env_password = os.getenv(password_env_var) if password_env_var else None
+    if env_password and interactive:
+        if prompt_yes_no(
+            f"Found `{password_env_var}` in the environment. Save it to {target.passfile} now?",
+            default=True,
+        ):
+            save_password(conninfo, password=env_password, **kwargs)
+            print(
+                f"Saved PostgreSQL credentials to {target.passfile}. "
+                f"You can remove `{password_env_var}` from your environment once this is working."
+            )
+            return target
+
+    if not interactive:
+        raise ValueError(
+            "No PostgreSQL password found in .pgpass for the resolved connection."
+        )
+
+    password = prompt_for_password(
+        f"Enter PostgreSQL password for {target.username}@{target.hostname}:{target.port}/{target.database}: "
+    )
+    save_password(conninfo, password=password, **kwargs)
+    print(f"Saved PostgreSQL credentials to {target.passfile}.")
+    return target
+
+
 def save_password(
     conninfo: str = "",
     password: str | None = None,
@@ -300,6 +363,7 @@ def ensure_wrds_credentials(
 
 __all__ = [
     "CredentialTarget",
+    "ensure_pg_access",
     "PgPassLookup",
     "ensure_wrds_access",
     "ensure_wrds_credentials",

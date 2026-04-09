@@ -76,10 +76,11 @@ def test_wrds_update_pg_imports_when_destination_table_missing(monkeypatch, caps
         lambda **kwargs: calls.append(kwargs) or True,
     )
 
-    assert wrds_update_pg("some_view", "boardex") is True
+    assert wrds_update_pg("some_view", "boardex", rename={"id": "boardex_id"}) is True
     assert len(calls) == 1
     assert calls[0]["table_name"] == "some_view"
     assert calls[0]["dst_schema"] == "boardex"
+    assert calls[0]["rename"] == {"id": "boardex_id"}
 
     out = capsys.readouterr().out
     assert "does not exist in destination" in out
@@ -203,6 +204,7 @@ def test_pg_update_pq_passes_local_comment_to_db_to_pq(monkeypatch, tmp_path):
 
     seen = {}
 
+    monkeypatch.setattr("db2pq.credentials.ensure_pg_access", lambda **kwargs: None)
     monkeypatch.setattr(
         "db2pq.postgres.comments.get_pg_comment",
         lambda **kwargs: "local table (Updated 2026-03-28)",
@@ -223,14 +225,16 @@ def test_pg_update_pq_passes_local_comment_to_db_to_pq(monkeypatch, tmp_path):
         data_dir=tmp_path,
         engine="duckdb",
         where="id > 10",
+        rename={"id": "example_id"},
     )
 
     assert result == str(tmp_path / "public" / "example.parquet")
     assert seen["table_name"] == "example"
     assert seen["schema"] == "public"
-    assert seen["modified"] == "local table (Updated 2026-03-28)"
+    assert "modified" not in seen
     assert seen["database"] == "research"
     assert seen["where"] == "id > 10"
+    assert seen["rename"] == {"id": "example_id"}
 
 
 def test_pg_update_pq_messages_when_comment_missing(monkeypatch, tmp_path, capsys):
@@ -500,10 +504,19 @@ def test_db_to_pq_duckdb_passes_total_rows_to_writer(monkeypatch, tmp_path):
         progress_label = "crsp.dsi"
 
     seen = {}
+    auth = {}
 
     monkeypatch.setattr(
         "db2pq.postgres._defaults.resolve_pg_connection",
         lambda **kwargs: ("alice", "localhost", "research", 5432),
+    )
+    monkeypatch.setattr(
+        "db2pq.credentials.ensure_pg_access",
+        lambda **kwargs: auth.update(kwargs) or True,
+    )
+    monkeypatch.setattr(
+        "db2pq.postgres.comments.get_pg_comment",
+        lambda **kwargs: None,
     )
     monkeypatch.setattr(
         "db2pq.postgres.duckdb_pg.read_postgres_table",
@@ -526,6 +539,12 @@ def test_db_to_pq_duckdb_passes_total_rows_to_writer(monkeypatch, tmp_path):
     )
 
     assert result == str(tmp_path / "crsp" / "dsi.parquet")
+    assert auth == {
+        "user": "alice",
+        "host": "localhost",
+        "dbname": "research",
+        "port": "5432",
+    }
     assert seen["total_rows"] == 1234
     assert seen["progress_label"] == "crsp.dsi"
 

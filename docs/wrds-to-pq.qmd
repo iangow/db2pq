@@ -176,6 +176,35 @@ wrds_update_pq("dsf_v2", "crsp",
                keep=["permno", "dlycaldt", "dlyret"])
 ```
 
+#### Renaming variables
+
+Sometimes it is helpful to rename variables as part of the export so the local
+Parquet file already matches your preferred naming scheme.
+The `rename=` argument uses a dictionary mapping source names to output names.
+
+```{python}
+#| eval: false
+wrds_update_pq(
+    "company",
+    "comp",
+    keep=["gvkey", "conm", "sic"],
+    rename={"conm": "company_name"},
+)
+```
+
+If you combine `rename=` with `col_types=`, the keys in `col_types=` should
+refer to the output names after renaming.
+
+```{python}
+#| eval: false
+wrds_update_pq(
+    "ccmxpf_lnkhist",
+    "crsp",
+    rename={"lpermno": "permno_link"},
+    col_types={"permno_link": "int32"},
+)
+```
+
 #### Selecting only certain rows
 
 Another way to reduce the size of downloaded tables is to filter out unneeded rows using `where=`.

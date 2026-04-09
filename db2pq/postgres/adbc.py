@@ -56,22 +56,25 @@ def _merge_adbc_col_types(
     user_col_types: dict[str, str] | None,
     numeric_bounds: dict[str, tuple[int, int]],
     *,
+    rename: dict[str, str] | None = None,
     numeric_mode: str = "text",
 ) -> dict[str, str]:
     merged = dict(user_col_types or {})
+    rename = rename or {}
 
     if numeric_mode not in {"text", "float64", "decimal"}:
         raise ValueError("numeric_mode must be one of 'text', 'float64', or 'decimal'")
 
     for column in numeric_bounds:
-        if column in merged:
+        output_name = rename.get(column, column)
+        if output_name in merged:
             continue
         if numeric_mode == "float64":
-            merged[column] = "double precision"
+            merged[output_name] = "double precision"
         else:
             # Avoid driver-specific opaque Arrow extension types for NUMERIC.
             # decimal mode repairs eligible text-backed numerics after fetch.
-            merged[column] = "text"
+            merged[output_name] = "text"
 
     return merged
 
@@ -80,16 +83,18 @@ def _decimal_columns_to_repair(
     numeric_bounds: dict[str, tuple[int, int]],
     user_col_types: dict[str, str] | None,
     *,
+    rename: dict[str, str] | None = None,
     numeric_mode: str,
 ) -> dict[str, tuple[int, int]]:
     if numeric_mode != "decimal":
         return {}
 
     user_col_types = user_col_types or {}
+    rename = rename or {}
     return {
-        column: (precision, scale)
+        rename.get(column, column): (precision, scale)
         for column, (precision, scale) in numeric_bounds.items()
-        if column not in user_col_types and 0 < precision <= 76 and scale >= 0
+        if rename.get(column, column) not in user_col_types and 0 < precision <= 76 and scale >= 0
     }
 
 
@@ -104,6 +109,7 @@ def export_postgres_table_via_adbc(
     obs: int | None = None,
     keep=None,
     drop=None,
+    rename=None,
     where: str | None = None,
     row_group_size: int = 1024 * 1024,
     tz: str = "UTC",
@@ -131,11 +137,13 @@ def export_postgres_table_via_adbc(
         decimal_columns = _decimal_columns_to_repair(
             numeric_bounds,
             col_types,
+            rename=rename,
             numeric_mode=numeric_mode,
         )
         col_types = _merge_adbc_col_types(
             col_types,
             numeric_bounds,
+            rename=rename,
             numeric_mode=numeric_mode,
         )
         plan = plan_wrds_query(
@@ -145,6 +153,7 @@ def export_postgres_table_via_adbc(
             all_cols=all_cols,
             source_col_types=source_col_types,
             col_types=col_types,
+            rename=rename,
             keep=keep,
             drop=drop,
             tz=tz,

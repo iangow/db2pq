@@ -7,6 +7,7 @@ import sys
 import pytest
 
 from db2pq.credentials import (
+    ensure_pg_access,
     ensure_wrds_access,
     ensure_wrds_credentials,
     ensure_wrds_id,
@@ -176,6 +177,57 @@ def test_ensure_wrds_credentials_prompts_and_saves(monkeypatch, tmp_path):
 
     assert ensure_wrds_credentials() is True
     assert has_pgpass_password("postgresql://alice@wrds-pgdata.wharton.upenn.edu:9737/wrds")
+
+
+def test_ensure_pg_access_prompts_and_saves(monkeypatch, tmp_path):
+    _install_fake_pgtoolkit(monkeypatch)
+    monkeypatch.setenv("PGPASSFILE", str(tmp_path / ".pgpass"))
+    monkeypatch.setattr(
+        "db2pq.credentials._probe_connection",
+        lambda target: (_ for _ in ()).throw(RuntimeError("fe_sendauth: no password supplied")),
+    )
+    monkeypatch.setattr("db2pq.credentials.prompt_for_password", lambda prompt=None: "secret")
+
+    target = ensure_pg_access(user="alice", host="db.example.com", dbname="research", port="6543")
+
+    assert target.username == "alice"
+    assert has_pgpass_password(
+        "postgresql://alice@db.example.com:6543/research",
+        passfile=str(tmp_path / ".pgpass"),
+    )
+
+
+def test_ensure_pg_access_can_save_pgpassword_from_env(monkeypatch, tmp_path):
+    _install_fake_pgtoolkit(monkeypatch)
+    monkeypatch.setenv("PGPASSFILE", str(tmp_path / ".pgpass"))
+    monkeypatch.setenv("PGPASSWORD", "secret")
+    monkeypatch.setattr(
+        "db2pq.credentials._probe_connection",
+        lambda target: (_ for _ in ()).throw(RuntimeError("password authentication failed for user")),
+    )
+    monkeypatch.setattr("db2pq.credentials.prompt_yes_no", lambda prompt, default=True: True)
+
+    target = ensure_pg_access(user="alice", host="db.example.com", dbname="research", port="6543")
+
+    assert target.username == "alice"
+    assert has_pgpass_password(
+        "postgresql://alice@db.example.com:6543/research",
+        passfile=str(tmp_path / ".pgpass"),
+    )
+
+
+def test_ensure_pg_access_returns_immediately_when_connection_succeeds(monkeypatch, tmp_path):
+    _install_fake_pgtoolkit(monkeypatch)
+    monkeypatch.setenv("PGPASSFILE", str(tmp_path / ".pgpass"))
+    monkeypatch.setattr("db2pq.credentials._probe_connection", lambda target: None)
+
+    target = ensure_pg_access(user="alice", host="db.example.com", dbname="research", port="6543")
+
+    assert target.username == "alice"
+    assert has_pgpass_password(
+        "postgresql://alice@db.example.com:6543/research",
+        passfile=str(tmp_path / ".pgpass"),
+    ) is False
 
 
 def test_ensure_wrds_id_prompts_when_missing(monkeypatch, capsys):

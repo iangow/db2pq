@@ -4,6 +4,16 @@ __version__ = "0.2.10"
 from importlib import import_module
 
 _LAZY_MODULES = {"config", "core", "credentials", "files", "ibis", "postgres"}
+_PUBLIC_EXPORTS = [
+    "db_to_pq", "pg_update_pq", "db_to_pg", "ibis_to_pq", "wrds_pg_to_pq",
+    "wrds_sql_to_pq", "wrds_pg_to_pg", "db_schema_to_pq", "wrds_update_pq",
+    "pq_list_files", "wrds_update_schema", "pq_last_modified", "pq_archive",
+    "pq_restore", "pq_remove", "db_schema_tables", "wrds_get_tables",
+    "wrds_update_pg", "pq_to_pg", "pq_update_pg", "process_sql",
+    "set_table_comment", "close_adbc_cached", "set_default_engine",
+    "get_default_engine",
+]
+
 
 def _lazy_export(module_name, attr_name):
     def wrapper(*args, **kwargs):
@@ -17,45 +27,56 @@ def _lazy_export(module_name, attr_name):
     return wrapper
 
 
+def _load_generated_public_api() -> bool:
+    try:
+        from . import _public_api as generated
+    except Exception:
+        return False
+
+    try:
+        for export_name in generated.__all__:
+            globals()[export_name] = getattr(generated, export_name)
+    except Exception:
+        for export_name in getattr(generated, "__all__", []):
+            globals().pop(export_name, None)
+        return False
+
+    return True
+
+
+if not _load_generated_public_api():
+    db_to_pq = _lazy_export(".core", "db_to_pq")
+    pg_update_pq = _lazy_export(".core", "pg_update_pq")
+    db_to_pg = _lazy_export(".core", "db_to_pg")
+    ibis_to_pq = _lazy_export(".ibis", "ibis_to_pq")
+    wrds_pg_to_pq = _lazy_export(".core", "wrds_pg_to_pq")
+    wrds_sql_to_pq = _lazy_export(".core", "wrds_sql_to_pq")
+    wrds_pg_to_pg = _lazy_export(".core", "wrds_pg_to_pg")
+    db_schema_to_pq = _lazy_export(".core", "db_schema_to_pq")
+    wrds_update_pq = _lazy_export(".core", "wrds_update_pq")
+    pq_list_files = _lazy_export(".files.paths", "pq_list_files")
+    wrds_update_schema = _lazy_export(".core", "wrds_update_schema")
+
+    pq_last_modified = _lazy_export(".files.parquet", "pq_last_modified")
+    pq_archive = _lazy_export(".files.parquet", "pq_archive")
+    pq_restore = _lazy_export(".files.parquet", "pq_restore")
+    pq_remove = _lazy_export(".files.parquet", "pq_remove")
+    db_schema_tables = _lazy_export(".postgres.schema", "db_schema_tables")
+    wrds_get_tables = _lazy_export(".postgres.schema", "wrds_get_tables")
+    wrds_update_pg = _lazy_export(".postgres.update", "wrds_update_pg")
+    pq_to_pg = _lazy_export(".postgres.update", "pq_to_pg")
+    pq_update_pg = _lazy_export(".postgres.update", "pq_update_pg")
+    process_sql = _lazy_export(".postgres.update", "process_sql")
+    set_table_comment = _lazy_export(".postgres.comments", "set_table_comment")
+    close_adbc_cached = _lazy_export(".postgres.adbc", "close_adbc_cached")
+    set_default_engine = _lazy_export(".config", "set_default_engine")
+    get_default_engine = _lazy_export(".config", "get_default_engine")
+
+
 def __getattr__(name):
     if name in _LAZY_MODULES:
         return import_module(f".{name}", __name__)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-db_to_pq = _lazy_export(".core", "db_to_pq")
-pg_update_pq = _lazy_export(".core", "pg_update_pq")
-db_to_pg = _lazy_export(".core", "db_to_pg")
-ibis_to_pq = _lazy_export(".ibis", "ibis_to_pq")
-wrds_pg_to_pq = _lazy_export(".core", "wrds_pg_to_pq")
-wrds_sql_to_pq = _lazy_export(".core", "wrds_sql_to_pq")
-wrds_pg_to_pg = _lazy_export(".core", "wrds_pg_to_pg")
-db_schema_to_pq = _lazy_export(".core", "db_schema_to_pq")
-wrds_update_pq = _lazy_export(".core", "wrds_update_pq")
-pq_list_files = _lazy_export(".files.paths", "pq_list_files")
-wrds_update_schema = _lazy_export(".core", "wrds_update_schema")
-
-pq_last_modified = _lazy_export(".files.parquet", "pq_last_modified")
-pq_archive = _lazy_export(".files.parquet", "pq_archive")
-pq_restore = _lazy_export(".files.parquet", "pq_restore")
-pq_remove = _lazy_export(".files.parquet", "pq_remove")
-db_schema_tables = _lazy_export(".postgres.schema", "db_schema_tables")
-wrds_get_tables = _lazy_export(".postgres.schema", "wrds_get_tables")
-wrds_update_pg = _lazy_export(".postgres.update", "wrds_update_pg")
-pq_to_pg = _lazy_export(".postgres.update", "pq_to_pg")
-pq_update_pg = _lazy_export(".postgres.update", "pq_update_pg")
-process_sql = _lazy_export(".postgres.update", "process_sql")
-set_table_comment = _lazy_export(".postgres.comments", "set_table_comment")
-close_adbc_cached = _lazy_export(".postgres.adbc", "close_adbc_cached")
-set_default_engine = _lazy_export(".config", "set_default_engine")
-get_default_engine = _lazy_export(".config", "get_default_engine")
-
-__all__ = [
-    "__version__",
-    "db_to_pq", "pg_update_pq", "db_to_pg", "ibis_to_pq", "wrds_pg_to_pq", "wrds_sql_to_pq", "wrds_pg_to_pg",
-    "db_schema_to_pq", "db_schema_tables", "wrds_get_tables",
-    "wrds_update_pq", "pq_list_files", "wrds_update_schema",
-    "pq_last_modified", "pq_archive", "pq_restore", "pq_remove",
-    "wrds_update_pg", "pq_to_pg", "pq_update_pg", "process_sql", "set_table_comment", "close_adbc_cached",
-    "set_default_engine", "get_default_engine",
-]
+__all__ = ["__version__", *_PUBLIC_EXPORTS]

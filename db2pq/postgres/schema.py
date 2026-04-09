@@ -1,6 +1,7 @@
 # db2pq/postgres/schema.py
 from __future__ import annotations
 
+from ..credentials import ensure_pg_access
 from ._defaults import resolve_pg_connection
 from .comments import get_pg_conn, get_wrds_conn
 
@@ -51,9 +52,16 @@ def db_schema_tables(
     views : bool, optional
         If ``True``, include views in addition to base tables.
 
-    user, host, database, dbname, port : optional
-        PostgreSQL connection settings. If omitted, resolve from the same
-        environment/default chain used by the other PostgreSQL helpers.
+    user : str
+        PostgreSQL user role.
+    host : str
+        PostgreSQL host name.
+    database : str
+        PostgreSQL database name.
+    dbname : str
+        Alias for ``database``.
+    port : int
+        PostgreSQL port.
 
     Returns
     -------
@@ -71,6 +79,7 @@ def db_schema_tables(
         dbname=dbname or database,
         port=port,
     )
+    ensure_pg_access(user=user, host=host, dbname=dbname, port=str(port))
 
     uri = f"postgresql://{user}@{host}:{port}/{dbname}"
     with get_pg_conn(uri) as conn:

@@ -25,7 +25,14 @@ from db2pq import db_to_pq, pg_update_pq
 ```
 
 ```{python}
+#| eval: false
 db_to_pq(table_name="msf_v2", schema="crsp")
+```
+
+```{python}
+#| eval: false
+db_to_pq(table_name="msf_v2", schema="crsp",
+         engine="adbc")
 ```
 
 ```{python}
@@ -48,6 +55,36 @@ Set `numeric_mode="text"`, `"float64"`, or `"decimal"` if you want to deviate fr
   query result written directly to Parquet.
 - Prefer the default DuckDB engine unless you are intentionally testing or
   benchmarking the ADBC path.
+
+## Selecting, renaming, and recasting columns
+
+For the PostgreSQL-backed table helpers, `keep=` and `drop=` filter source
+column names, while `rename=` maps source names to output names.
+
+```python
+from db2pq import db_to_pq
+
+db_to_pq(
+    "company",
+    "public",
+    keep=["gvkey", "conm", "sic"],
+    rename={"conm": "company_name"},
+)
+```
+
+If you combine `rename=` with `col_types=`, the keys in `col_types=` should
+refer to the output names after renaming.
+
+```python
+from db2pq import db_to_pq
+
+db_to_pq(
+    "example",
+    "public",
+    rename={"permno": "perm_id"},
+    col_types={"perm_id": "int32"},
+)
+```
 
 ## Ibis example
 
@@ -75,6 +112,8 @@ expr = (
     factors_daily
     .filter(_.date >= "2010-01-01")
     .select("date", "mktrf", "smb", "hml", "rf")
+    .rename({"risk_free": "rf"})
+    .mutate(mkt = _.mktrf + _.risk_free)
 )
 
 ibis_to_pq(expr, "factors_ff3_daily.parquet", compression="zstd")
