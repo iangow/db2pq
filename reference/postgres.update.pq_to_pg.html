@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.9.36">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -171,6 +171,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../authentication.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Authentication</span></a>
   </div>
@@ -209,6 +215,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
   <div class="sidebar-item-container"> 
   <a href="../pg-to-pq.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">PostgreSQL to Parquet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../pg-to-pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PostgreSQL to PostgreSQL</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -523,32 +535,32 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 </tr>
 <tr class="even">
 <td>user</td>
-<td>optional</td>
-<td>Destination PostgreSQL connection settings.</td>
+<td>str</td>
+<td>Destination PostgreSQL user role.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>host</td>
-<td>optional</td>
-<td>Destination PostgreSQL connection settings.</td>
+<td>str</td>
+<td>Destination PostgreSQL host name.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>dbname</td>
-<td>optional</td>
-<td>Destination PostgreSQL connection settings.</td>
+<td>str</td>
+<td>Destination PostgreSQL database name.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>database</td>
-<td>optional</td>
-<td>Destination PostgreSQL connection settings.</td>
+<td>str</td>
+<td>Alias for <code>dbname</code>.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>port</td>
-<td>optional</td>
-<td>Destination PostgreSQL connection settings.</td>
+<td>int</td>
+<td>Destination PostgreSQL port.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">

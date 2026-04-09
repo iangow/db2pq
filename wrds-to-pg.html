@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.9.36">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -129,7 +129,7 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./authentication.html">Workflows</a></li><li class="breadcrumb-item"><a href="./wrds-to-pg.html">WRDS to PostgreSQL</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./installation.html">Workflows</a></li><li class="breadcrumb-item"><a href="./wrds-to-pg.html">WRDS to PostgreSQL</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -171,6 +171,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./authentication.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Authentication</span></a>
   </div>
@@ -209,6 +215,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
   <div class="sidebar-item-container"> 
   <a href="./pg-to-pq.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">PostgreSQL to Parquet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pg-to-pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PostgreSQL to PostgreSQL</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -453,8 +465,19 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
   <ul>
   <li><a href="#main-helpers" id="toc-main-helpers" class="nav-link active" data-scroll-target="#main-helpers">Main helpers</a></li>
   <li><a href="#what-it-does" id="toc-what-it-does" class="nav-link" data-scroll-target="#what-it-does">What it does</a></li>
+  <li><a href="#using-wrds_update_pg" id="toc-using-wrds_update_pg" class="nav-link" data-scroll-target="#using-wrds_update_pg">Using <code>wrds_update_pg()</code></a>
+  <ul class="collapse">
+  <li><a href="#an-illustrative-first-run" id="toc-an-illustrative-first-run" class="nav-link" data-scroll-target="#an-illustrative-first-run">An illustrative first run</a></li>
+  <li><a href="#identifying-table-names-and-schemas" id="toc-identifying-table-names-and-schemas" class="nav-link" data-scroll-target="#identifying-table-names-and-schemas">Identifying table names and schemas</a></li>
+  </ul></li>
   <li><a href="#typical-example" id="toc-typical-example" class="nav-link" data-scroll-target="#typical-example">Typical example</a></li>
-  <li><a href="#more-examples" id="toc-more-examples" class="nav-link" data-scroll-target="#more-examples">More examples</a></li>
+  <li><a href="#more-features-of-wrds_update_pg" id="toc-more-features-of-wrds_update_pg" class="nav-link" data-scroll-target="#more-features-of-wrds_update_pg">More features of <code>wrds_update_pg()</code></a>
+  <ul class="collapse">
+  <li><a href="#cleaning-the-data" id="toc-cleaning-the-data" class="nav-link" data-scroll-target="#cleaning-the-data">Cleaning the data</a></li>
+  <li><a href="#working-with-large-tables" id="toc-working-with-large-tables" class="nav-link" data-scroll-target="#working-with-large-tables">Working with large tables</a></li>
+  <li><a href="#forcing-a-refresh" id="toc-forcing-a-refresh" class="nav-link" data-scroll-target="#forcing-a-refresh">Forcing a refresh</a></li>
+  <li><a href="#using-sas-metadata-for-update-checks" id="toc-using-sas-metadata-for-update-checks" class="nav-link" data-scroll-target="#using-sas-metadata-for-update-checks">Using SAS metadata for update checks</a></li>
+  </ul></li>
   <li><a href="#common-options" id="toc-common-options" class="nav-link" data-scroll-target="#common-options">Common options</a></li>
   <li><a href="#operational-helpers" id="toc-operational-helpers" class="nav-link" data-scroll-target="#operational-helpers">Operational helpers</a></li>
   <li><a href="#related-reference-pages" id="toc-related-reference-pages" class="nav-link" data-scroll-target="#related-reference-pages">Related reference pages</a></li>
@@ -464,7 +487,7 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./authentication.html">Workflows</a></li><li class="breadcrumb-item"><a href="./wrds-to-pg.html">WRDS to PostgreSQL</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./installation.html">Workflows</a></li><li class="breadcrumb-item"><a href="./wrds-to-pg.html">WRDS to PostgreSQL</a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title">WRDS to PostgreSQL</h1>
 </div>
@@ -486,68 +509,222 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 <p>Use this path when you want to materialize WRDS data into a PostgreSQL database instead of writing Parquet files.</p>
 <section id="main-helpers" class="level2">
 <h2 class="anchored" data-anchor-id="main-helpers">Main helpers</h2>
+<p>The main helper function on this path is <code>wrds_update_pg()</code>, which can be used to copy a WRDS table into a local PostgreSQL database. This function only rewrites the destination table when the WRDS source appears to be newer, so it can reduce the volume of unnecessary refreshes.</p>
+<p>The main helper is:</p>
 <ul>
 <li><code>wrds_update_pg(table_name, schema, ...)</code> creates or refreshes a PostgreSQL table from a WRDS source table.</li>
+</ul>
+<p>There is also:</p>
+<ul>
 <li><code>wrds_pg_to_pg(table_name, schema, ...)</code> copies a WRDS PostgreSQL table into another PostgreSQL database without the update check.</li>
 </ul>
+<p>For most purposes, you should use <code>wrds_update_pg()</code> and not the lower-level <code>wrds_pg_to_pg()</code> function.</p>
 </section>
 <section id="what-it-does" class="level2">
 <h2 class="anchored" data-anchor-id="what-it-does">What it does</h2>
 <p><code>wrds_update_pg()</code> plans a <code>SELECT</code> against WRDS, creates the destination table from that query shape, copies rows into PostgreSQL, and stores WRDS table metadata in the destination comment for update checks.</p>
 </section>
-<section id="typical-example" class="level2">
-<h2 class="anchored" data-anchor-id="typical-example">Typical example</h2>
+<section id="using-wrds_update_pg" class="level2">
+<h2 class="anchored" data-anchor-id="using-wrds_update_pg">Using <code>wrds_update_pg()</code></h2>
+<section id="an-illustrative-first-run" class="level3">
+<h3 class="anchored" data-anchor-id="an-illustrative-first-run">An illustrative first run</h3>
+<p>A good place to start with <code>wrds_update_pg()</code> is with a smaller table such as <code>comp.company</code>. Two lines of Python code are enough to get you started.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    table_name<span class="op">=</span><span class="st">"dsi"</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    schema<span class="op">=</span><span class="st">"crsp"</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    user<span class="op">=</span><span class="st">"postgres"</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    host<span class="op">=</span><span class="st">"localhost"</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    dbname<span class="op">=</span><span class="st">"analytics"</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(<span class="st">"company"</span>, <span class="st">"comp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Two sets of settings matter here.</p>
+<p>For WRDS access, <code>db2pq</code> looks for <code>WRDS_ID</code> (or <code>WRDS_USER</code>) and uses the WRDS PostgreSQL password saved in <code>.pgpass</code>.</p>
+<p>For the destination database, the PostgreSQL defaults come from the usual environment variables such as <code>PGUSER</code>, <code>PGHOST</code>, <code>PGDATABASE</code>, and <code>PGPORT</code>, unless you pass <code>user=</code>, <code>host=</code>, <code>dbname=</code>, or <code>port=</code> explicitly.</p>
+<p>It is often convenient to store these in a project-level <code>.env</code> file. The best approach is usually to save these variables in a file named <code>.env</code> either in the calling directory or in your home directory. For example:</p>
+<pre class="text"><code>WRDS_ID=your_wrds_id
+PGUSER=postgres
+PGHOST=localhost
+PGDATABASE=analytics
+PGPORT=5432</code></pre>
+<p>If you have not yet saved your WRDS PostgreSQL password in <code>.pgpass</code>, <code>db2pq</code> can prompt you for it and save it for later use.</p>
+<p>One approach is to keep a single PostgreSQL destination for all of your WRDS mirrors. But because you can have different <code>.env</code> files in different folders, it is also easy to maintain project-specific PostgreSQL destinations if that better fits how you manage data.</p>
 </section>
-<section id="more-examples" class="level2">
-<h2 class="anchored" data-anchor-id="more-examples">More examples</h2>
-<p>A WRDS-to-PostgreSQL load with explicit integer coercions for common CRSP identifier columns:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"dsf"</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"crsp"</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{<span class="st">"permno"</span>: <span class="st">"integer"</span>, <span class="st">"permco"</span>: <span class="st">"integer"</span>},</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="identifying-table-names-and-schemas" class="level3">
+<h3 class="anchored" data-anchor-id="identifying-table-names-and-schemas">Identifying table names and schemas</h3>
+<p>As with the Parquet workflow, the key requirement is knowing the WRDS table name and schema.</p>
+<p>One source is existing code. For example, SAS code referring to <code>comp.funda</code> maps naturally to <code>wrds_update_pg(table_name="funda", schema="comp")</code>. Multiple examples of code using different table names across a number of schemas are provided in <em>Empirical Research in Accounting: Tools and Methods</em> starting with <a href="https://iangow.github.io/far_book/fin-state.html">Chapter 6</a>.</p>
+<p>The WRDS web query interface can also help identify the exact table behind a dataset or provide a starting SQL query that helps you understand the source data before materializing it locally. In this way, the web query can offer a practical way to move from the WRDS website to a more reproducible workflow.</p>
+</section>
+</section>
+<section id="typical-example" class="level2">
+<h2 class="anchored" data-anchor-id="typical-example">Typical example</h2>
+<pre class="text"><code>PGHOST=localhost
+PGDATABASE=analytics
+PGUSER=postgres</code></pre>
+<div id="bd55bce5" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="761445d2" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(table_name<span class="op">=</span><span class="st">"company"</span>, schema<span class="op">=</span><span class="st">"comp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>comp.company already up to date.</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>False</code></pre>
+</div>
+</div>
+</section>
+<section id="more-features-of-wrds_update_pg" class="level2">
+<h2 class="anchored" data-anchor-id="more-features-of-wrds_update_pg">More features of <code>wrds_update_pg()</code></h2>
+<p>The <code>wrds_update_pg()</code> function accepts several optional arguments that are useful when refining what is loaded into PostgreSQL.</p>
+<section id="cleaning-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="cleaning-the-data">Cleaning the data</h3>
+<p>Sometimes WRDS data are not in exactly the right form. The <code>wrds_update_pg()</code> function allows the user to address issues that exist in some tables.</p>
+<section id="correcting-data-types" class="level4">
+<h4 class="anchored" data-anchor-id="correcting-data-types">Correcting data types</h4>
+<p>This is helpful for tables such as <code>crsp.ccmxpf_lnkhist</code>, where identifier-like variables are stored on WRDS as floating-point values: (For more on <code>crsp.ccmxpf_lnkhist</code>, see <a href="https://iangow.github.io/far_book/identifiers.html#sec-ccm">Chapter 7</a> of <em>Empirical Research in Accounting: Tools and Methods</em>.)</p>
+<div id="0d36f2f0" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(<span class="st">"ccmxpf_lnkhist"</span>, <span class="st">"crsp"</span>,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{<span class="st">"lpermno"</span>: <span class="st">"integer"</span>, <span class="st">"lpermco"</span>: <span class="st">"integer"</span>},</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>crsp.ccmxpf_lnkhist already up to date.</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>False</code></pre>
+</div>
+</div>
+</section>
+<section id="setting-time-zones" class="level4">
+<h4 class="anchored" data-anchor-id="setting-time-zones">Setting time zones</h4>
+<p>Some WRDS tables use <code>timestamp without time zone</code> fields where the intended time zone is known from context. The <code>tz=</code> argument lets you tell <code>wrds_update_pg()</code> how those timestamps should be interpreted before loading them into PostgreSQL.</p>
+<p>For WRDS Call Report data, for example, Eastern time may be the right choice:</p>
+<div id="298c6c76" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(<span class="st">"wrds_call_rcfa_1"</span>, <span class="st">"bank"</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    tz<span class="op">=</span><span class="st">"America/New_York"</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>bank.wrds_call_rcfa_1 already up to date.</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>False</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="working-with-large-tables" class="level3">
+<h3 class="anchored" data-anchor-id="working-with-large-tables">Working with large tables</h3>
+<p>In principle, <code>wrds_update_pg()</code> can be used to copy any WRDS table into a local PostgreSQL database. However, doing so for very large tables will take longer and use more local storage.</p>
+<section id="dropping-unwanted-variables" class="level4">
+<h4 class="anchored" data-anchor-id="dropping-unwanted-variables">Dropping unwanted variables</h4>
+<p>Large WRDS tables sometimes contain many columns you do not need. The <code>drop=</code> argument can take either a list of column names or a regular expression.</p>
 <p>An Audit Analytics-style example where you compute a drop list first and then materialize the cleaned table:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    table_name<span class="op">=</span><span class="st">"feed55_auditor_ratification"</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    schema<span class="op">=</span><span class="st">"audit"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    drop<span class="op">=</span>[<span class="st">"match_score"</span>, <span class="st">"prior_match_flag"</span>, <span class="st">"closest_date"</span>],</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"auditor_ratification_fkey"</span>: <span class="st">"integer"</span>,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"share_class_fkey"</span>: <span class="st">"integer"</span>,</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"auditor_fkey"</span>: <span class="st">"integer"</span>,</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"pcaob_registration_number"</span>: <span class="st">"integer"</span>,</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="43dd2134" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    table_name<span class="op">=</span><span class="st">"feed55_auditor_ratification"</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    schema<span class="op">=</span><span class="st">"audit"</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    drop<span class="op">=</span>[<span class="st">"^(prior|match|closest)(fy|qu)"</span>],</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">"auditor_ratification_fkey"</span>: <span class="st">"integer"</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"share_class_fkey"</span>: <span class="st">"integer"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"auditor_fkey"</span>: <span class="st">"integer"</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"pcaob_registration_number"</span>: <span class="st">"integer"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>audit.feed55_auditor_ratification already up to date.</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>False</code></pre>
+</div>
+</div>
+<p>The WRDS tables for Audit Analytics data often include variables from the “company financial block”, such as financial statement variables for “closest”, “match”, “hiwater”, or “prior” periods. These columns can expand the size of the tables dramatically, and their provenance and meaning are often unclear.</p>
+<p>For Audit Analytics tables with many poorly documented “match”, “prior”, or “closest” fields, a regex-based drop can be convenient:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"feed02_auditor_changes"</span>,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"audit"</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    drop<span class="op">=</span><span class="st">"^(match|prior|closest)"</span>,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="keeping-only-selected-variables" class="level4">
+<h4 class="anchored" data-anchor-id="keeping-only-selected-variables">Keeping only selected variables</h4>
+<p>In some situations, you may only want a small subset of the columns available on WRDS. We can handle this with the <code>keep=</code> argument, which allows us to specify either a list of the variables we want or a regular expression that matches variables to be included.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"dsf_v2"</span>,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"crsp"</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    keep<span class="op">=</span>[<span class="st">"permno"</span>, <span class="st">"dlycaldt"</span>, <span class="st">"dlyret"</span>],</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="renaming-variables" class="level4">
+<h4 class="anchored" data-anchor-id="renaming-variables">Renaming variables</h4>
+<p>The <code>rename=</code> argument lets you rename WRDS columns as they are loaded into the destination PostgreSQL table. The mapping is from source column names to output column names.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"company"</span>,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"comp"</span>,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    keep<span class="op">=</span>[<span class="st">"gvkey"</span>, <span class="st">"conm"</span>, <span class="st">"sic"</span>],</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    rename<span class="op">=</span>{<span class="st">"conm"</span>: <span class="st">"company_name"</span>},</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If you combine <code>rename=</code> with <code>col_types=</code>, the keys in <code>col_types=</code> should refer to the output names after renaming.</p>
+</section>
+<section id="limiting-rows-for-test-loads" class="level4">
+<h4 class="anchored" data-anchor-id="limiting-rows-for-test-loads">Limiting rows for test loads</h4>
+<p>Sometimes it is helpful to do a test load of a smaller table to make sure that things look right before doing a final refresh. This can be achieved with the <code>obs=</code> argument.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(<span class="st">"funda"</span>, <span class="st">"comp"</span>, obs<span class="op">=</span><span class="dv">1000</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="forcing-a-refresh" class="level3">
+<h3 class="anchored" data-anchor-id="forcing-a-refresh">Forcing a refresh</h3>
+<p>If you want to rebuild a destination table even when the metadata suggest it is already current, use <code>force=True</code>. For example, you may have used <code>obs=1000</code> or you may want to refresh with corrected data types using <code>col_types</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(<span class="st">"funda"</span>, <span class="st">"comp"</span>, force<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="using-sas-metadata-for-update-checks" class="level3">
+<h3 class="anchored" data-anchor-id="using-sas-metadata-for-update-checks">Using SAS metadata for update checks</h3>
+<p>Most update checks use WRDS PostgreSQL metadata, but <code>use_sas=True</code> lets you use the corresponding WRDS SAS metadata instead. This is helpful when PostgreSQL comments are missing or when the SAS metadata is the better signal of freshness.</p>
+<p>WRDS data tables generally come in two forms: PostgreSQL tables and SAS files. When you use <code>use_sas=True</code>, <code>wrds_update_pg()</code> checks the metadata from the corresponding WRDS SAS file instead of relying on the WRDS PostgreSQL comment.</p>
+<p>If you also want to load from a WRDS schema into a differently named local PostgreSQL schema, use <code>wrds_schema=</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"dsi"</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"crsp_local"</span>,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    wrds_schema<span class="op">=</span><span class="st">"crsp"</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    use_sas<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In some cases, the schema used for SAS differs from that used for PostgreSQL. For those cases, <code>wrds_update_pg()</code> also supports <code>sas_schema=</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pg</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pg(</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rpa_entity_mappings"</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ravenpack_common"</span>,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    use_sas<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    sas_schema<span class="op">=</span><span class="st">"rpa"</span>,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Note that you will need to have installed the <code>[sas]</code> optional features to use <code>use_sas=True</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[sas]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Additionally, you may need to set up your connection to the WRDS cloud server, which is separate from the WRDS PostgreSQL setup. More information on this step is provided on the package <code>README</code> page.</p>
 <p>After loading a table, it is natural to add indexes or build derived tables in the destination PostgreSQL database:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> process_sql</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>process_sql(<span class="st">"CREATE INDEX ON crsp.dsf (permno, date)"</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>process_sql(<span class="st">"CREATE INDEX ON crsp.dsf (permco)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> process_sql</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>process_sql(<span class="st">"CREATE INDEX ON crsp.dsf (permno, date)"</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>process_sql(<span class="st">"CREATE INDEX ON crsp.dsf (permco)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>For some workflows, you may also materialize a derived table after loading the source WRDS tables:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> process_sql</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>process_sql(<span class="st">"""</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">DROP TABLE IF EXISTS crsp.tfz_ft;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">CREATE TABLE crsp.tfz_ft AS</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="st">SELECT</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="st">    kytreasnox, tidxfam, ttermtype, ttermlbl, caldt, rdtreasno, rdcrspid</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="st">FROM crsp.tfz_idx</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">INNER JOIN crsp.tfz_dly_ft</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="st">USING (kytreasnox);</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> process_sql</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>process_sql(<span class="st">"""</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="st">DROP TABLE IF EXISTS crsp.tfz_ft;</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="st">CREATE TABLE crsp.tfz_ft AS</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="st">SELECT</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="st">    kytreasnox, tidxfam, ttermtype, ttermlbl, caldt, rdtreasno, rdcrspid</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="st">FROM crsp.tfz_idx</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="st">INNER JOIN crsp.tfz_dly_ft</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="st">USING (kytreasnox);</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
 </section>
 <section id="common-options" class="level2">
 <h2 class="anchored" data-anchor-id="common-options">Common options</h2>
@@ -559,6 +736,7 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 <li><code>create_roles=True</code> ensures schema roles and grants are created.</li>
 <li><code>wrds_schema=</code> lets the WRDS source schema differ from the destination schema.</li>
 <li><code>use_sas=True</code> uses SAS metadata for freshness checks and destination comments.</li>
+<li><code>sas_schema=</code> lets the SAS metadata schema differ from the WRDS PostgreSQL schema.</li>
 </ul>
 </section>
 <section id="operational-helpers" class="level2">

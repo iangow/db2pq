@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.9.36">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -23,41 +23,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -74,7 +39,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -171,6 +136,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./authentication.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Authentication</span></a>
   </div>
@@ -209,6 +180,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
   <div class="sidebar-item-container"> 
   <a href="./pg-to-pq.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">PostgreSQL to Parquet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./pg-to-pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PostgreSQL to PostgreSQL</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -451,11 +428,8 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#installation" id="toc-installation" class="nav-link active" data-scroll-target="#installation">Installation</a></li>
-  <li><a href="#quick-example" id="toc-quick-example" class="nav-link" data-scroll-target="#quick-example">Quick example</a></li>
-  <li><a href="#main-paths" id="toc-main-paths" class="nav-link" data-scroll-target="#main-paths">Main Paths</a></li>
-  <li><a href="#learn-more" id="toc-learn-more" class="nav-link" data-scroll-target="#learn-more">Learn More</a></li>
-  <li><a href="#docs-build" id="toc-docs-build" class="nav-link" data-scroll-target="#docs-build">Docs Build</a></li>
+  <li><a href="#working-with-wrds-data" id="toc-working-with-wrds-data" class="nav-link active" data-scroll-target="#working-with-wrds-data">Working with WRDS data</a></li>
+  <li><a href="#working-with-postgresql-data" id="toc-working-with-postgresql-data" class="nav-link" data-scroll-target="#working-with-postgresql-data">Working with PostgreSQL data</a></li>
   </ul>
 </nav>
     </div>
@@ -482,81 +456,28 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 
 
 <div class="hero">
-<p><code>db2pq</code> is a Python package for primarily built to support Parquet-centered workflows using data sourced from PostgreSQL data. The original focus was on data from the PostgreSQL database offered by Wharton Research Data Services (WRDS).</p>
-<p><code>db2pq</code> is designed for a practical research workflow: move data out of WRDS or PostgreSQL, keep local Parquet copies current, and work with those files using tools like Polars, pandas, or R.</p>
+<p><code>db2pq</code> is a Python package for primarily built to support Parquet-centered workflows using data sourced from PostgreSQL databases. The original focus was on data from the PostgreSQL database offered by Wharton Research Data Services (WRDS).</p>
+<p><code>db2pq</code> is designed for practical research workflows: move data out of PostgreSQL data sources (including WRDS), keep local Parquet copies current, and work with those files using tools like Polars, pandas, or R.</p>
 <div class="quick-links">
-<p><a href="./wrds-to-pq.html">Get Started</a> <a href="./authentication.html">Authentication</a> <a href="./using-parquet-with-polars.html">Use with Polars</a> <a href="./reference/index.html">API Reference</a></p>
+<p><a href="./installation.html">Installation</a> <a href="./reference/index.html">API Reference</a></p>
 </div>
 </div>
-<section id="installation" class="level2">
-<h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> db2pq</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Optional extras:</p>
-<ul>
-<li><code>db2pq[sas]</code>: WRDS SAS-side metadata checks for refresh logic such as <code>wrds_update_pq(..., use_sas=True)</code></li>
-</ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[sas]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ul>
-<li><code>db2pq[pandas]</code>: pandas DataFrame outputs from metadata helpers such as <code>pq_last_modified(...)</code></li>
-</ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[pandas]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ul>
-<li><code>db2pq[ibis]</code>: export PostgreSQL-backed Ibis expressions with <code>ibis_to_pq(...)</code></li>
-</ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[ibis]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ul>
-<li><code>db2pq[adbc]</code>: use the Arrow-based PostgreSQL export path with <code>engine="adbc"</code></li>
-</ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[adbc]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="quick-example" class="level2">
-<h2 class="anchored" data-anchor-id="quick-example">Quick example</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This example uses the standard update-aware WRDS-to-Parquet path.</p>
-</section>
-<section id="main-paths" class="level2">
-<h2 class="anchored" data-anchor-id="main-paths">Main Paths</h2>
-<div class="grid">
-<section id="wrds-to-parquet" class="level3 g-col-12 g-col-md-6">
-<h3 class="anchored" data-anchor-id="wrds-to-parquet">WRDS to Parquet</h3>
-<p>Export WRDS tables to Parquet files and update them only when the WRDS source is newer.</p>
-<p><a href="./wrds-to-pq.html">Open guide</a></p>
-</section>
-<section id="wrds-to-postgresql" class="level3 g-col-12 g-col-md-6">
-<h3 class="anchored" data-anchor-id="wrds-to-postgresql">WRDS to PostgreSQL</h3>
-<p>Materialize WRDS tables into a local PostgreSQL database and manage indexes or derived tables there.</p>
-<p><a href="./wrds-to-pg.html">Open guide</a></p>
-</section>
-<section id="postgresql-to-parquet" class="level3 g-col-12 g-col-md-6">
-<h3 class="anchored" data-anchor-id="postgresql-to-parquet">PostgreSQL to Parquet</h3>
-<p>Export local PostgreSQL tables or Ibis expressions into a Parquet repository.</p>
-<p><a href="./pg-to-pq.html">Open guide</a></p>
-</section>
-<section id="parquet-to-postgresql" class="level3 g-col-12 g-col-md-6">
-<h3 class="anchored" data-anchor-id="parquet-to-postgresql">Parquet to PostgreSQL</h3>
-<p>Load Parquet repository tables back into PostgreSQL and refresh them when the Parquet source is newer.</p>
-<p><a href="./pq-to-pg.html">Open guide</a></p>
-</section>
+<section id="working-with-wrds-data" class="level2 hero">
+<h2 class="anchored" data-anchor-id="working-with-wrds-data">Working with WRDS data</h2>
+<p>While <code>db2pq</code> supports any PostgreSQL database as a source for creating Parquet files, much of its functionaliy is adapted working with data from the WRDS PostgreSQL database. The functions here support two primary workflows: either moving WRDS data sets into a local Parquet repository or moving them into a local PostgreSQL database. Once data are in Parquet, you can work with them directly using tools such as Polars or DuckDB in both Python and R.</p>
+<div class="quick-links">
+<p><a href="./wrds-to-pq.html">WRDS to Parquet</a> <a href="./using-parquet-with-polars.html">Working with Parquet data</a> <a href="./wrds-to-pg.html">WRDS to PostgreSQL</a></p>
 </div>
 </section>
-<section id="learn-more" class="level2">
-<h2 class="anchored" data-anchor-id="learn-more">Learn More</h2>
-<ul>
-<li><a href="./authentication.html">Authentication</a>: how <code>db2pq</code> finds WRDS credentials, uses <code>.env</code>, and works with <code>.pgpass</code></li>
-<li><a href="./data-management.html">Data management ideas</a>: how to think about general-purpose versus project-level Parquet data</li>
-<li><a href="./web-query.html">Using the WRDS web query</a>: how to turn a WRDS web query into a cleaner SQL export workflow</li>
-<li><a href="./using-parquet-with-polars.html">Using the Parquet repository with Polars</a>: practical analysis patterns once the repository already exists</li>
-<li><a href="./reference/index.html">API Reference</a>: generated function reference from docstrings</li>
-</ul>
+<section id="working-with-postgresql-data" class="level2 hero">
+<h2 class="anchored" data-anchor-id="working-with-postgresql-data">Working with PostgreSQL data</h2>
+<p><code>db2pq</code> also supports workflows where the source is a more general PostgreSQL database rather than WRDS. These workflows let you export PostgreSQL data to a Parquet repository or copy PostgreSQL tables into another PostgreSQL database.</p>
+<div class="quick-links">
+<p><a href="./pg-to-pq.html">PostgreSQL to Parquet</a> <a href="./pg-to-pg.html">PostgreSQL to PostgreSQL</a> <a href="./pq-to-pg.html">Parquet to PostgreSQL</a></p>
+</div>
 </section>
-<section id="docs-build" class="level2">
-<h2 class="anchored" data-anchor-id="docs-build">Docs Build</h2>
-<p>This site uses <code>quartodoc</code> for API pages and Quarto for rendering.</p>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

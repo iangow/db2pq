@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.35">
+<meta name="generator" content="quarto-1.9.36">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-158031087360bce0ff56dc785ce39e06.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -171,6 +171,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../installation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Installation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../authentication.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Authentication</span></a>
   </div>
@@ -209,6 +215,12 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
   <div class="sidebar-item-container"> 
   <a href="../pg-to-pq.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">PostgreSQL to Parquet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../pg-to-pg.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PostgreSQL to PostgreSQL</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -484,26 +496,27 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    alt_table_name<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    keep<span class="op">=</span><span class="va">None</span>,</span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    drop<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    batched<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    threads<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    tz<span class="op">=</span><span class="st">'UTC'</span>,</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    engine<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    numeric_mode<span class="op">=</span><span class="st">'text'</span>,</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    adbc_batch_size_hint_bytes<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    adbc_use_copy<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    archive<span class="op">=</span><span class="va">False</span>,</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    archive_dir<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Export a PostgreSQL table to a parquet file.</p>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    rename<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    batched<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    threads<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    tz<span class="op">=</span><span class="st">'UTC'</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    engine<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    numeric_mode<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    adbc_batch_size_hint_bytes<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    adbc_use_copy<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    archive<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    archive_dir<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Export a PostgreSQL table to a Parquet file.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 87%">
-<col style="width: 2%">
+<col style="width: 9%">
+<col style="width: 8%">
+<col style="width: 77%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -516,110 +529,152 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 <tbody>
 <tr class="odd">
 <td>table_name</td>
-<td></td>
-<td>Name of table in database.</td>
+<td>str</td>
+<td>Name of the source PostgreSQL table.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td>schema</td>
-<td></td>
-<td>Name of database schema.</td>
+<td>str</td>
+<td>Name of the source PostgreSQL schema.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="odd">
-<td>host</td>
-<td></td>
-<td>Host name for the PostgreSQL server. The default is to use the environment value <code>PGHOST</code>.</td>
+<td>user</td>
+<td>str</td>
+<td>Source PostgreSQL user role.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
+<td>host</td>
+<td>str</td>
+<td>Source PostgreSQL host name.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
 <td>database</td>
-<td></td>
-<td>Name for the PostgreSQL database. The default is to use the environment value <code>PGDATABASE</code> or user.</td>
+<td>str</td>
+<td>Source PostgreSQL database name.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>port</td>
+<td>int</td>
+<td>Source PostgreSQL port.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>data_dir</td>
-<td></td>
-<td>Root directory of parquet data repository. The default is to use the environment value <code>DATA_DIR</code> or (if not set) the current directory.</td>
+<td>str</td>
+<td>Root directory of the Parquet data repository. If omitted, use <code>DATA_DIR</code> or the current working directory.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>col_types</td>
-<td></td>
-<td>Dictionary of PostgreSQL data types to be used when importing data to PostgreSQL or writing to Parquet files. For Parquet files, conversion from PostgreSQL to PyArrow types is handled by DuckDB. Only a subset of columns needs to be supplied. Supplied types should be compatible with data emitted by PostgreSQL (i.e., one can’t “fix” arbitrary type issues using this argument). For example, <code>col_types = {'permno':'integer', 'permco':'integer'}</code>.</td>
+<td>dict</td>
+<td>Explicit output column types. Only a subset of columns needs to be supplied. Types should describe the exported output columns after any renaming.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>row_group_size</td>
-<td></td>
-<td>Maximum number of rows in each written row group. Default is <code>1024 * 1024</code>.</td>
+<td>int</td>
+<td>Maximum number of rows per written Parquet row group. Default is <code>1024 * 1024</code>.</td>
 <td><code>1048576</code></td>
 </tr>
 <tr class="even">
 <td>obs</td>
-<td></td>
-<td>Number of observations to import from database table. Implemented using SQL <code>LIMIT</code>. Setting this to modest value (e.g., <code>obs=1000</code>) can be useful for testing <code>db_to_pq()</code> with large tables.</td>
+<td>int</td>
+<td>Maximum number of rows to export. Implemented with SQL <code>LIMIT</code>.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>modified</td>
-<td></td>
-<td>Last modified string.</td>
+<td>str</td>
+<td>Last-modified string to embed in the Parquet metadata. If omitted, use the source PostgreSQL table comment when available.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>alt_table_name</td>
-<td></td>
-<td>Basename of parquet file. Used when file should have different name from <code>table_name</code>.</td>
+<td>str</td>
+<td>Output Parquet basename. If omitted, defaults to <code>table_name</code>.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>keep</td>
-<td></td>
-<td>Regex pattern(s) indicating columns to keep.</td>
+<td>str or iterable</td>
+<td>Regex pattern(s) describing source columns to keep or drop. If both are supplied, <code>drop</code> is applied first.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>drop</td>
-<td></td>
-<td>Regex pattern(s) indicating columns to drop. If both <code>drop</code> and <code>keep</code> are provided, <code>drop</code> is applied first.</td>
+<td>str or iterable</td>
+<td>Regex pattern(s) describing source columns to keep or drop. If both are supplied, <code>drop</code> is applied first.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>rename</td>
+<td>dict</td>
+<td>Mapping from source column names to output column names. Keys are the original PostgreSQL column names and values are the exported names. When <code>rename</code> is used, <code>col_types</code> should refer to the output names after renaming.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>where</td>
+<td>str</td>
+<td>SQL <code>WHERE</code> condition used to filter source rows before export.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
 <td>batched</td>
-<td></td>
-<td>Indicates whether data will be extracting in batches using <code>to_pyarrow_batches()</code> instead of a single call to <code>to_pyarrow()</code>. Using batches degrades performance slightly, but dramatically reduces memory requirements for large tables.</td>
+<td>bool</td>
+<td>If <code>True</code>, stream Arrow batches instead of materializing the full result at once. This typically reduces memory use for large tables.</td>
 <td><code>True</code></td>
 </tr>
 <tr class="even">
 <td>threads</td>
-<td></td>
-<td>The number of threads DuckDB is allowed to use. Setting this may be necessary due to limits imposed on the user by the PostgreSQL database server.</td>
+<td>int</td>
+<td>Maximum number of DuckDB worker threads to use on the DuckDB path.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="odd">
+<td>tz</td>
+<td>str</td>
+<td>Time zone assumed for <code>timestamp without time zone</code> source columns before normalizing output timestamps.</td>
+<td><code>'UTC'</code></td>
+</tr>
+<tr class="even">
 <td>engine</td>
 <td>(duckdb, adbc)</td>
-<td>Query execution engine used to read PostgreSQL data before writing Parquet. <code>"adbc"</code> streams Arrow record batches directly from PostgreSQL.</td>
+<td>Query execution engine used to read PostgreSQL data before writing Parquet.</td>
 <td><code>"duckdb"</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>numeric_mode</td>
 <td>(text, float64, decimal)</td>
-<td>On the ADBC path, cast PostgreSQL <code>NUMERIC</code> columns to <code>TEXT</code> or <code>DOUBLE PRECISION</code> before writing Parquet. <code>"decimal"</code> transports eligible values as text and converts them back to Arrow decimal types using PostgreSQL precision/scale metadata. Explicit <code>col_types</code> entries take precedence.</td>
+<td>Handling for PostgreSQL <code>NUMERIC</code> columns. <code>None</code> keeps the engine-specific default behavior. Explicit <code>col_types</code> entries take precedence.</td>
 <td><code>"text"</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>adbc_batch_size_hint_bytes</td>
-<td>int[Optional]</td>
-<td>On the ADBC path, hint the PostgreSQL ADBC driver about the desired Arrow batch size in bytes. This can affect throughput by changing the size of batches returned by <code>fetch_record_batch()</code>.</td>
+<td>int</td>
+<td>On the ADBC path, hint the PostgreSQL driver about the desired Arrow batch size in bytes.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="odd">
+<td>adbc_use_copy</td>
+<td>bool</td>
+<td>On the ADBC path, explicitly enable or disable the PostgreSQL driver’s <code>COPY</code> optimization.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
-<td>adbc_use_copy</td>
-<td>bool[Optional]</td>
-<td>On the ADBC path, enable or disable the PostgreSQL driver’s <code>COPY</code> optimization explicitly. If omitted, the driver default is used.</td>
+<td>archive</td>
+<td>bool</td>
+<td>Whether an existing Parquet file should be archived before replacement.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="odd">
+<td>archive_dir</td>
+<td>str</td>
+<td>Name of the archive directory relative to <code>data_dir/schema</code>.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
@@ -628,6 +683,11 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 <section id="returns" class="level2 doc-section doc-section-returns">
 <h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 13%">
+<col style="width: 78%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -637,17 +697,25 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 </thead>
 <tbody>
 <tr class="odd">
-<td>pq_file</td>
-<td>string</td>
-<td>Name of parquet file created.</td>
+<td></td>
+<td>str | None</td>
+<td>Path to the written Parquet file, or <code>None</code> if the query returns no rows.</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> db_to_pq(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> db_to_pq(<span class="st">"feed21_bankruptcy_notification"</span>, <span class="st">"audit"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Export a table using the default DuckDB-backed path:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">from</span> db2pq <span class="im">import</span> db_to_pq</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> db_to_pq(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Rename a column and apply an output type override:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> db_to_pq(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>...     <span class="st">"company"</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>...     <span class="st">"public"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>...     rename<span class="op">=</span>{<span class="st">"conm"</span>: <span class="st">"company_name"</span>},</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>...     col_types<span class="op">=</span>{<span class="st">"company_name"</span>: <span class="st">"string"</span>},</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>... )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>PostgreSQL to Parquet – db2pq</title>
+<title>Installation – db2pq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -129,7 +129,7 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./installation.html">Workflows</a></li><li class="breadcrumb-item"><a href="./pg-to-pq.html">PostgreSQL to Parquet</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./installation.html">Workflows</a></li><li class="breadcrumb-item"><a href="./installation.html">Installation</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -171,7 +171,7 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./installation.html" class="sidebar-item-text sidebar-link">
+  <a href="./installation.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Installation</span></a>
   </div>
 </li>
@@ -213,7 +213,7 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pg-to-pq.html" class="sidebar-item-text sidebar-link active">
+  <a href="./pg-to-pq.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">PostgreSQL to Parquet</span></a>
   </div>
 </li>
@@ -463,21 +463,20 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#main-helpers" id="toc-main-helpers" class="nav-link active" data-scroll-target="#main-helpers">Main helpers</a></li>
-  <li><a href="#typical-example" id="toc-typical-example" class="nav-link" data-scroll-target="#typical-example">Typical example</a></li>
-  <li><a href="#when-to-use-each-helper" id="toc-when-to-use-each-helper" class="nav-link" data-scroll-target="#when-to-use-each-helper">When to use each helper</a></li>
-  <li><a href="#selecting-renaming-and-recasting-columns" id="toc-selecting-renaming-and-recasting-columns" class="nav-link" data-scroll-target="#selecting-renaming-and-recasting-columns">Selecting, renaming, and recasting columns</a></li>
-  <li><a href="#ibis-example" id="toc-ibis-example" class="nav-link" data-scroll-target="#ibis-example">Ibis example</a></li>
-  <li><a href="#related-reference-pages" id="toc-related-reference-pages" class="nav-link" data-scroll-target="#related-reference-pages">Related reference pages</a></li>
+  <li><a href="#installation" id="toc-installation" class="nav-link active" data-scroll-target="#installation">Installation</a></li>
+  <li><a href="#quick-example" id="toc-quick-example" class="nav-link" data-scroll-target="#quick-example">Quick example</a></li>
+  <li><a href="#main-paths" id="toc-main-paths" class="nav-link" data-scroll-target="#main-paths">Main Paths</a></li>
+  <li><a href="#learn-more" id="toc-learn-more" class="nav-link" data-scroll-target="#learn-more">Learn More</a></li>
+  <li><a href="#docs-build" id="toc-docs-build" class="nav-link" data-scroll-target="#docs-build">Docs Build</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./installation.html">Workflows</a></li><li class="breadcrumb-item"><a href="./pg-to-pq.html">PostgreSQL to Parquet</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./installation.html">Workflows</a></li><li class="breadcrumb-item"><a href="./installation.html">Installation</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">PostgreSQL to Parquet</h1>
+<h1 class="title">Installation</h1>
 </div>
 
 
@@ -494,114 +493,73 @@ gtag('config', 'G-956NJDFV4Z', { 'anonymize_ip': true});
 </header>
 
 
-<p>Use this path when the source is a PostgreSQL database that is not WRDS, and the destination is a Parquet file or directory tree.</p>
-<section id="main-helpers" class="level2">
-<h2 class="anchored" data-anchor-id="main-helpers">Main helpers</h2>
+<p>This page collects the practical getting-started material for installing <code>db2pq</code>, choosing optional extras, and seeing the main workflow paths.</p>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> db2pq</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Optional extras:</p>
 <ul>
-<li><code>db_to_pq(table_name, schema, ...)</code> exports one PostgreSQL table to Parquet.</li>
-<li><code>pg_update_pq(table_name, schema, ...)</code> exports one PostgreSQL table to Parquet only when the source table is newer.</li>
-<li><code>db_schema_to_pq(schema, ...)</code> exports all tables in a PostgreSQL schema.</li>
-<li><code>ibis_to_pq(table, out_file, ...)</code> writes a PostgreSQL-backed Ibis expression to Parquet.</li>
+<li><code>db2pq[sas]</code>: WRDS SAS-side metadata checks for refresh logic such as <code>wrds_update_pq(..., use_sas=True)</code></li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[sas]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><code>db2pq[pandas]</code>: pandas DataFrame outputs from metadata helpers such as <code>pq_last_modified(...)</code></li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[pandas]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><code>db2pq[ibis]</code>: export PostgreSQL-backed Ibis expressions with <code>ibis_to_pq(...)</code></li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[ibis]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><code>db2pq[adbc]</code>: use the Arrow-based export path with <code>engine="adbc"</code></li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> <span class="st">"db2pq[adbc]"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="quick-example" class="level2">
+<h2 class="anchored" data-anchor-id="quick-example">Quick example</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> wrds_update_pq</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>wrds_update_pq(<span class="st">"dsi"</span>, <span class="st">"crsp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This example uses the standard update-aware WRDS-to-Parquet path.</p>
+</section>
+<section id="main-paths" class="level2">
+<h2 class="anchored" data-anchor-id="main-paths">Main Paths</h2>
+<div class="grid">
+<section id="wrds-to-parquet" class="level3 g-col-12 g-col-md-6">
+<h3 class="anchored" data-anchor-id="wrds-to-parquet">WRDS to Parquet</h3>
+<p>Export WRDS tables to Parquet files and update them only when the WRDS source is newer.</p>
+<p><a href="./wrds-to-pq.html">Open guide</a></p>
+</section>
+<section id="wrds-to-postgresql" class="level3 g-col-12 g-col-md-6">
+<h3 class="anchored" data-anchor-id="wrds-to-postgresql">WRDS to PostgreSQL</h3>
+<p>Materialize WRDS tables into a local PostgreSQL database and manage indexes or derived tables there.</p>
+<p><a href="./wrds-to-pg.html">Open guide</a></p>
+</section>
+<section id="postgresql-to-parquet" class="level3 g-col-12 g-col-md-6">
+<h3 class="anchored" data-anchor-id="postgresql-to-parquet">PostgreSQL to Parquet</h3>
+<p>Export local PostgreSQL tables or Ibis expressions into a Parquet repository.</p>
+<p><a href="./pg-to-pq.html">Open guide</a></p>
+</section>
+<section id="parquet-to-postgresql" class="level3 g-col-12 g-col-md-6">
+<h3 class="anchored" data-anchor-id="parquet-to-postgresql">Parquet to PostgreSQL</h3>
+<p>Load Parquet repository tables back into PostgreSQL and refresh them when the Parquet source is newer.</p>
+<p><a href="./pq-to-pg.html">Open guide</a></p>
+</section>
+</div>
+</section>
+<section id="learn-more" class="level2">
+<h2 class="anchored" data-anchor-id="learn-more">Learn More</h2>
+<ul>
+<li><a href="./authentication.html">Authentication</a>: how <code>db2pq</code> finds WRDS credentials, uses <code>.env</code>, and works with <code>.pgpass</code></li>
+<li><a href="./data-management.html">Data management ideas</a>: how to think about general-purpose versus project-level Parquet data</li>
+<li><a href="./web-query.html">Using the WRDS web query</a>: how to turn a WRDS web query into a cleaner SQL export workflow</li>
+<li><a href="./using-parquet-with-polars.html">Using the Parquet repository with Polars</a>: practical analysis patterns once the repository already exists</li>
+<li><a href="./reference/index.html">API Reference</a>: generated function reference from docstrings</li>
 </ul>
 </section>
-<section id="typical-example" class="level2">
-<h2 class="anchored" data-anchor-id="typical-example">Typical example</h2>
-<pre class="text"><code>PGHOST=localhost
-PGDATABASE=analytics
-PGUSER=postgres</code></pre>
-<div id="99b08554" class="cell" data-execution_count="1">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> db_to_pq, pg_update_pq</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div id="cd64064a" class="cell" data-execution_count="2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>db_to_pq(table_name<span class="op">=</span><span class="st">"msf_v2"</span>, schema<span class="op">=</span><span class="st">"crsp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div id="aa33fe8d" class="cell" data-execution_count="3">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>db_to_pq(table_name<span class="op">=</span><span class="st">"msf_v2"</span>, schema<span class="op">=</span><span class="st">"crsp"</span>,</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>         engine<span class="op">=</span><span class="st">"adbc"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<div id="dabfdbd8" class="cell" data-execution_count="4">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>pg_update_pq(table_name<span class="op">=</span><span class="st">"msf_v2"</span>, schema<span class="op">=</span><span class="st">"crsp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>crsp.msf_v2 already up to date.</code></pre>
-</div>
-</div>
-<p>This example uses the default DuckDB-backed path. Reach for <code>engine="adbc"</code> only when you specifically want to try the ADBC export path.</p>
-<p>By default, numeric handling follows the selected engine’s least-interfering behaviour: DuckDB preserves PostgreSQL <code>NUMERIC</code> columns as decimals, while the ADBC path defaults to text-backed numerics. Set <code>numeric_mode="text"</code>, <code>"float64"</code>, or <code>"decimal"</code> if you want to deviate from the default behaviour for each engine.</p>
-</section>
-<section id="when-to-use-each-helper" class="level2">
-<h2 class="anchored" data-anchor-id="when-to-use-each-helper">When to use each helper</h2>
-<ul>
-<li>Use <code>db_to_pq()</code> for one source table.</li>
-<li>Use <code>pg_update_pq()</code> when you want the same update-aware pattern as <code>wrds_update_pq()</code>, but for a local PostgreSQL source table.</li>
-<li>Use <code>db_schema_to_pq()</code> when you want a whole schema exported.</li>
-<li>Use <code>ibis_to_pq()</code> when you already have an Ibis expression and want that query result written directly to Parquet.</li>
-<li>Prefer the default DuckDB engine unless you are intentionally testing or benchmarking the ADBC path.</li>
-</ul>
-</section>
-<section id="selecting-renaming-and-recasting-columns" class="level2">
-<h2 class="anchored" data-anchor-id="selecting-renaming-and-recasting-columns">Selecting, renaming, and recasting columns</h2>
-<p>For the PostgreSQL-backed table helpers, <code>keep=</code> and <code>drop=</code> filter source column names, while <code>rename=</code> maps source names to output names.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> db_to_pq</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>db_to_pq(</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"company"</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"public"</span>,</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    keep<span class="op">=</span>[<span class="st">"gvkey"</span>, <span class="st">"conm"</span>, <span class="st">"sic"</span>],</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    rename<span class="op">=</span>{<span class="st">"conm"</span>: <span class="st">"company_name"</span>},</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>If you combine <code>rename=</code> with <code>col_types=</code>, the keys in <code>col_types=</code> should refer to the output names after renaming.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> db_to_pq</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>db_to_pq(</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"example"</span>,</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"public"</span>,</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    rename<span class="op">=</span>{<span class="st">"permno"</span>: <span class="st">"perm_id"</span>},</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    col_types<span class="op">=</span>{<span class="st">"perm_id"</span>: <span class="st">"int32"</span>},</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="ibis-example" class="level2">
-<h2 class="anchored" data-anchor-id="ibis-example">Ibis example</h2>
-<p>Here is a more realistic <code>ibis_to_pq()</code> pattern adapted from your WRDS/Ibis workflow note.</p>
-<div id="bd6390cd" class="cell" data-execution_count="5">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ibis <span class="im">import</span> _</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> db2pq <span class="im">import</span> ibis_to_pq</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> ibis</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>db <span class="op">=</span> ibis.postgres.<span class="ex">connect</span>(</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    host<span class="op">=</span><span class="st">"wrds-pgdata.wharton.upenn.edu"</span>,</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    port<span class="op">=</span><span class="dv">9737</span>,</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    database<span class="op">=</span><span class="st">"wrds"</span>,</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    user<span class="op">=</span>os.environ[<span class="st">"WRDS_ID"</span>],</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>factors_daily <span class="op">=</span> db.table(<span class="st">"factors_daily"</span>, database<span class="op">=</span><span class="st">"ff"</span>)</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>expr <span class="op">=</span> (</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    factors_daily</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    .<span class="bu">filter</span>(_.date <span class="op">&gt;=</span> <span class="st">"2010-01-01"</span>)</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    .select(<span class="st">"date"</span>, <span class="st">"mktrf"</span>, <span class="st">"smb"</span>, <span class="st">"hml"</span>, <span class="st">"rf"</span>)</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    .rename({<span class="st">"risk_free"</span>: <span class="st">"rf"</span>})</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    .mutate(mkt <span class="op">=</span> _.mktrf <span class="op">+</span> _.risk_free)</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>ibis_to_pq(expr, <span class="st">"factors_ff3_daily.parquet"</span>, compression<span class="op">=</span><span class="st">"zstd"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="3">
-<pre><code>'factors_ff3_daily.parquet'</code></pre>
-</div>
-</div>
-<p>This is a good fit when you already have a reusable Ibis query pipeline and want to write the result directly to Parquet without materializing the whole result in memory first.</p>
-</section>
-<section id="related-reference-pages" class="level2">
-<h2 class="anchored" data-anchor-id="related-reference-pages">Related reference pages</h2>
-<ul>
-<li><a href="./reference/core.db_to_pq.html">db_to_pq</a></li>
-<li><a href="./reference/core.pg_update_pq.html">pg_update_pq</a></li>
-<li><a href="./reference/core.db_schema_to_pq.html">db_schema_to_pq</a></li>
-<li><a href="./reference/ibis.ibis_to_pq.html">ibis_to_pq</a></li>
-</ul>
+<section id="docs-build" class="level2">
+<h2 class="anchored" data-anchor-id="docs-build">Docs Build</h2>
+<p>This site uses <code>quartodoc</code> for API pages and Quarto for rendering.</p>
 
 
 </section>
