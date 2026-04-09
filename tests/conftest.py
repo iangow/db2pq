@@ -14,6 +14,21 @@ def _pg_setting(name: str, default: str) -> str:
     return os.getenv(name, default)
 
 
+_LOCAL_PG_FIXTURES = {
+    "pg_test_config",
+    "src_pg_conn",
+    "dst_pg_conn",
+    "require_source_table",
+}
+
+
+def pytest_collection_modifyitems(config, items):
+    marker = pytest.mark.local_pg
+    for item in items:
+        if _LOCAL_PG_FIXTURES.intersection(item.fixturenames):
+            item.add_marker(marker)
+
+
 @pytest.fixture(scope="session")
 def pg_test_config() -> dict[str, str | int]:
     default_user = os.getenv("PGUSER") or getpass.getuser()

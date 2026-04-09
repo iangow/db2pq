@@ -49,3 +49,6 @@ ibis-framework = "ibis"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "local_pg: integration tests that require a locally accessible PostgreSQL database with expected source tables",
+]
