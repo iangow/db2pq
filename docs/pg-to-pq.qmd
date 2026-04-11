@@ -36,6 +36,7 @@ db_to_pq(table_name="msf_v2", schema="crsp",
 ```
 
 ```{python}
+#| eval: false
 pg_update_pq(table_name="msf_v2", schema="crsp")
 ```
 
@@ -61,12 +62,13 @@ Set `numeric_mode="text"`, `"float64"`, or `"decimal"` if you want to deviate fr
 For the PostgreSQL-backed table helpers, `keep=` and `drop=` filter source
 column names, while `rename=` maps source names to output names.
 
-```python
+```{python}
+#| eval: false
 from db2pq import db_to_pq
 
 db_to_pq(
     "company",
-    "public",
+    "comp",
     keep=["gvkey", "conm", "sic"],
     rename={"conm": "company_name"},
 )
