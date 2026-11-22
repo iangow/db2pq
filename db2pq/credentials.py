@@ -167,12 +167,55 @@ def has_pgpass_password(conninfo: str = "", **kwargs: str | None) -> bool:
     return find_pgpass_entry(conninfo, **kwargs).found
 
 
+_FALSEY = {"", "0", "false", "no", "off"}
+
+
+def is_interactive(interactive: bool | None = None) -> bool:
+    """Decide whether db2pq may prompt on stdin.
+
+    An explicit ``interactive`` argument wins. Otherwise prompts are allowed
+    unless the ``DB2PQ_NONINTERACTIVE`` environment variable is set to a
+    true value. Scripts, CI jobs and coding agents should set it, so that a
+    missing credential raises an error naming the fix instead of waiting on
+    a prompt that nobody will answer.
+    """
+    if interactive is not None:
+        return bool(interactive)
+    flag = os.getenv("DB2PQ_NONINTERACTIVE", "").strip().lower()
+    return flag in _FALSEY
+
+
+class PromptUnavailableError(RuntimeError):
+    """A credential prompt was needed but stdin cannot answer it."""
+
+
+def _no_stdin(what: str, fix: str) -> PromptUnavailableError:
+    return PromptUnavailableError(
+        f"db2pq needed to prompt for {what}, but standard input is closed. {fix}"
+    )
+
+
 def prompt_for_password(prompt: str | None = None) -> str:
-    return getpass.getpass(prompt or "Enter PostgreSQL password: ")
+    try:
+        return getpass.getpass(prompt or "Enter PostgreSQL password: ")
+    except EOFError:
+        raise _no_stdin(
+            "a password",
+            "Store it once with `db2pq.credentials.save_password(conninfo, "
+            "password=...)` or `python -m db2pq save-wrds-password`, which "
+            "writes the entry to .pgpass.",
+        ) from None
 
 
 def prompt_for_wrds_username(prompt: str | None = None) -> str:
-    username = input(prompt or "Enter your WRDS username: ").strip()
+    try:
+        username = input(prompt or "Enter your WRDS username: ").strip()
+    except EOFError:
+        raise _no_stdin(
+            "your WRDS username",
+            "Pass `wrds_id=...` or set `WRDS_ID` in the environment or in a "
+            "local `.env` file.",
+        ) from None
     if not username:
         raise ValueError("WRDS username is required to connect to WRDS.")
     return username
@@ -180,7 +223,13 @@ def prompt_for_wrds_username(prompt: str | None = None) -> str:
 
 def prompt_yes_no(prompt: str, *, default: bool = True) -> bool:
     suffix = "[Y/n]" if default else "[y/N]"
-    response = input(f"{prompt} {suffix} ").strip().lower()
+    try:
+        response = input(f"{prompt} {suffix} ").strip().lower()
+    except EOFError:
+        raise _no_stdin(
+            "a yes/no answer",
+            "Set `DB2PQ_NONINTERACTIVE=1` to skip prompts.",
+        ) from None
     if not response:
         return default
     if response in {"y", "yes"}:
@@ -193,8 +242,9 @@ def prompt_yes_no(prompt: str, *, default: bool = True) -> bool:
 def ensure_wrds_id(
     wrds_id: str | None = None,
     *,
-    interactive: bool = True,
+    interactive: bool | None = None,
 ) -> str:
+    interactive = is_interactive(interactive)
     try:
         return get_wrds_username(wrds_id)
     except ValueError:
@@ -214,8 +264,9 @@ def ensure_wrds_id(
 def ensure_wrds_access(
     wrds_id: str | None = None,
     *,
-    interactive: bool = True,
+    interactive: bool | None = None,
 ) -> str:
+    interactive = is_interactive(interactive)
     username = ensure_wrds_id(wrds_id, interactive=interactive)
     conninfo = get_wrds_conninfo(username)
     if not has_pgpass_password(conninfo):
@@ -233,8 +284,18 @@ def ensure_wrds_access(
                 )
                 return username
         if not interactive:
+            passfile = resolve_connection_target(conninfo).passfile
+            hint = (
+                "`WRDS_PASSWORD` is set, so `python -m db2pq save-wrds-password` "
+                "will store it without a prompt."
+                if env_password
+                else "Set `WRDS_PASSWORD` and run `python -m db2pq "
+                "save-wrds-password`, or run any WRDS helper once in an "
+                "interactive session."
+            )
             raise ValueError(
-                "No WRDS password found in .pgpass for the resolved WRDS connection."
+                f"No WRDS password found in {passfile} for the resolved WRDS "
+                f"connection, and prompts are disabled. {hint}"
             )
         password = prompt_for_password("Enter your WRDS PostgreSQL password: ")
         save_password(conninfo, password=password)
@@ -266,10 +327,11 @@ def _is_auth_failure(exc: Exception) -> bool:
 def ensure_pg_access(
     conninfo: str = "",
     *,
-    interactive: bool = True,
+    interactive: bool | None = None,
     password_env_var: str = "PGPASSWORD",
     **kwargs: str | None,
 ) -> CredentialTarget:
+    interactive = is_interactive(interactive)
     target = resolve_connection_target(conninfo, **kwargs)
 
     try:
@@ -294,7 +356,10 @@ def ensure_pg_access(
 
     if not interactive:
         raise ValueError(
-            "No PostgreSQL password found in .pgpass for the resolved connection."
+            f"No PostgreSQL password found in {target.passfile} for "
+            f"{target.username}@{target.hostname}:{target.port}/{target.database}, "
+            "and prompts are disabled. Store it with "
+            "`db2pq.credentials.save_password(conninfo, password=...)`."
         )
 
     password = prompt_for_password(
@@ -355,7 +420,7 @@ def save_password(
 def ensure_wrds_credentials(
     wrds_id: str | None = None,
     *,
-    interactive: bool = True,
+    interactive: bool | None = None,
 ) -> bool:
     ensure_wrds_access(wrds_id, interactive=interactive)
     return True
@@ -373,6 +438,8 @@ __all__ = [
     "get_wrds_password",
     "get_wrds_username",
     "has_pgpass_password",
+    "is_interactive",
+    "PromptUnavailableError",
     "prompt_for_password",
     "prompt_for_wrds_username",
     "prompt_yes_no",
