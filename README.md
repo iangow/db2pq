@@ -98,6 +98,24 @@ securely and save it for future connections. For compatibility with the Tidy
 Finance Python setup, `db2pq` also recognizes `WRDS_USER` and can offer to
 copy `WRDS_PASSWORD` into `.pgpass`.
 
+## Scripts, CI and coding agents
+
+Set `DB2PQ_NONINTERACTIVE=1` when nobody is there to answer a prompt. A
+missing WRDS username or password then raises an error that names the fix.
+
+`python -m db2pq` inspects a Parquet repository without opening a database
+connection. Every subcommand takes `--json`.
+
+```bash
+python -m db2pq doctor --json                    # resolved DATA_DIR, WRDS_ID, .pgpass entry
+python -m db2pq status --json                    # every file: rows, columns, last_modified
+python -m db2pq check crsp.dsf comp.funda --json # exit code 1 if a table is missing
+WRDS_PASSWORD=... python -m db2pq save-wrds-password
+```
+
+The same information is available in Python as `pq_inventory()` and
+`pq_check()`, which return plain dictionaries. See `AGENTS.md` for more.
+
 ## WRDS SSH setup (for SAS-based metadata)
 
 `wrds_update_pq(..., use_sas=True)` uses SSH to execute SAS remotely. Configure

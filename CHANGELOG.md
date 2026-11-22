@@ -7,6 +7,28 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Added `pq_inventory()` and `pq_check()`, which describe a Parquet repository
+  as plain dictionaries (rows, columns, size, embedded `last_modified`) and
+  report which required `schema.table` files are missing. They need neither
+  pandas nor a database connection and create nothing on disk.
+- Added a command-line entry point, `python -m db2pq`, with `doctor`,
+  `status`, `check` and `save-wrds-password` subcommands. Each takes `--json`.
+- Added `DB2PQ_NONINTERACTIVE`. When it is set, a missing WRDS username or
+  password raises an error naming the fix instead of prompting.
+- Added `AGENTS.md` with notes for coding agents.
+
+### Changed
+
+- A credential prompt on a closed standard input now raises
+  `PromptUnavailableError` with the fix, where it used to raise a bare
+  `EOFError`.
+- The `interactive` argument of `ensure_wrds_id()`, `ensure_wrds_access()`,
+  `ensure_pg_access()` and `ensure_wrds_credentials()` defaults to `None`,
+  which means "prompt unless `DB2PQ_NONINTERACTIVE` is set". Passing `True`
+  or `False` behaves as before.
+
 ## [0.3.0] - 2026-04-09
 
 ### Added

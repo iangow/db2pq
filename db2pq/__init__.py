@@ -3,7 +3,7 @@ __version__ = "0.2.10"
 
 from importlib import import_module
 
-_LAZY_MODULES = {"config", "core", "credentials", "files", "ibis", "postgres"}
+_LAZY_MODULES = {"config", "core", "credentials", "files", "ibis", "inventory", "postgres"}
 _PUBLIC_EXPORTS = [
     "db_to_pq", "pg_update_pq", "db_to_pg", "ibis_to_pq", "wrds_pg_to_pq",
     "wrds_sql_to_pq", "wrds_pg_to_pg", "db_schema_to_pq", "wrds_update_pq",
@@ -11,7 +11,7 @@ _PUBLIC_EXPORTS = [
     "pq_restore", "pq_remove", "db_schema_tables", "wrds_get_tables",
     "wrds_update_pg", "pq_to_pg", "pq_update_pg", "process_sql",
     "set_table_comment", "close_adbc_cached", "set_default_engine",
-    "get_default_engine",
+    "get_default_engine", "pq_inventory", "pq_check",
 ]
 
 
@@ -71,6 +71,20 @@ if not _load_generated_public_api():
     close_adbc_cached = _lazy_export(".postgres.adbc", "close_adbc_cached")
     set_default_engine = _lazy_export(".config", "set_default_engine")
     get_default_engine = _lazy_export(".config", "get_default_engine")
+
+
+def pq_inventory(schema=None, *, data_dir=None):
+    """List the Parquet files in a data directory as dictionaries."""
+    from .inventory import pq_inventory as _impl
+
+    return _impl(schema, data_dir=data_dir)
+
+
+def pq_check(tables, *, data_dir=None):
+    """Report which ``schema.table`` Parquet files are present or missing."""
+    from .inventory import pq_check as _impl
+
+    return _impl(tables, data_dir=data_dir)
 
 
 def __getattr__(name):
